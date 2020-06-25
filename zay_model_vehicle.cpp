@@ -48,7 +48,7 @@ glm::dvec3 intersect(const glm::dvec3 p1, const glm::dvec3 p2, const glm::dvec3 
 model_vehicle::model_vehicle() : STEERING_WHEEL(0.0), MOVEMENT_SPEED(0.0), ORIENTATION(0.0), accumulate_dist(0.0), traveled_dist(0.0), rem_dist(0.0), ticks(0), rad(0.0), cen(glm::dvec3(0.0,0.0,0.0))
 {
     vehic_direction = glm::dvec3(1.0, 0.0, 0.0);
-    up_direction = glm::dvec3(0.0, 1.0, 0.0);
+//    up_direction = glm::dvec3(0.0, 1.0, 0.0);
 //    bit = old_bit = glm::dvec3(-0.129, 0.0, 0.0);
     bit = old_bit = glm::dvec3(0.0, 0.0, 0.0);
 
@@ -102,23 +102,34 @@ double model_vehicle::getTraveled_dist()
 
 void model_vehicle::update_rotation_att(const double& time)
 {
-
-
-    glm::dvec3 p1, p2;
-
-    if(STEERING_WHEEL > 0){
-        p1 = rotate(fit, bit, -M_PI_2, true);
-        p2 = rotate(bit, fit, -(M_PI_2-STEERING_WHEEL), false);
-    }else{
-        p1 = rotate(fit, bit, M_PI_2, false);
-        p2 = rotate(bit, fit, M_PI_2-STEERING_WHEEL, true);
-    }
-
     // the radius of rotation
     rad = std::abs( L/std::tan(STEERING_WHEEL));
 
+
+    // --------------------------------------
     // center of rotaion
-    cen = intersect(bit, p1, fit, p2);
+    if(STEERING_WHEEL > 0)
+        cen = (glm::normalize(glm::cross(vehic_direction, up_direction)) * rad) + bit;
+    else
+        cen = (-glm::normalize(glm::cross(vehic_direction, up_direction)) * rad) + bit;
+//    //---------------------------------
+//    glm::dvec3 p1, p2;
+
+//    if(STEERING_WHEEL > 0){
+//        p1 = rotate(fit, bit, -M_PI_2, true);
+//        p2 = rotate(bit, fit, -(M_PI_2-STEERING_WHEEL), false);
+//    }else{
+//        p1 = rotate(fit, bit, M_PI_2, false);
+//        p2 = rotate(bit, fit, M_PI_2-STEERING_WHEEL, true);
+//    }
+
+
+
+//    // center of rotaion
+//    cen = intersect(bit, p1, fit, p2);
+
+
+//    //------------------------------------------------
 
     // amount of rotaion
     ORIENTATION = (std::tan(STEERING_WHEEL) * MOVEMENT_SPEED * time)/L;

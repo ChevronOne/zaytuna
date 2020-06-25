@@ -61,7 +61,7 @@ public:
 
 
     glm::dvec3 vehic_direction;
-    glm::dvec3 up_direction;
+    const glm::dvec3 up_direction{0.0, 1.0, 0.0};
     glm::dvec3 bit;  //  position of back ideal tire
 
     glm::dvec3 fit; // position of front ideal tire
