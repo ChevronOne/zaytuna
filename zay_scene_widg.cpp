@@ -64,14 +64,15 @@ const uint NUM_FLOATS_PER_VERTICE1 = 8;
 const uint VERTEX_BYTE_SIZE = NUM_FLOATS_PER_VERTICE0 * sizeof(float);
 const uint VERTEX_BYTE_SIZE1 = NUM_FLOATS_PER_VERTICE1 * sizeof(float);
 
-const float ticks_per_m = 0.01369863f;
+//const float ticks_per_m = 0.01369863f;
 static const double PI2 = 2*M_PI;
 static const double t_rad =  0.0311;// circumference
 static const double CIRCUMFERENCE = PI2 * t_rad;// circumference
 
 
 
-static unsigned int total_tik = 0;
+static uint32_t total_tiks{0};
+static double accum_dist{0.0};
 uint32_t f = 0;
 
 
@@ -83,8 +84,8 @@ uint32_t f = 0;
 */
 
 static GLdouble angle1{ 0.0 };
-static GLdouble angle2{ 0.0 };
-static GLdouble angle3{ 0.0 };
+//static GLdouble angle2{ 0.0 };
+//static GLdouble angle3{ 0.0 };
 
 
 double _scene_widg::sX, _scene_widg::sY; //, _scene_widg::sZ;
@@ -140,7 +141,7 @@ _scene_widg::~_scene_widg()
 
     for(std::size_t i = 0; i<programs_num; ++i)
         glDeleteProgram(programs[i]);
-    delete[] programs;
+//    delete[] programs;
 
     glUseProgram(0);
 
@@ -193,7 +194,7 @@ void _scene_widg::initializeGL()
 
         glViewport(0, 0, this->width(), this->height());
 
-        programs = new GLuint[programs_num];
+//        programs = new GLuint[programs_num];
         for(std::size_t i = 0; i<programs_num; ++i)
             initShader("./Shaders/source"+std::to_string(i), programs[i], i);
 
@@ -227,62 +228,36 @@ void _scene_widg::paintGL()
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-//    _time = __clock::get_wall_time() - _time;
 
-//    if(model.MOVEMENT_SPEED != 0.0){
-        model.update_rotation_att(std::chrono::duration<double, std::ratio< 1, 1>>(std::chrono::high_resolution_clock::now() - _time).count() );
-        model.accumulate_dist = model.traveled_dist + model.accumulate_dist;
-        model.ticks = model.accumulate_dist / ticks_per_m;
-        model.accumulate_dist = fmod(model.accumulate_dist, ticks_per_m);
-//    }
-//        total_tik+=model.ticks;
-//        std::cout << "traveled: " << model.traveled_dist << "\n";
-//        std::cout << "accumulate: " << model.accumulate_dist << "\n";
-//        std::cout << "total_tik: " << total_tik << "\n";
 
-//    _time = __clock::get_wall_time();
+    model.update_attribs(std::chrono::duration<double,
+                         std::ratio< 1, 1>>
+                         (std::chrono::high_resolution_clock::now() - _time).count());
+
+
     _time = std::chrono::high_resolution_clock::now();
-
-
-//    model.accumulate_dist = model.traveled_dist + model.accumulate_dist;
-//    model.ticks = model.accumulate_dist / ticks_per_m;
-//    model.accumulate_dist = fmod(model.accumulate_dist, ticks_per_m);
-//    model.MOVEMENT_SPEED
-
-
-    //    angle3 += (model.traveled_dist/CIRCUMFERENCE)* PI2;
-    //    if(angle3>360)
-    //        angle3 -= 360;
-    //    else if (angle3< -360) {
-    //        angle3+=360;
-
-    //    }
-    //            angle3 += model.traveled_dist/t_rad;
-    //            if(angle3>PI2)
-    //                angle3 -= PI2;
-    //            else if (angle3< -PI2)
-    //                angle3+=PI2;
-
-
-
-    //    total_tik += model.ticks;
 
 
 
         activeCam->updateWorld_to_viewMat();
+
+
+
+
+
         transformationMat[0] = activeCam->transformationMat;
         glUseProgram(programs[1]);
 
         //    // render a plane
         glBindVertexArray(planeVAO_ID);
         glBindTexture(GL_TEXTURE_2D, textureID4);
-        glUniformMatrix4fv(transformMatLocation, 1, GL_FALSE, &transformationMat[0][0][0]);
+        glUniformMatrix4fv(transformMatLocation_0, 1, GL_FALSE, &transformationMat[0][0][0]);
         glDrawElements(GL_QUADS, planeNumIndices, GL_UNSIGNED_INT, reinterpret_cast<void*>(plane_indOffset));
 
         // fence
         glBindVertexArray(fenceVAO_ID);
         glBindTexture(GL_TEXTURE_2D, textureID5);
-        glUniformMatrix4fv(transformMatLocation1, 1, GL_FALSE, &transformationMat[0][0][0]);
+        glUniformMatrix4fv(transformMatLocation_1, 1, GL_FALSE, &transformationMat[0][0][0]);
         glDrawElements(GL_QUADS, fenceNumIndices, GL_UNSIGNED_INT, reinterpret_cast<void*>(fence_indOffset));
 
     //    // texsphere
@@ -294,79 +269,59 @@ void _scene_widg::paintGL()
         // mini-lap
         glBindVertexArray(lapVAO_ID);
         glBindTexture(GL_TEXTURE_2D, textureID1);
-        glUniformMatrix4fv(transformMatLocation1, 1, GL_FALSE, &transformationMat[0][0][0]);
+        glUniformMatrix4fv(transformMatLocation_1, 1, GL_FALSE, &transformationMat[0][0][0]);
         glDrawElements(GL_QUADS, lapNumIndices, GL_UNSIGNED_INT, reinterpret_cast<void*>(lap_indOffset));
 
 
         // render the lap2
         glBindVertexArray(lap2VAO_ID);
         glBindTexture(GL_TEXTURE_2D, textureID2);
-        glUniformMatrix4fv(transformMatLocation1, 1, GL_FALSE, &transformationMat[0][0][0]);
+        glUniformMatrix4fv(transformMatLocation_1, 1, GL_FALSE, &transformationMat[0][0][0]);
         glDrawElements(GL_QUADS, lap2NumIndices, GL_UNSIGNED_INT, reinterpret_cast<void*>(lap2_indOffset));
 
 
+        //-----------------------------------
+        model.render_the_model(this, activeCam, transformMatLocation_1, itt_MatLocation_P3);
 
-        //------------------------------------
-        glm::dmat4 modeltransform = activeCam->transformationMat * model.transform;
-        // render the model
-        glBindVertexArray(modelVAO_ID);
-        transformationMat[3] = modeltransform;
-        glBindTexture(GL_TEXTURE_2D, textureID6);
-        glUniformMatrix4fv(transformMatLocation1, 1, GL_FALSE, &transformationMat[3][0][0]);
-        glDrawElements(GL_TRIANGLES, modelNumIndices, GL_UNSIGNED_INT, reinterpret_cast<void*>(model_indOffset));
+//        glUseProgram(programs[3]);
 
-
-
-
-        if(std::abs(model.STEERING_WHEEL) < 0.0001){
-            transformationMat[7] =  modeltransform * model.f_rightT;
-            transformationMat[8] = modeltransform * model.f_leftT;
-        }else{
-            glm::dmat4 vRotation = glm::rotate(-model.STEERING_WHEEL, glm::dvec3(0.0, 1.0, 0.0));
-            transformationMat[7] =  modeltransform * model.f_rightT * vRotation;
-            transformationMat[8] = modeltransform * model.f_leftT * vRotation;
-        }
-        transformationMat[9] = modeltransform * model.backT;
-
-//        std::cout << "angle3: " << angle3 << "\n";
-
-        if(model.MOVEMENT_SPEED != 0.0){
-            if(model.MOVEMENT_SPEED < 0.0)
-                angle3 -= model.traveled_dist/t_rad;
-            else
-                angle3 += model.traveled_dist/t_rad;
-
-            if(angle3>PI2)
-                angle3 -= PI2;
-            else if (angle3< -PI2)
-                angle3+=PI2;
-
-            model.hRotation = glm::rotate(angle3, glm::dvec3(0.0, 0.0, 1.0));
-
-        }
-        transformationMat[7] = glm::dmat4(transformationMat[7]) * model.hRotation;
-        transformationMat[8] = glm::dmat4(transformationMat[8]) * model.hRotation;
-        transformationMat[9] = glm::dmat4(transformationMat[9]) * model.hRotation;
+//        glm::mat4 modeltransform = activeCam->transformationMat * model.transformationMats[0];
+//        glm::mat4 it_modeltransform =glm::inverse(glm::transpose(model.transformationMats[0]));
+//        // render the model
+//        glBindVertexArray(modelVAO_ID);
+//        transformationMat[3] = modeltransform;
+//        glBindTexture(GL_TEXTURE_2D, textureID6);
+//        glUniformMatrix4fv(transformMatLocation_1, 1, GL_FALSE, &modeltransform[0][0]);
+//        glUniformMatrix4fv(itt_MatLocation_P3, 1, GL_FALSE, &it_modeltransform[0][0]);
+//        glDrawElements(GL_TRIANGLES, modelNumIndices, GL_UNSIGNED_INT, reinterpret_cast<void*>(model_indOffset));
 
 
-        // render fronttires
-        glBindVertexArray(fronttiresVAO_ID);
-        glUniformMatrix4fv(transformMatLocation1, 1, GL_FALSE, &transformationMat[7][0][0]);
-        glDrawElements(GL_TRIANGLES, fronttiresNumIndices, GL_UNSIGNED_INT, reinterpret_cast<void*>(fronttires_indOffset));
-        glUniformMatrix4fv(transformMatLocation1, 1, GL_FALSE, &transformationMat[8][0][0]);
-        glDrawElements(GL_TRIANGLES, fronttiresNumIndices, GL_UNSIGNED_INT, reinterpret_cast<void*>(fronttires_indOffset));
+//        // render lidar
+//        glBindVertexArray(lidarVAO_ID);
+//        modeltransform = activeCam->transformationMat * model.transformationMats[4];
+////        transformationMat[10] = modeltransform * lidarMat;
+//        it_modeltransform =glm::inverse(glm::transpose(model.transformationMats[4]));
+//        glUniformMatrix4fv(transformMatLocation_1, 1, GL_FALSE, &modeltransform[0][0]);
+//        glUniformMatrix4fv(itt_MatLocation_P3, 1, GL_FALSE, &it_modeltransform[0][0]);
+//        this->glDrawElements(GL_TRIANGLES, lidarNumIndices, GL_UNSIGNED_INT, reinterpret_cast<void*>(lidar_indOffset));
 
-        // render back tires
-        glBindVertexArray(backtiresVAO_ID);
-        glUniformMatrix4fv(transformMatLocation1, 1, GL_FALSE, &transformationMat[9][0][0]);
-        glDrawElements(GL_TRIANGLES, backtiresNumIndices, GL_UNSIGNED_INT, reinterpret_cast<void*>(backtires_indOffset));
 
-        // render lidar
-        glBindVertexArray(lidarVAO_ID);
-        transformationMat[10] = modeltransform * model.lidar * glm::rotate(glm::radians(angle2 <= -360 ? angle2 = 0 : angle2 -= 10.0), glm::dvec3(0.0, 1.0, 0.0));
-        glUniformMatrix4fv(transformMatLocation1, 1, GL_FALSE, &transformationMat[10][0][0]);
-        glDrawElements(GL_TRIANGLES, lidarNumIndices, GL_UNSIGNED_INT, reinterpret_cast<void*>(lidar_indOffset));
 
+//        glUseProgram(programs[1]);
+//        // render fronttires
+//        glBindVertexArray(fronttiresVAO_ID);
+//        modeltransform = activeCam->transformationMat * model.transformationMats[1];
+//        glUniformMatrix4fv(transformMatLocation_1, 1, GL_FALSE, &modeltransform[0][0]);
+//        glDrawElements(GL_TRIANGLES, fronttiresNumIndices, GL_UNSIGNED_INT, reinterpret_cast<void*>(fronttires_indOffset));
+//        modeltransform = activeCam->transformationMat * model.transformationMats[2];
+//        glUniformMatrix4fv(transformMatLocation_1, 1, GL_FALSE, &modeltransform[0][0]);
+//        glDrawElements(GL_TRIANGLES, fronttiresNumIndices, GL_UNSIGNED_INT, reinterpret_cast<void*>(fronttires_indOffset));
+
+//        // render back tires
+//        glBindVertexArray(backtiresVAO_ID);
+//        modeltransform = activeCam->transformationMat * model.transformationMats[3];
+//        glUniformMatrix4fv(transformMatLocation_1, 1, GL_FALSE, &modeltransform[0][0]);
+//        glDrawElements(GL_TRIANGLES, backtiresNumIndices, GL_UNSIGNED_INT, reinterpret_cast<void*>(backtires_indOffset));
         //-------------------------------------
 
 
@@ -381,7 +336,7 @@ void _scene_widg::paintGL()
             // render a grid
             glBindVertexArray(gridVAO_ID);
             transformationMat[1] = activeCam->transformationMat; // projectionMat * mainCam.getWorld_to_view_Mat();
-            glUniformMatrix4fv(transformMatLocation, 1, GL_FALSE, &transformationMat[1][0][0]);
+            glUniformMatrix4fv(transformMatLocation_0, 1, GL_FALSE, &transformationMat[1][0][0]);
             glDrawElements(GL_LINES, gridNumIndices, GL_UNSIGNED_INT, reinterpret_cast<void*>(grid_indOffset));
         }
 
@@ -391,7 +346,7 @@ void _scene_widg::paintGL()
             glLineWidth(1.5f);
             glBindVertexArray(coordVAO_ID);
             transformationMat[2] = activeCam->transformationMat; // projectionMat * mainCam.getWorld_to_view_Mat();
-            glUniformMatrix4fv(transformMatLocation, 1, GL_FALSE, &transformationMat[2][0][0]);
+            glUniformMatrix4fv(transformMatLocation_0, 1, GL_FALSE, &transformationMat[2][0][0]);
             glDrawElements(GL_LINES, coordNumIndices, GL_UNSIGNED_INT, reinterpret_cast<void*>(coord_indOffset));
         }
 
@@ -407,29 +362,29 @@ void _scene_widg::paintGL()
         glBindVertexArray(sphereVAO_ID);
         glm::dmat4 sphereR = glm::rotate(glm::radians(angle1 >= 360 ? angle1 = 0 : angle1 += 0.2), glm::dvec3(0.0, 1.0, 0.0));
         transformationMat[4] = activeCam->transformationMat * translateMat[4] * sphereR;
-        glUniformMatrix4fv(transformMatLocation, 1, GL_FALSE, glm::value_ptr(transformationMat[4]));
+        glUniformMatrix4fv(transformMatLocation_0, 1, GL_FALSE, glm::value_ptr(transformationMat[4]));
         glDrawElements(GL_TRIANGLE_STRIP, sphereNumIndices, GL_UNSIGNED_INT, reinterpret_cast<void*>(sphere_indOffset));
 
 
     //    //=====================================
         transformationMat[4] = activeCam->transformationMat * glm::translate(glm::dvec3(4.0f, 0.5f,5.0f)) * sphereR;
-        glUniformMatrix4fv(transformMatLocation, 1, GL_FALSE, glm::value_ptr(transformationMat[4]));
+        glUniformMatrix4fv(transformMatLocation_0, 1, GL_FALSE, glm::value_ptr(transformationMat[4]));
         glDrawElements(GL_TRIANGLE_STRIP, sphereNumIndices, GL_UNSIGNED_INT, reinterpret_cast<void*>(sphere_indOffset));
 
         transformationMat[4] = activeCam->transformationMat * glm::translate(glm::dvec3(-4.0f, 0.5f,5.0f)) * sphereR;
-        glUniformMatrix4fv(transformMatLocation, 1, GL_FALSE, glm::value_ptr(transformationMat[4]));
+        glUniformMatrix4fv(transformMatLocation_0, 1, GL_FALSE, glm::value_ptr(transformationMat[4]));
         glDrawElements(GL_TRIANGLE_STRIP, sphereNumIndices, GL_UNSIGNED_INT, reinterpret_cast<void*>(sphere_indOffset));
 
         transformationMat[4] = activeCam->transformationMat * glm::translate(glm::dvec3(0.0f, 0.5f,5.0f)) * sphereR;
-        glUniformMatrix4fv(transformMatLocation, 1, GL_FALSE, glm::value_ptr(transformationMat[4]));
+        glUniformMatrix4fv(transformMatLocation_0, 1, GL_FALSE, glm::value_ptr(transformationMat[4]));
         glDrawElements(GL_TRIANGLE_STRIP, sphereNumIndices, GL_UNSIGNED_INT, reinterpret_cast<void*>(sphere_indOffset));
 
         transformationMat[4] = activeCam->transformationMat * glm::translate(glm::dvec3(-4.0f, 0.5f, -5.0f)) * sphereR;
-        glUniformMatrix4fv(transformMatLocation, 1, GL_FALSE, glm::value_ptr(transformationMat[4]));
+        glUniformMatrix4fv(transformMatLocation_0, 1, GL_FALSE, glm::value_ptr(transformationMat[4]));
         glDrawElements(GL_QUAD_STRIP, sphereNumIndices, GL_UNSIGNED_INT, reinterpret_cast<void*>(sphere_indOffset));
 
         transformationMat[4] = activeCam->transformationMat * glm::translate(glm::dvec3(8.0f, 0.5f, -2.0f)) * glm::rotate(glm::radians(90.0), glm::dvec3(1.0, 0.0, 0.0)) *  sphereR;
-        glUniformMatrix4fv(transformMatLocation, 1, GL_FALSE, glm::value_ptr(transformationMat[4]));
+        glUniformMatrix4fv(transformMatLocation_0, 1, GL_FALSE, glm::value_ptr(transformationMat[4]));
         glDrawElements(GL_QUAD_STRIP, sphereNumIndices, GL_UNSIGNED_INT, reinterpret_cast<void*>(sphere_indOffset));
     //    //==================================
 
@@ -437,7 +392,7 @@ void _scene_widg::paintGL()
         // render the pyramidetranslate
         glBindVertexArray(pyramideVAO_ID);
         transformationMat[5] = activeCam->transformationMat * translateMat[5] * glm::rotate(glm::radians(25.0), glm::dvec3(0.0, 1.0, 0.0));
-        glUniformMatrix4fv(transformMatLocation, 1, GL_FALSE, &transformationMat[5][0][0]);
+        glUniformMatrix4fv(transformMatLocation_0, 1, GL_FALSE, &transformationMat[5][0][0]);
         glDrawElements(GL_TRIANGLES, pyramideNumIndices, GL_UNSIGNED_INT, reinterpret_cast<void*>(pyramide_indOffset));
 
 
@@ -454,7 +409,7 @@ void _scene_widg::paintGL()
         glBindVertexArray(skyboxVAO_ID);
         glBindTexture(GL_TEXTURE_CUBE_MAP, textureID3);
         transformationMat[0] = activeCam->transformationMat * glm::translate(activeCam->camera_position);
-        glUniformMatrix4fv(transformMatLocation2, 1, GL_FALSE, &transformationMat[0][0][0]);
+        glUniformMatrix4fv(transformMatLocation_2, 1, GL_FALSE, &transformationMat[0][0][0]);
         glDrawElements(GL_TRIANGLES, skyboxNumIndices, GL_UNSIGNED_INT, reinterpret_cast<void*>(skybox_indOffset));
         glDepthFunc(GL_LESS);
 
@@ -472,12 +427,23 @@ void _scene_widg::paintGL()
     //        std::cout << glm::distance(model.bit, model.old_bit) << " meters \n";
     //        std::cout << angle3 << " radiance \n";
             accum = f = 0;
-            std::cout << "Pos: " << model.bit;
+            std::cout << "Pos: " << model.back_ideal_tire;
             std::cout << "Direc: " << model.vehic_direction;
-            std::cout << "Ticks-Counter: " << (int)model.ticks <<"\n";
+            std::cout << "Ticks-Counter: " << model.ticks_counter <<"\n";
         }
-//        std::cout << "Ticks-Counter: " << (int)model.ticks <<"\n";
+//        std::cout << "Ticks-Counter: " << model.ticks_counter <<"\n";
         start_t = std::chrono::high_resolution_clock::now();
+
+
+//        accum_dist += model.traveled_dist;
+//        total_tiks += model.ticks_counter;
+
+//        if(accum_dist>=1.0){
+//            std::cout << "dist: " << accum_dist << "\n";
+//            std::cout << "total ticks: " << total_tiks << "\n";
+//            exit(EXIT_SUCCESS);
+//        }
+
 
 
 }
@@ -742,17 +708,22 @@ void _scene_widg::initShader(const std::string& file_Dir, GLuint& programLinker,
                     // associate the vertex attribute index with attribute variable name "vertPos" & "color"
                     // the same attribute names are defined in vertex shader
                     if(attrib_location == 0){
-                    glBindAttribLocation(programLinker, 0, "vertPosition");
-                    glBindAttribLocation(programLinker, 1, "color");
-                    glBindAttribLocation(programLinker, 2, "normal");
+                        glBindAttribLocation(programLinker, 0, "vertPos");
+                        glBindAttribLocation(programLinker, 1, "vertColor");
+                        glBindAttribLocation(programLinker, 2, "vertNorm");
                     }else if(attrib_location == 1){
                         glBindAttribLocation(programLinker, 0, "vertPos");
-                        glBindAttribLocation(programLinker, 1, "vecNorm");
-                        glBindAttribLocation(programLinker, 2, "textCoor");
+                        glBindAttribLocation(programLinker, 1, "vertNorm");
+                        glBindAttribLocation(programLinker, 2, "texCoor");
                     }else if(attrib_location == 2){
                         glBindAttribLocation(programLinker, 0, "vertPos");
-//                        glBindAttribLocation(programLinker, 1, "vecNorm");
-//                        glBindAttribLocation(programLinker, 2, "textCoor");
+//                        glBindAttribLocation(programLinker, 1, "vertNorm");
+//                        glBindAttribLocation(programLinker, 2, "texCoor");
+                    }else if(attrib_location == 3){
+                        glBindAttribLocation(programLinker, 0, "vertPos");
+                        glBindAttribLocation(programLinker, 1, "vertNorm");
+                        glBindAttribLocation(programLinker, 2, "texCoor");
+
                     }else{
                         std::cout << "program " << file_Dir << " not initialized!\n";
                         exit(EXIT_FAILURE);
@@ -842,7 +813,7 @@ void _scene_widg::send_data()
             +fronttires.verBufSize() + fronttires.indBufSize()
             +backtires.verBufSize() + backtires.indBufSize()
             +lidar.verBufSize() + lidar.indBufSize()
-                     , 0, GL_STATIC_DRAW);
+                     , nullptr, GL_STATIC_DRAW);
 
     //    makeUnderUse(program1);
 
@@ -1160,9 +1131,14 @@ void _scene_widg::send_data()
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, theBufferID);
 
 
-        transformMatLocation = glGetUniformLocation(programs[0], "transformMat");
-        transformMatLocation1 = glGetUniformLocation(programs[1], "transformMat");
-        transformMatLocation2 = glGetUniformLocation(programs[2], "transformMat");
+        transformMatLocation_0 = glGetUniformLocation(programs[0], "transformMat");
+        transformMatLocation_1 = glGetUniformLocation(programs[1], "transformMat");
+        transformMatLocation_2 = glGetUniformLocation(programs[2], "transformMat");
+        transformMatLocation_3 = glGetUniformLocation(programs[3], "transformMat");
+
+        itt_MatLocation_P3 = glGetUniformLocation(programs[3], "it_transformMat");
+
+
 
         plane.cleanUP();
         grid.cleanUP();
@@ -1239,6 +1215,7 @@ void _scene_widg::send_data()
        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     //   load_tex(tex_buffer, "textures/green+grass-1024x1024.png", "PNG"); // TexturesCom_Grass0003_1_seamless_S.jpg
        load_tex(tex_buffer, "tex/plane_grass_1024x1024.jpg", "JPG", 0, 1);
+//       load_tex(tex_buffer, "tex/gras.jpg", "JPG", 0, 0);
        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tex_buffer.width(), tex_buffer.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, tex_buffer.bits());
        //------------------------------
        glGenTextures(1, &textureID5); // fence
@@ -1270,6 +1247,25 @@ void _scene_widg::send_data()
 
 
 
+
+
+       this->model.programID = programs[3];
+       this->model.textureID = textureID6;
+
+       this->model.modelVAO_ID = modelVAO_ID;
+       this->model.fronttiresVAO_ID = fronttiresVAO_ID;
+       this->model.backtiresVAO_ID = backtiresVAO_ID;
+       this->model.lidarVAO_ID = lidarVAO_ID;
+
+       this->model.model_indOffset = model_indOffset;
+       this->model.fronttires_indOffset = fronttires_indOffset;
+       this->model.backtires_indOffset = backtires_indOffset;
+       this->model.lidar_indOffset = lidar_indOffset;
+
+       this->model.modelNumIndices = modelNumIndices;
+       this->model.fronttiresNumIndices = fronttiresNumIndices;
+       this->model.backtiresNumIndices = backtiresNumIndices;
+       this->model.lidarNumIndices = lidarNumIndices;
 }
 
 void _scene_widg::load_tex(QImage& buff, const QString& _dir,

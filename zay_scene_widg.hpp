@@ -67,7 +67,6 @@
 #include "zay_vertex.hpp"
 #include "zay_shape_maker.hpp"
 #include "zay_shape_data.hpp"
-//#include "zay_front_cam.hpp"
 #include "zay_model_vehicle.hpp"
 #include "zay_item.hpp"
 #include "zay_clock.hpp"
@@ -90,15 +89,11 @@ namespace zaytuna {
 
 
 
-
 enum class FileStatus { UNDEFINED, LOADED, FAILED };
 enum class VarType { PROGRAM, SHADER };
 
 
 
-//namespace Ui {
-//class _scene_widg;
-//}
 
 class _scene_widg : public QOpenGLWidget, protected QOpenGLFunctions_3_0 // QOpenGLExtraFunctions
 //class _scene_widg : public QGLWidget, protected QOpenGLFunctions_3_0 // QOpenGLExtraFunctions
@@ -198,7 +193,7 @@ public:
     //    unsigned int program1, program2;
     //    const GLuint programs_num{2};
         std::vector<GLuint> programsssssss;
-        GLuint* programs;
+        GLuint programs[programs_num];
     //    std::vector<zaytuna::_item*> ging{2};
         std::vector<std::vector<zaytuna::_item*>> beings; //{programs_num};
         unsigned int _Shaders[SHADERS_NUM];
@@ -224,7 +219,9 @@ public:
 
         glm::dmat4 projectionMat;
         std::vector<glm::mat4> transformationMat;
-        GLint transformMatLocation, transformMatLocation1, transformMatLocation2;
+        GLint transformMatLocation_0, transformMatLocation_1,
+              transformMatLocation_2, transformMatLocation_3,
+              itt_MatLocation_P3;
 
         QTimer timer, key_timer;
 

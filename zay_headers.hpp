@@ -72,7 +72,7 @@
 namespace fs = std::experimental::filesystem::v1;
 
 #define SHADERS_NUM 2
-const GLuint programs_num{3};
+const GLuint programs_num{4};
 
 #endif
 //--------------------------

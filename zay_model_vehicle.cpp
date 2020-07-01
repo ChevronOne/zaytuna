@@ -45,35 +45,36 @@ glm::dvec3 intersect(const glm::dvec3 p1, const glm::dvec3 p2, const glm::dvec3 
 
 
 
-model_vehicle::model_vehicle() : STEERING_WHEEL(0.0), MOVEMENT_SPEED(0.0), ORIENTATION(0.0), accumulate_dist(0.0), traveled_dist(0.0), rem_dist(0.0), ticks(0), rad(0.0), cen(glm::dvec3(0.0,0.0,0.0))
+model_vehicle::model_vehicle() : STEERING_WHEEL(0.0), MOVEMENT_SPEED(0.0),
+    AMOUNT_OF_ROTATION(0.0), accumulated_dist(0.0), traveled_dist(0.0),
+    ticks_counter(0), radius_of_rotation(0.0), center_of_rotation(glm::dvec3(0.0,0.0,0.0))
 {
     vehic_direction = glm::dvec3(1.0, 0.0, 0.0);
-//    up_direction = glm::dvec3(0.0, 1.0, 0.0);
-//    bit = old_bit = glm::dvec3(-0.129, 0.0, 0.0);
-    bit = old_bit = glm::dvec3(0.0, 0.0, 0.0);
+    back_ideal_tire = old_back_ideal_tire = glm::dvec3(0.0, 0.0, 0.0);
+
+    front_ideal_tire = glm::dvec3(0.157 , 0.0 , 0.0);
+
+//    transform = glm::translate(glm::dvec3(0.0, 0.0, 0.0));
+    transformationMats[0] = glm::translate(glm::dvec3(0.0, 0.0, 0.0));
+    rotationMat = glm::rotate(0.0, up_direction);
 
 
-    fit = glm::dvec3(0.157 , 0.0 , 0.0);
-//    frontCamDir = glm::dvec3(0.12 , 0.2 , 0.0);
-
-    transform = glm::translate(glm::dvec3(0.0, 0.0, 0.0));
-    _rotation = glm::rotate(0.0, up_direction);
-
-
-//    frontCam.view_direction = vehic_direction;
     frontCam.camera_position = camPos ;// glm::dvec3(0.13, 0.466, 0.0); // bit + camHeight; //  glm::dvec3(0.129, 0.466, 0.0); //
-//    frontCam.view_direction = frontCamDir - frontCam.camera_position;
     frontCam.view_direction = glm::dvec3(0.5 , 0.17 , 0.0) - frontCam.camera_position;
 
-    hRotation = glm::rotate(0.0, glm::dvec3(0.0, 0.0, 1.0));
+//    hRotation = glm::rotate(0.0, glm::dvec3(0.0, 0.0, 1.0)); // xxxxxx
+    tires_hRotation = glm::rotate(amount_of_hRotation, glm::dvec3(0.0, 0.0, 1.0));
+    front_tires_vRotation = glm::rotate(STEERING_WHEEL, glm::dvec3(0.0, 1.0, 0.0));
+
+
+
+    transformationMats[1] = f_rightT;
+    transformationMats[2] = f_leftT;
+    transformationMats[3] = backT;
+    transformationMats[4] = lidar;
 
 }
 
-glm::dmat4 model_vehicle::update_rotationMat(void)
-{
-    _rotation =  glm::translate(cen) * glm::rotate(glm::radians(ORIENTATION), up_direction) * glm::translate(-cen);
-    return _rotation;
-}
 
 void model_vehicle::move_forward(const float& time)
 {
@@ -85,14 +86,47 @@ void model_vehicle::move_backward(const float& time)
     std::cout << time<< "\n";
 }
 
-void model_vehicle::actuate_vehic(const float& time)
+void model_vehicle::actuate()
 {
-    std::cout << time<< "\n";
+    if(std::abs(STEERING_WHEEL) < 0.0001){
+        transformationMats[1] =  transformationMats[0] * f_rightT;
+        transformationMats[2] = transformationMats[0] * f_leftT;
+    }else{
+        front_tires_vRotation = glm::rotate(-STEERING_WHEEL, glm::dvec3(0.0, 1.0, 0.0));
+        transformationMats[1] =  transformationMats[0] * f_rightT * front_tires_vRotation;
+        transformationMats[2] = transformationMats[0] * f_leftT * front_tires_vRotation;
+    }
+
+    transformationMats[3] = transformationMats[0]  * backT;
+
+    if(MOVEMENT_SPEED != 0.0){
+        if(MOVEMENT_SPEED < 0.0)
+            amount_of_hRotation -= traveled_dist/tires_radius;
+        else
+            amount_of_hRotation += traveled_dist/tires_radius;
+
+        if(amount_of_hRotation>PI2)
+            amount_of_hRotation -= PI2;
+        else if (amount_of_hRotation< -PI2)
+            amount_of_hRotation+=PI2;
+
+        tires_hRotation = glm::rotate(amount_of_hRotation, glm::dvec3(0.0, 0.0, 1.0));
+
+    }
+    transformationMats[1] = glm::dmat4(transformationMats[1]) * tires_hRotation;
+    transformationMats[2] = glm::dmat4(transformationMats[2]) * tires_hRotation;
+    transformationMats[3] = glm::dmat4(transformationMats[3]) * tires_hRotation;
+
+
+    transformationMats[4] = transformationMats[0] * lidar
+            * glm::rotate(glm::radians(amount_of_rotation_Lidar <= -360 ?
+                                           amount_of_rotation_Lidar = 0 : amount_of_rotation_Lidar -= lidar_spin_speed),
+                          glm::dvec3(0.0, 1.0, 0.0));
 }
 
 double model_vehicle::getRadius()
 {
-    return rad;
+    return radius_of_rotation;
 }
 
 double model_vehicle::getTraveled_dist()
@@ -100,90 +134,132 @@ double model_vehicle::getTraveled_dist()
     return  traveled_dist;
 }
 
-void model_vehicle::update_rotation_att(const double& time)
+void model_vehicle::update_attribs(const double & elapsed_t)
+{
+    if(MOVEMENT_SPEED != 0.0){
+
+        update_rotation_att(elapsed_t);
+        accumulated_dist = traveled_dist + accumulated_dist;
+        ticks_counter = static_cast<uint32_t>(accumulated_dist/meters_per_tick);
+        accumulated_dist = fmod(accumulated_dist, meters_per_tick);
+    }
+    actuate();
+}
+
+void model_vehicle::update_rotation_att(const double& elapsed_t)
 {
     // the radius of rotation
-    rad = std::abs( L/std::tan(STEERING_WHEEL));
+    radius_of_rotation = std::abs( front_back_distance/std::tan(STEERING_WHEEL));
 
-
-    // --------------------------------------
     // center of rotaion
     if(STEERING_WHEEL > 0)
-        cen = (glm::normalize(glm::cross(vehic_direction, up_direction)) * rad) + bit;
+        center_of_rotation = (glm::normalize(glm::cross(vehic_direction, up_direction))
+                              * radius_of_rotation) + back_ideal_tire;
     else
-        cen = (-glm::normalize(glm::cross(vehic_direction, up_direction)) * rad) + bit;
-//    //---------------------------------
-//    glm::dvec3 p1, p2;
+        center_of_rotation = (-glm::normalize(glm::cross(vehic_direction, up_direction))
+                              * radius_of_rotation) + back_ideal_tire;
 
-//    if(STEERING_WHEEL > 0){
-//        p1 = rotate(fit, bit, -M_PI_2, true);
-//        p2 = rotate(bit, fit, -(M_PI_2-STEERING_WHEEL), false);
-//    }else{
-//        p1 = rotate(fit, bit, M_PI_2, false);
-//        p2 = rotate(bit, fit, M_PI_2-STEERING_WHEEL, true);
-//    }
-
-
-
-//    // center of rotaion
-//    cen = intersect(bit, p1, fit, p2);
-
-
-//    //------------------------------------------------
 
     // amount of rotaion
-    ORIENTATION = (std::tan(STEERING_WHEEL) * MOVEMENT_SPEED * time)/L;
-
-    update_rotationMat();
-
-    transform = _rotation * transform;
-
-    old_bit = bit;
-
-    bit =  _rotation * glm::dvec4(bit, 1.0);
-    fit =  _rotation * glm::dvec4(fit, 1.0);
-//    if(MOVEMENT_SPEED != 0.0)
-//        vehic_direction = _rotation * glm::dvec4(1.0, 0.0, 0.0, 1.0);
-
-//    frontCamDir = _rotation * glm::dvec4(frontCamDir, 1.0);
-
-//    // traveled dist from last fram is given by the length of arch bwtween old position and new position
-//    double d = std::sqrt( std::pow( old_bit.x-bit.x,2)+std::pow(old_bit.z-bit.z ,2) );
-//    traveled_dist =  rad * std::acos(1.0 - (d*d)/(2*rad*rad) );
-
-//    std::cout << "orientation: " << ORIENTATION << "\n";
-//    std::cout << "rad: " << rad << "\n";
-    traveled_dist = glm::radians(std::abs(ORIENTATION)) * rad;
-
-//    frontCam.camera_position = bit + camHeight;
-    frontCam.camera_position = transform * camPos;
+    AMOUNT_OF_ROTATION = (std::tan(STEERING_WHEEL)
+                          * MOVEMENT_SPEED * elapsed_t)/front_back_distance;
 
 
-//    frontCam.view_direction =  frontCamDir - frontCam.camera_position;
+    rotationMat =  glm::translate(center_of_rotation) *
+            glm::rotate(glm::radians(AMOUNT_OF_ROTATION), up_direction)
+            * glm::translate(-center_of_rotation);
 
-//    if(MOVEMENT_SPEED != 0.0){
-        vehic_direction = glm::mat3(glm::rotate(glm::radians(ORIENTATION), up_direction)) * vehic_direction;
-        frontCam.view_direction = glm::mat3(glm::rotate(glm::radians(ORIENTATION), up_direction)) * frontCam.view_direction;
-//    }
+    transformationMats[0] = rotationMat * transformationMats[0];
 
-//    vehic_direction = glm::mat3(glm::rotate(glm::radians(ORIENTATION), up_direction)) * vehic_direction;
+    old_back_ideal_tire = back_ideal_tire;
+
+    back_ideal_tire =  rotationMat * glm::dvec4(back_ideal_tire, 1.0);
+    front_ideal_tire =  rotationMat * glm::dvec4(front_ideal_tire, 1.0);
+
+    traveled_dist = glm::radians(std::abs(AMOUNT_OF_ROTATION)) * radius_of_rotation;
+
+    frontCam.camera_position = transformationMats[0] * camPos;
+
+
+
+    vehic_direction = glm::mat3(glm::rotate(glm::radians(AMOUNT_OF_ROTATION), up_direction)) * vehic_direction;
+    frontCam.view_direction = glm::mat3(glm::rotate(glm::radians(AMOUNT_OF_ROTATION), up_direction)) * frontCam.view_direction;
 
 
 }
 
+void model_vehicle::render_the_model(QOpenGLFunctions_3_0* _widg,
+            zaytuna::camera* activeCam,
+            const GLint transformMatLocation,
+            const GLint inverse_transpose_transformMatLocation)
+{
+    modeltransformMat = activeCam->transformationMat * transformationMats[0];
+    inverse_transpose_transformMat =glm::inverse(glm::transpose(transformationMats[0]));
+
+    _widg->glUseProgram(programID);
+    _widg->glBindTexture(GL_TEXTURE_2D, textureID);
+
+
+    // render the model
+    _widg->glBindVertexArray(modelVAO_ID);
+    _widg->glUniformMatrix4fv(transformMatLocation, 1, GL_FALSE, &modeltransformMat[0][0]);
+    _widg->glUniformMatrix4fv(inverse_transpose_transformMatLocation, 1, GL_FALSE, &inverse_transpose_transformMat[0][0]);
+    _widg->glDrawElements(GL_TRIANGLES, modelNumIndices, GL_UNSIGNED_INT, reinterpret_cast<void*>(model_indOffset));
+
+
+    // render lidar
+    _widg->glBindVertexArray(lidarVAO_ID);
+    modeltransformMat = activeCam->transformationMat * transformationMats[4];
+    inverse_transpose_transformMat =glm::inverse(glm::transpose(transformationMats[4]));
+    _widg->glUniformMatrix4fv(transformMatLocation, 1, GL_FALSE, &modeltransformMat[0][0]);
+    _widg->glUniformMatrix4fv(inverse_transpose_transformMatLocation, 1, GL_FALSE, &inverse_transpose_transformMat[0][0]);
+    _widg->glDrawElements(GL_TRIANGLES, lidarNumIndices, GL_UNSIGNED_INT, reinterpret_cast<void*>(lidar_indOffset));
+
+
+    // render fronttires
+    _widg->glBindVertexArray(fronttiresVAO_ID);
+    modeltransformMat = activeCam->transformationMat * transformationMats[1];
+    inverse_transpose_transformMat =glm::inverse(glm::transpose(transformationMats[1]));
+    _widg->glUniformMatrix4fv(transformMatLocation, 1, GL_FALSE, &modeltransformMat[0][0]);
+    _widg->glUniformMatrix4fv(inverse_transpose_transformMatLocation, 1, GL_FALSE, &inverse_transpose_transformMat[0][0]);
+    _widg->glDrawElements(GL_TRIANGLES, fronttiresNumIndices, GL_UNSIGNED_INT, reinterpret_cast<void*>(fronttires_indOffset));
+
+    modeltransformMat = activeCam->transformationMat * transformationMats[2];
+    inverse_transpose_transformMat =glm::inverse(glm::transpose(transformationMats[2]));
+    _widg->glUniformMatrix4fv(transformMatLocation, 1, GL_FALSE, &modeltransformMat[0][0]);
+    _widg->glUniformMatrix4fv(inverse_transpose_transformMatLocation, 1, GL_FALSE, &inverse_transpose_transformMat[0][0]);
+    _widg->glDrawElements(GL_TRIANGLES, fronttiresNumIndices, GL_UNSIGNED_INT, reinterpret_cast<void*>(fronttires_indOffset));
+
+
+    // render back tires
+    _widg->glBindVertexArray(backtiresVAO_ID);
+    modeltransformMat = activeCam->transformationMat * transformationMats[3];
+    inverse_transpose_transformMat =glm::inverse(glm::transpose(transformationMats[3]));
+    _widg->glUniformMatrix4fv(transformMatLocation, 1, GL_FALSE, &modeltransformMat[0][0]);
+    _widg->glUniformMatrix4fv(inverse_transpose_transformMatLocation, 1, GL_FALSE, &inverse_transpose_transformMat[0][0]);
+    _widg->glDrawElements(GL_TRIANGLES, backtiresNumIndices, GL_UNSIGNED_INT, reinterpret_cast<void*>(backtires_indOffset));
+
+}
+
+
+
+
+//------------------------------------------------------------------------
+
+// old approache
 glm::dvec3 rotate(glm::dvec3 p, const glm::dvec3 c, const double angle, const bool ccw){
     double _sin = std::sin(angle);
     double _cos = std::cos(angle);
     p -= c;
 
-    if(ccw){ // ccw: counter clockwise rotation
+    if(ccw)// ccw: counter clockwise rotation
         p = glm::dvec3(  p.x * _cos + p.z * _sin, 0.0f,
                          p.z * _cos - p.x * _sin);
 
-    }else{ // cw: clockwise rotation
+    else // cw: clockwise rotation
         p = glm::dvec3(  p.x * _cos - p.z * _sin, 0.0f,
                          p.z * _cos + p.x * _sin);
-    }
+
 
     return p+c;
 }
@@ -201,161 +277,26 @@ void model_vehicle::update_steerin()
 
 }
 
+void model_vehicle::get_cent()
+{
+        glm::dvec3 p1, p2;
+
+        if(STEERING_WHEEL > 0){
+            p1 = rotate(front_ideal_tire, back_ideal_tire, -M_PI_2, true);
+            p2 = rotate(back_ideal_tire, front_ideal_tire, -(M_PI_2-STEERING_WHEEL), false);
+        }else{
+            p1 = rotate(front_ideal_tire, back_ideal_tire, M_PI_2, false);
+            p2 = rotate(back_ideal_tire, front_ideal_tire, M_PI_2-STEERING_WHEEL, true);
+        }
+
+
+
+        // center of rotaion
+        center_of_rotation = intersect(back_ideal_tire, p1, front_ideal_tire, p2);
+}
+
+
+
 } // namespace  zaytuna
 
 
-//=====================================================================================
-//std::ostream& operator<<(std::ostream& out, const glm::vec3& vec)
-//{
-//    out.precision(std::numeric_limits<float>::max_digits10);
-//    return out << std::fixed <<
-//         ": " << vec.x <<
-//         " , " << vec.y <<
-//         " , " << vec.z << "\n";
-
-//}
-
-//glm::dvec3 rotate(glm::dvec3 p, const glm::dvec3 c, const double angle, const bool ccw);
-
-//glm::dvec3 intersect(const glm::dvec3 p1, const glm::dvec3 p2, const glm::dvec3 p3, const glm::dvec3 p4);
-
-
-
-//model_vehicle::model_vehicle() : STEERING_WHEEL(0.0), MOVEMENT_SPEED(0.0), ORIENTATION(0.0), accumulate_dist(0.f), traveled_dist(0.0), rem_dist(0.0), ticks(0), rad(0.0), cen(glm::dvec3(0.0,0.0,0.0))
-//{
-//    vehic_direction = glm::dvec3(1.0, 0.0, 0.0);
-//    up_direction = glm::dvec3(0.0, 1.0, 0.0);
-//    bit = old_bit = glm::dvec3(-0.129, 0.0, 0.0);
-
-
-//    fit = glm::dvec3(0.157 , 0.0 , 0.0);
-////    frontCamDir = glm::dvec3(0.12 , 0.2 , 0.0);
-
-//    transform = glm::translate(glm::dvec3(0.0, 0.0, 0.0));
-//    _rotation = glm::rotate(0.0, up_direction);
-
-
-////    frontCam.view_direction = vehic_direction;
-//    frontCam.camera_position = glm::dvec3(0.0, 0.466, 0.0); // bit + camHeight; //  glm::dvec3(0.129, 0.466, 0.0); //
-////    frontCam.view_direction = frontCamDir - frontCam.camera_position;
-//    frontCam.view_direction = glm::dvec3(0.5 , 0.17 , 0.0) - frontCam.camera_position;
-
-////    glm::dmat4 m1 = glm::translate(glm::vec3(0.0, 0.0, 0.0));
-////    glm::dmat4 m2 = glm::translate(glm::vec3(0.0, 0.0, 0.0));
-
-////    glm::mat4 m = m1 * m2;
-//}
-
-//glm::dmat4 model_vehicle::update_rotationMat(void)
-//{
-//    _rotation =  glm::translate(cen) * glm::rotate(glm::radians(ORIENTATION), up_direction) * glm::translate(-cen);
-////    _rotation =  glm::rotate(glm::radians(ORIENTATION), up_direction);
-//    return _rotation;
-//}
-
-//void model_vehicle::move_forward(const float& time)
-//{
-//    std::cout << time<< "\n";
-//}
-
-//void model_vehicle::move_backward(const float& time)
-//{
-//    std::cout << time<< "\n";
-//}
-
-//void model_vehicle::actuate_vehic(const float& time)
-//{
-//    std::cout << time<< "\n";
-//}
-
-//double model_vehicle::getRadius()
-//{
-//    return rad;
-//}
-
-//float model_vehicle::getTraveled_dist()
-//{
-//    return  traveled_dist;
-//}
-
-//void model_vehicle::update_rotation_att(const double& time)
-//{
-
-//    // rotation_as , p2
-//    // vehic_position , p1
-
-//    glm::dvec3 p1, p2;
-
-//    if(STEERING_WHEEL > 0){
-//        p1 = rotate(fit, bit, -M_PI_2, true);
-//        p2 = rotate(bit, fit, -(M_PI_2-STEERING_WHEEL), false);
-//    }else{
-//        p1 = rotate(fit, bit, M_PI_2, false);
-//        p2 = rotate(bit, fit, M_PI_2-STEERING_WHEEL, true);
-//    }
-
-//    // the radius of rotation
-//    rad = std::abs( L/std::tan(STEERING_WHEEL));
-
-//    // center of rotaion
-//    cen = intersect(bit, p1, fit, p2);
-
-//    // amount of rotaion
-//    ORIENTATION = (std::tan(STEERING_WHEEL) * MOVEMENT_SPEED * time)/L;
-
-//    update_rotationMat();
-
-//    transform = _rotation * transform;
-
-//    old_bit = bit;
-
-//    bit =  _rotation * glm::dvec4(bit, 1.0);
-//    fit =  _rotation * glm::dvec4(fit, 1.0);
-////    frontCamDir = _rotation * glm::dvec4(frontCamDir, 1.0);
-
-//    // traveled dist from last fram is given by the length of arch bwtween old position and new position
-//    double d = std::sqrt( std::pow( old_bit.x-bit.x,2)+std::pow(old_bit.z-bit.z ,2) );
-//    traveled_dist =  rad * std::acos(1.0 - (d*d)/(2*rad*rad) );
-
-
-////    frontCam.camera_position = bit + camHeight;
-//    frontCam.camera_position = transform * glm::dvec4(glm::dvec3(0.0, 0.466, 0.0), 1.0);
-
-
-////    frontCam.view_direction =  frontCamDir - frontCam.camera_position;
-
-//    frontCam.view_direction = glm::mat3(glm::rotate(glm::radians(ORIENTATION), up_direction)) * frontCam.view_direction;
-////    vehic_direction = glm::mat3(glm::rotate(glm::radians(ORIENTATION), up_direction)) * vehic_direction;
-
-
-//}
-
-//glm::dvec3 rotate(glm::dvec3 p, const glm::dvec3 c, const double angle, const bool ccw){
-//    double _sin = std::sin(angle);
-//    double _cos = std::cos(angle);
-//    p -= c;
-
-//    if(ccw){ // ccw: counter clockwise rotation
-//        p = glm::dvec3(  p.x * _cos + p.z * _sin, 0.0f,
-//                         p.z * _cos - p.x * _sin);
-
-//    }else{ // cw: clockwise rotation
-//        p = glm::dvec3(  p.x * _cos - p.z * _sin, 0.0f,
-//                         p.z * _cos + p.x * _sin);
-//    }
-
-//    return p+c;
-//}
-
-//glm::dvec3 intersect(const glm::dvec3 p1, const glm::dvec3 p2, const glm::dvec3 p3, const glm::dvec3 p4){
-//    double temp = ( (p4.x - p3.x)*(p1.z-p3.z) - (p4.z-p3.z)*(p1.x-p3.x) ) /
-//            ((p4.z - p3.z) * (p2.x - p1.x) - (p4.x - p3.x) * (p2.z - p1.z));
-
-//    return glm::dvec3{ p1.x + temp * (p2.x - p1.x), 0.0f, p1.z + temp * (p2.z - p1.z) };
-//}
-
-
-//void model_vehicle::update_steerin()
-//{
-
-//}
