@@ -1,8 +1,8 @@
 #version 130
 
-in vec3 vertPosition;
-in vec3 color;
-in vec3 normal;
+in vec3 vertPos;
+in vec3 vertColor;
+in vec3 vertNorm;
 
 uniform mat4 transformMat;
 
@@ -10,6 +10,6 @@ out vec3 vertCol;
 
 void main()
 {
-	vertCol = color;
-	gl_Position = transformMat * vec4(vertPosition, 1.0f);
+	vertCol = vertColor;
+	gl_Position = transformMat * vec4(vertPos, 1.0f);
 }
