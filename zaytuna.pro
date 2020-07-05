@@ -32,17 +32,19 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-CONFIG += c++z1
+CONFIG += c++17
 
-QMAKE_CXXFLAGS += -g -Wall
+# --std=c++1z
+
+QMAKE_CXXFLAGS += -g -Wall -std=c++1z
 #QMAKE_CXXFLAGS += -g -Wall -Werror
 #QMAKE_CXXFLAGS += -O2 # -g -Wall -Werror
 
 SOURCES += \
+    zay_utility.cpp \
     zay_cam.cpp \
     zay_item.cpp \
     zay_shape_maker.inl \
-    zay_utility.cpp \
     zay_scene_widg.cpp \
     zay_front_cam.cpp \
     zaytuna.cpp \
@@ -50,13 +52,13 @@ SOURCES += \
     zay_win_mainliner.cpp
 
 HEADERS += \
+    zay_utility.hpp \
     zay_clock.hpp \
     zay_headers.hpp \
     zay_item.hpp \
     zay_shape_data.hpp \
     zay_shape_maker.hpp \
     zay_vertex.hpp \
-    zay_utility.hpp \
     zay_scene_widg.hpp \
     zay_model_vehicle.hpp \
     zay_win_mainliner.hpp \

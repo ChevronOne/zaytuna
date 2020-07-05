@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
         QFont font("OpenSans-Regular");
         a.setFont(font);
     }else
-        std::cout << "font not loaded!\n";
+        std::cerr << "WARNING: fonts did not load!\n";
 
     zaytuna::win_mainliner w;
     w.setWindowTitle("Zaytuna-Simulator");

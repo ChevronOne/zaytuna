@@ -38,29 +38,68 @@
 #ifndef ZAY_MODEL_VEHICLE_HPP
 #define ZAY_MODEL_VEHICLE_HPP
 
-#define __GLM__
-
 #include "zay_headers.hpp"
 #include "zay_utility.hpp"
 #include "zay_cam.hpp"
-//#include "zay_scene_widg.hpp"
-#include <QOpenGLFunctions>
-#include <QOpenGLWidget>
-#include <QOpenGLFunctions_3_0>
+#include "zay_shape_data.hpp"
+#include "zay_item.hpp"
 
 namespace zaytuna {
 
 
-class model_vehicle
+
+class model_vehicle : public scene_object
 {
+
+    shape_data<zaytuna::vertexL1_16> model_primitives;
+    shape_data<zaytuna::vertexL1_16> fronttires_primitives;
+    shape_data<zaytuna::vertexL1_16> backtires_primitives;
+    shape_data<zaytuna::vertexL1_16> lidar_primitives;
+
+    glm::mat4 modeltransformMat{glm::translate(glm::dvec3(0.0, 0.0, 0.0))}; // model transformation matrix
+    glm::mat4 inverse_transpose_transformMat{glm::translate(glm::dvec3(0.0, 0.0, 0.0))}; // the inverse of the transposed transformation matrix
+    static GLint transformMatLocation;
+    static GLint inverse_transpose_transformMatLocation;
+
+    std::chrono::time_point<std::chrono::_V2::system_clock,
+                    std::chrono::nanoseconds> timer_t;
+    double elapsed_t;
+
+
+    GLuint _texID;
+    GLenum MODE;
+
+    GLuint fronttiresVAO_ID;
+    GLuint backtiresVAO_ID;
+    GLuint lidarVAO_ID;
+
+    GLuint fronttires_indOffset;
+    GLuint backtires_indOffset;
+    GLuint lidar_indOffset;
+
+    GLsizei fronttiresNumIndices;
+    GLsizei backtiresNumIndices;
+    GLsizei lidarNumIndices;
+
+
 public:
-    model_vehicle();
+    model_vehicle() = default;
+    model_vehicle(QOpenGLFunctions_3_0 * const,
+                 const GLuint,
+                 const std::string&,
+                 const std::string&,
+                 const std::string&,
+                 const GLenum MODE = GL_TRIANGLES,
+                 const glm::dmat4 _rotaion = glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0)),
+                 const glm::dmat4 _translation =glm::translate(glm::dvec3(0.0, 0.0, 0.0)));
+    virtual ~model_vehicle() override;
+    virtual void clean_up(void) override;
+    virtual void carry_data(GLintptr&) override;
+    virtual void parse_VertexArraysObject(const GLuint&, GLuint&) override;
+    virtual void render_obj(zaytuna::camera*) override;
+    virtual GLsizeiptr buffer_size(void) const override;
 
 
-
-
-    void move_forward(const float&);
-    void move_backward(const float&);
     void actuate();
 
 
@@ -85,26 +124,21 @@ public:
     double traveled_dist; // traveled distance per frame
     uint32_t ticks_counter; // ticks counter per frame
 
-    double getRadius(void);
-    double getTraveled_dist(void);
 
     double radius_of_rotation; // radius of rotation of the model vehicle
 
     glm::dvec3 center_of_rotation; // center of rotation of the model vehicle
 
-    void update_attribs(const double&);
-    void update_rotation_att(const double&);
+    void update_attribs();
+    void update_rotation_att();
     void update_steerin(void);
-    void get_cent(void);
-    void render_the_model(QOpenGLFunctions_3_0*, zaytuna::camera*,const GLint, const GLint);
+    void update_cent(void);
 
 
     glm::dmat4 transformationMats[5]; // /model vehicle/, /right front tire/, /left front tire/, /back tires/, /lidar/
     glm::dmat4 tires_hRotation, // rotation matrix of horizontal rotation of the wheels
             front_tires_vRotation; // rotation matrix of vertical rotation of the front tires
 
-    glm::mat4 modeltransformMat, // model transformation matrix
-            inverse_transpose_transformMat; // the inverse of the transposed transformation matrix
     zaytuna::camera frontCam; // front camera
 
 
@@ -126,27 +160,6 @@ public:
     const double tires_circumference{PI2*tires_radius};
 
 
-    // GL Parameters
-    GLuint programID;
-    GLuint textureID;
-
-    GLuint modelVAO_ID;
-    GLuint fronttiresVAO_ID;
-    GLuint backtiresVAO_ID;
-    GLuint lidarVAO_ID;
-
-    GLuint model_indOffset;
-    GLuint fronttires_indOffset;
-    GLuint backtires_indOffset;
-    GLuint lidar_indOffset;
-
-    GLsizei modelNumIndices;
-    GLsizei fronttiresNumIndices;
-    GLsizei backtiresNumIndices;
-    GLsizei lidarNumIndices;
-
-
-
 
 
 };
@@ -158,3 +171,7 @@ public:
 
 
 #endif // ZAY_MODEL_VEHICLE_HPP
+
+
+
+

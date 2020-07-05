@@ -43,26 +43,60 @@ glm::dvec3 rotate(glm::dvec3 p, const glm::dvec3 c, const double angle, const bo
 
 glm::dvec3 intersect(const glm::dvec3 p1, const glm::dvec3 p2, const glm::dvec3 p3, const glm::dvec3 p4);
 
+GLint zaytuna::model_vehicle::transformMatLocation=-1;
+GLint zaytuna::model_vehicle::inverse_transpose_transformMatLocation=-1;
 
 
-model_vehicle::model_vehicle() : STEERING_WHEEL(0.0), MOVEMENT_SPEED(0.0),
-    AMOUNT_OF_ROTATION(0.0), accumulated_dist(0.0), traveled_dist(0.0),
+zaytuna::model_vehicle::model_vehicle(QOpenGLFunctions_3_0 * const _widg,
+                                    const GLuint programID,
+                                    const std::string& _name,
+                                    const std::string& _dir,
+                                    const std::string& _tex,
+                                    const GLenum _MODE,
+                                    const glm::dmat4 _rotaion,
+                                    const glm::dmat4 _translation):
+    scene_object(_widg, programID, _name,
+                 _rotaion, _translation ),
+    MODE{_MODE}, AMOUNT_OF_ROTATION(0.0), MOVEMENT_SPEED(0.0),
+    STEERING_WHEEL(0.00000001), accumulated_dist(0.0), traveled_dist(0.0),
     ticks_counter(0), radius_of_rotation(0.0), center_of_rotation(glm::dvec3(0.0,0.0,0.0))
 {
+
+    model_primitives = shape_maker<zaytuna::vertexL1_16>::extractExternal(_dir);
+    fronttires_primitives = shape_maker<zaytuna::vertexL1_16>::extractExternal(_dir+"-single_tire");
+    backtires_primitives = shape_maker<zaytuna::vertexL1_16>::extractExternal(_dir+"-back_tires");
+    lidar_primitives = shape_maker<zaytuna::vertexL1_16>::extractExternal(_dir+"-lidar");
+
+    QImage tex_buffer;
+    _widg->glGenTextures(1, &_texID);
+    _widg->glBindTexture(GL_TEXTURE_2D, _texID);
+    _widg->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    _widg->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    _widg->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    _widg->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    if(!tex_buffer.load(_tex.c_str(), "PNG")){
+         std::cout << "image couldn't be loaded <" << _tex << ">!\n";
+         exit(EXIT_FAILURE);
+    }
+    tex_buffer = QGLWidget::convertToGLFormat(tex_buffer);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tex_buffer.width(), tex_buffer.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, tex_buffer.bits());
+
+
+    // --------------------------------------------------
     vehic_direction = glm::dvec3(1.0, 0.0, 0.0);
     back_ideal_tire = old_back_ideal_tire = glm::dvec3(0.0, 0.0, 0.0);
 
     front_ideal_tire = glm::dvec3(0.157 , 0.0 , 0.0);
 
-//    transform = glm::translate(glm::dvec3(0.0, 0.0, 0.0));
-    transformationMats[0] = glm::translate(glm::dvec3(0.0, 0.0, 0.0));
+//    transformationMats[0] = glm::translate(glm::dvec3(0.0, 0.0, 0.0));
+    transformationMats[0] = initial_transformationMat;
     rotationMat = glm::rotate(0.0, up_direction);
 
 
-    frontCam.camera_position = camPos ;// glm::dvec3(0.13, 0.466, 0.0); // bit + camHeight; //  glm::dvec3(0.129, 0.466, 0.0); //
+    frontCam.camera_position = camPos;
     frontCam.view_direction = glm::dvec3(0.5 , 0.17 , 0.0) - frontCam.camera_position;
 
-//    hRotation = glm::rotate(0.0, glm::dvec3(0.0, 0.0, 1.0)); // xxxxxx
     tires_hRotation = glm::rotate(amount_of_hRotation, glm::dvec3(0.0, 0.0, 1.0));
     front_tires_vRotation = glm::rotate(STEERING_WHEEL, glm::dvec3(0.0, 1.0, 0.0));
 
@@ -75,16 +109,207 @@ model_vehicle::model_vehicle() : STEERING_WHEEL(0.0), MOVEMENT_SPEED(0.0),
 
 }
 
-
-void model_vehicle::move_forward(const float& time)
+model_vehicle::~model_vehicle()
 {
-    std::cout << time<< "\n";
+    clean_up();
 }
 
-void model_vehicle::move_backward(const float& time)
+void model_vehicle::clean_up()
 {
-    std::cout << time<< "\n";
+    model_primitives.cleanUP();
+    fronttires_primitives.cleanUP();
+    backtires_primitives.cleanUP();
+    lidar_primitives.cleanUP();
+
+    _widg->glDeleteVertexArrays(1, &_VAO_ID);
+    _widg->glDeleteVertexArrays(1, &fronttiresVAO_ID);
+    _widg->glDeleteVertexArrays(1, &backtiresVAO_ID);
+    _widg->glDeleteVertexArrays(1, &lidarVAO_ID);
+
+    _widg->glDeleteTextures(1, &_texID);
 }
+
+void model_vehicle::carry_data(GLintptr& _offset)
+{
+    // model
+    _widg->glBufferSubData(GL_ARRAY_BUFFER, _offset, model_primitives.verBufSize(), model_primitives.verts);
+    _offset += model_primitives.verBufSize();
+    inds_offset = static_cast<GLuint>(_offset);
+    _widg->glBufferSubData(GL_ARRAY_BUFFER, _offset, model_primitives.indBufSize(), model_primitives.indices);
+    _offset += model_primitives.indBufSize();
+
+    num_indices = static_cast<GLsizei>(model_primitives.indNum);
+
+    // front-tires
+    _widg->glBufferSubData(GL_ARRAY_BUFFER, _offset, fronttires_primitives.verBufSize(), fronttires_primitives.verts);
+    _offset += fronttires_primitives.verBufSize();
+    fronttires_indOffset = static_cast<GLuint>(_offset);
+    _widg->glBufferSubData(GL_ARRAY_BUFFER, _offset, fronttires_primitives.indBufSize(), fronttires_primitives.indices);
+    _offset += fronttires_primitives.indBufSize();
+
+    fronttiresNumIndices = static_cast<GLsizei>(fronttires_primitives.indNum);
+
+    // back-tires
+    _widg->glBufferSubData(GL_ARRAY_BUFFER, _offset, backtires_primitives.verBufSize(), backtires_primitives.verts);
+    _offset += backtires_primitives.verBufSize();
+    backtires_indOffset = static_cast<GLuint>(_offset);
+    _widg->glBufferSubData(GL_ARRAY_BUFFER, _offset, backtires_primitives.indBufSize(), backtires_primitives.indices);
+    _offset += backtires_primitives.indBufSize();
+
+    backtiresNumIndices = static_cast<GLsizei>(backtires_primitives.indNum);
+
+    // lidar
+    _widg->glBufferSubData(GL_ARRAY_BUFFER, _offset, lidar_primitives.verBufSize(), lidar_primitives.verts);
+    _offset += lidar_primitives.verBufSize();
+    lidar_indOffset = static_cast<GLuint>(_offset);
+    _widg->glBufferSubData(GL_ARRAY_BUFFER, _offset, lidar_primitives.indBufSize(), lidar_primitives.indices);
+    _offset += lidar_primitives.indBufSize();
+
+    lidarNumIndices = static_cast<GLsizei>(lidar_primitives.indNum);
+
+}
+
+void model_vehicle::parse_VertexArraysObject(const GLuint& theBufferID, GLuint& off_set)
+{
+    // model
+    _widg->glGenVertexArrays(1, &_VAO_ID);
+
+    _widg->glBindVertexArray(_VAO_ID);
+    _widg->glEnableVertexAttribArray(0);
+    _widg->glEnableVertexAttribArray(1);
+    _widg->glEnableVertexAttribArray(2);
+    _widg->glBindBuffer(GL_ARRAY_BUFFER, theBufferID);
+
+    _widg->glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, VERTEX_BYTE_SIZE_1, reinterpret_cast<void*>(off_set));
+    _widg->glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, VERTEX_BYTE_SIZE_1, reinterpret_cast<void*>(off_set + TYPE_SIZE * 3));
+    _widg->glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, VERTEX_BYTE_SIZE_1, reinterpret_cast<void*>(off_set + TYPE_SIZE * 6));
+    _widg->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, theBufferID);
+
+    off_set+= model_primitives.verBufSize() + model_primitives.indBufSize();
+
+    // front-tires
+    _widg->glGenVertexArrays(1, &fronttiresVAO_ID);
+
+    _widg->glBindVertexArray(fronttiresVAO_ID);
+    _widg->glEnableVertexAttribArray(0);
+    _widg->glEnableVertexAttribArray(1);
+    _widg->glEnableVertexAttribArray(2);
+    _widg->glBindBuffer(GL_ARRAY_BUFFER, theBufferID);
+
+    _widg->glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, VERTEX_BYTE_SIZE_1, reinterpret_cast<void*>(off_set));
+    _widg->glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, VERTEX_BYTE_SIZE_1, reinterpret_cast<void*>(off_set + TYPE_SIZE * 3));
+    _widg->glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, VERTEX_BYTE_SIZE_1, reinterpret_cast<void*>(off_set + TYPE_SIZE * 6));
+    _widg->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, theBufferID);
+
+    off_set+= fronttires_primitives.verBufSize() + fronttires_primitives.indBufSize();
+
+    // back-tires
+    _widg->glGenVertexArrays(1, &backtiresVAO_ID);
+
+    _widg->glBindVertexArray(backtiresVAO_ID);
+    _widg->glEnableVertexAttribArray(0);
+    _widg->glEnableVertexAttribArray(1);
+    _widg->glEnableVertexAttribArray(2);
+    _widg->glBindBuffer(GL_ARRAY_BUFFER, theBufferID);
+
+    _widg->glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, VERTEX_BYTE_SIZE_1, reinterpret_cast<void*>(off_set));
+    _widg->glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, VERTEX_BYTE_SIZE_1, reinterpret_cast<void*>(off_set + TYPE_SIZE * 3));
+    _widg->glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, VERTEX_BYTE_SIZE_1, reinterpret_cast<void*>(off_set + TYPE_SIZE * 6));
+    _widg->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, theBufferID);
+
+    off_set+= backtires_primitives.verBufSize() + backtires_primitives.indBufSize();
+
+    // lidar
+    _widg->glGenVertexArrays(1, &lidarVAO_ID);
+
+    _widg->glBindVertexArray(lidarVAO_ID);
+    _widg->glEnableVertexAttribArray(0);
+    _widg->glEnableVertexAttribArray(1);
+    _widg->glEnableVertexAttribArray(2);
+    _widg->glBindBuffer(GL_ARRAY_BUFFER, theBufferID);
+
+    _widg->glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, VERTEX_BYTE_SIZE_1, reinterpret_cast<void*>(off_set));
+    _widg->glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, VERTEX_BYTE_SIZE_1, reinterpret_cast<void*>(off_set + TYPE_SIZE * 3));
+    _widg->glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, VERTEX_BYTE_SIZE_1, reinterpret_cast<void*>(off_set + TYPE_SIZE * 6));
+    _widg->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, theBufferID);
+
+    off_set+= lidar_primitives.verBufSize() + lidar_primitives.indBufSize();
+
+
+
+    if(transformMatLocation == -1)
+        transformMatLocation = _widg->glGetUniformLocation(_programID, "transformMat");
+    if(inverse_transpose_transformMatLocation == -1)
+        inverse_transpose_transformMatLocation = _widg->glGetUniformLocation(_programID, "it_transformMat");
+
+
+    model_primitives.cleanUP();
+    fronttires_primitives.cleanUP();
+    backtires_primitives.cleanUP();
+    lidar_primitives.cleanUP();
+
+    timer_t = std::chrono::high_resolution_clock::now();
+
+}
+
+void model_vehicle::render_obj(zaytuna::camera *activeCam)
+{
+
+    modeltransformMat = activeCam->transformationMat * transformationMats[0];
+    inverse_transpose_transformMat =glm::inverse(glm::transpose(transformationMats[0]));
+
+    _widg->glUseProgram(_programID);
+    _widg->glBindTexture(GL_TEXTURE_2D, _texID);
+
+
+    // the model
+    _widg->glBindVertexArray(_VAO_ID);
+    _widg->glUniformMatrix4fv(transformMatLocation, 1, GL_FALSE, &modeltransformMat[0][0]);
+    _widg->glUniformMatrix4fv(inverse_transpose_transformMatLocation, 1, GL_FALSE, &inverse_transpose_transformMat[0][0]);
+    _widg->glDrawElements(MODE, num_indices, GL_UNSIGNED_INT, reinterpret_cast<void*>(inds_offset));
+
+
+    // front-tires
+    _widg->glBindVertexArray(fronttiresVAO_ID);
+    modeltransformMat = activeCam->transformationMat * transformationMats[1];
+    inverse_transpose_transformMat =glm::inverse(glm::transpose(transformationMats[1]));
+    _widg->glUniformMatrix4fv(transformMatLocation, 1, GL_FALSE, &modeltransformMat[0][0]);
+    _widg->glUniformMatrix4fv(inverse_transpose_transformMatLocation, 1, GL_FALSE, &inverse_transpose_transformMat[0][0]);
+    _widg->glDrawElements(MODE, fronttiresNumIndices, GL_UNSIGNED_INT, reinterpret_cast<void*>(fronttires_indOffset));
+
+    modeltransformMat = activeCam->transformationMat * transformationMats[2];
+    inverse_transpose_transformMat =glm::inverse(glm::transpose(transformationMats[2]));
+    _widg->glUniformMatrix4fv(transformMatLocation, 1, GL_FALSE, &modeltransformMat[0][0]);
+    _widg->glUniformMatrix4fv(inverse_transpose_transformMatLocation, 1, GL_FALSE, &inverse_transpose_transformMat[0][0]);
+    _widg->glDrawElements(MODE, fronttiresNumIndices, GL_UNSIGNED_INT, reinterpret_cast<void*>(fronttires_indOffset));
+
+
+    // back-tires
+    _widg->glBindVertexArray(backtiresVAO_ID);
+    modeltransformMat = activeCam->transformationMat * transformationMats[3];
+    inverse_transpose_transformMat =glm::inverse(glm::transpose(transformationMats[3]));
+    _widg->glUniformMatrix4fv(transformMatLocation, 1, GL_FALSE, &modeltransformMat[0][0]);
+    _widg->glUniformMatrix4fv(inverse_transpose_transformMatLocation, 1, GL_FALSE, &inverse_transpose_transformMat[0][0]);
+    _widg->glDrawElements(MODE, backtiresNumIndices, GL_UNSIGNED_INT, reinterpret_cast<void*>(backtires_indOffset));
+
+
+    // lidar
+    _widg->glBindVertexArray(lidarVAO_ID);
+    modeltransformMat = activeCam->transformationMat * transformationMats[4];
+    inverse_transpose_transformMat =glm::inverse(glm::transpose(transformationMats[4]));
+    _widg->glUniformMatrix4fv(transformMatLocation, 1, GL_FALSE, &modeltransformMat[0][0]);
+    _widg->glUniformMatrix4fv(inverse_transpose_transformMatLocation, 1, GL_FALSE, &inverse_transpose_transformMat[0][0]);
+    _widg->glDrawElements(MODE, lidarNumIndices, GL_UNSIGNED_INT, reinterpret_cast<void*>(lidar_indOffset));
+}
+
+GLsizeiptr model_vehicle::buffer_size() const
+{
+    return model_primitives.verBufSize() + model_primitives.indBufSize()
+           + fronttires_primitives.verBufSize() + fronttires_primitives.indBufSize()
+           + backtires_primitives.verBufSize() + backtires_primitives.indBufSize()
+           + lidar_primitives.verBufSize() + lidar_primitives.indBufSize();
+}
+
 
 void model_vehicle::actuate()
 {
@@ -124,29 +349,24 @@ void model_vehicle::actuate()
                           glm::dvec3(0.0, 1.0, 0.0));
 }
 
-double model_vehicle::getRadius()
-{
-    return radius_of_rotation;
-}
 
-double model_vehicle::getTraveled_dist()
+void model_vehicle::update_attribs()
 {
-    return  traveled_dist;
-}
-
-void model_vehicle::update_attribs(const double & elapsed_t)
-{
+    this->elapsed_t = std::chrono::duration<double,
+            std::ratio< 1, 1>>
+            (std::chrono::high_resolution_clock::now() - this->timer_t).count();
     if(MOVEMENT_SPEED != 0.0){
 
-        update_rotation_att(elapsed_t);
+        update_rotation_att();
         accumulated_dist = traveled_dist + accumulated_dist;
         ticks_counter = static_cast<uint32_t>(accumulated_dist/meters_per_tick);
         accumulated_dist = fmod(accumulated_dist, meters_per_tick);
     }
+    this->timer_t = std::chrono::high_resolution_clock::now();
     actuate();
 }
 
-void model_vehicle::update_rotation_att(const double& elapsed_t)
+void model_vehicle::update_rotation_att()
 {
     // the radius of rotation
     radius_of_rotation = std::abs( front_back_distance/std::tan(STEERING_WHEEL));
@@ -160,9 +380,11 @@ void model_vehicle::update_rotation_att(const double& elapsed_t)
                               * radius_of_rotation) + back_ideal_tire;
 
 
+
     // amount of rotaion
     AMOUNT_OF_ROTATION = (std::tan(STEERING_WHEEL)
                           * MOVEMENT_SPEED * elapsed_t)/front_back_distance;
+
 
 
     rotationMat =  glm::translate(center_of_rotation) *
@@ -187,61 +409,6 @@ void model_vehicle::update_rotation_att(const double& elapsed_t)
 
 
 }
-
-void model_vehicle::render_the_model(QOpenGLFunctions_3_0* _widg,
-            zaytuna::camera* activeCam,
-            const GLint transformMatLocation,
-            const GLint inverse_transpose_transformMatLocation)
-{
-    modeltransformMat = activeCam->transformationMat * transformationMats[0];
-    inverse_transpose_transformMat =glm::inverse(glm::transpose(transformationMats[0]));
-
-    _widg->glUseProgram(programID);
-    _widg->glBindTexture(GL_TEXTURE_2D, textureID);
-
-
-    // render the model
-    _widg->glBindVertexArray(modelVAO_ID);
-    _widg->glUniformMatrix4fv(transformMatLocation, 1, GL_FALSE, &modeltransformMat[0][0]);
-    _widg->glUniformMatrix4fv(inverse_transpose_transformMatLocation, 1, GL_FALSE, &inverse_transpose_transformMat[0][0]);
-    _widg->glDrawElements(GL_TRIANGLES, modelNumIndices, GL_UNSIGNED_INT, reinterpret_cast<void*>(model_indOffset));
-
-
-    // render lidar
-    _widg->glBindVertexArray(lidarVAO_ID);
-    modeltransformMat = activeCam->transformationMat * transformationMats[4];
-    inverse_transpose_transformMat =glm::inverse(glm::transpose(transformationMats[4]));
-    _widg->glUniformMatrix4fv(transformMatLocation, 1, GL_FALSE, &modeltransformMat[0][0]);
-    _widg->glUniformMatrix4fv(inverse_transpose_transformMatLocation, 1, GL_FALSE, &inverse_transpose_transformMat[0][0]);
-    _widg->glDrawElements(GL_TRIANGLES, lidarNumIndices, GL_UNSIGNED_INT, reinterpret_cast<void*>(lidar_indOffset));
-
-
-    // render fronttires
-    _widg->glBindVertexArray(fronttiresVAO_ID);
-    modeltransformMat = activeCam->transformationMat * transformationMats[1];
-    inverse_transpose_transformMat =glm::inverse(glm::transpose(transformationMats[1]));
-    _widg->glUniformMatrix4fv(transformMatLocation, 1, GL_FALSE, &modeltransformMat[0][0]);
-    _widg->glUniformMatrix4fv(inverse_transpose_transformMatLocation, 1, GL_FALSE, &inverse_transpose_transformMat[0][0]);
-    _widg->glDrawElements(GL_TRIANGLES, fronttiresNumIndices, GL_UNSIGNED_INT, reinterpret_cast<void*>(fronttires_indOffset));
-
-    modeltransformMat = activeCam->transformationMat * transformationMats[2];
-    inverse_transpose_transformMat =glm::inverse(glm::transpose(transformationMats[2]));
-    _widg->glUniformMatrix4fv(transformMatLocation, 1, GL_FALSE, &modeltransformMat[0][0]);
-    _widg->glUniformMatrix4fv(inverse_transpose_transformMatLocation, 1, GL_FALSE, &inverse_transpose_transformMat[0][0]);
-    _widg->glDrawElements(GL_TRIANGLES, fronttiresNumIndices, GL_UNSIGNED_INT, reinterpret_cast<void*>(fronttires_indOffset));
-
-
-    // render back tires
-    _widg->glBindVertexArray(backtiresVAO_ID);
-    modeltransformMat = activeCam->transformationMat * transformationMats[3];
-    inverse_transpose_transformMat =glm::inverse(glm::transpose(transformationMats[3]));
-    _widg->glUniformMatrix4fv(transformMatLocation, 1, GL_FALSE, &modeltransformMat[0][0]);
-    _widg->glUniformMatrix4fv(inverse_transpose_transformMatLocation, 1, GL_FALSE, &inverse_transpose_transformMat[0][0]);
-    _widg->glDrawElements(GL_TRIANGLES, backtiresNumIndices, GL_UNSIGNED_INT, reinterpret_cast<void*>(backtires_indOffset));
-
-}
-
-
 
 
 //------------------------------------------------------------------------
@@ -277,7 +444,7 @@ void model_vehicle::update_steerin()
 
 }
 
-void model_vehicle::get_cent()
+void model_vehicle::update_cent()
 {
         glm::dvec3 p1, p2;
 
@@ -298,5 +465,8 @@ void model_vehicle::get_cent()
 
 
 } // namespace  zaytuna
+
+
+
 
 

@@ -51,33 +51,42 @@
 #include <chrono>
 #include <iomanip>
 
+#include <QOpenGLFunctions>
+#include <QOpenGLWidget>
+#include <QOpenGLFunctions_3_0>
+
+#include <QGL>
+
+
+#include <experimental/filesystem>
+
 //#define __GLM__
+
+typedef GLfloat DATA_TYPE;
+namespace fs = std::experimental::filesystem::v1;
 
 #define _USE_MATH_DEFINES
 #include <math.h>
 
-#define PI 3.14159265358979323846   // pi
+#define PI 3.14159265358979323846
 #define NUM_OF(arr)  sizeof(arr) / sizeof(*arr)
 
 #define __sign(val)  (float(0) < val) - (val < float(0))
 
 
-
-#ifdef __OPENGL__
-
-#include <QGL>
-#include <experimental/filesystem>
-#include <QOpenGLExtraFunctions>
-
-namespace fs = std::experimental::filesystem::v1;
-
+#define TYPE_SIZE sizeof(DATA_TYPE)
+#define NUM_VERTICES_PER_TRI 3
+#define NUM_VERTICES_PER_TEXCOR 2
+#define NUM_FLOATS_PER_VERTICE_0 9
+#define NUM_FLOATS_PER_VERTICE_1 8
 #define SHADERS_NUM 2
-const GLuint programs_num{4};
+#define PROGRAMS_NUM 4
+#define VERTEX_BYTE_SIZE_0  NUM_FLOATS_PER_VERTICE_0 * TYPE_SIZE
+#define VERTEX_BYTE_SIZE_1 NUM_FLOATS_PER_VERTICE_1 * TYPE_SIZE
 
-#endif
+
+
 //--------------------------
-
-#ifdef __GLM__
 
 #define GLM_FORCE_SINGLE_ONLY
 #include <glm/vec3.hpp>
@@ -91,15 +100,7 @@ const GLuint programs_num{4};
 
 
 
-#endif
 
-//----------------------------
-
-#ifdef __SDL__
-
-#include <SDL2/SDL.h>
-
-#endif
 
 
 #endif // ZAY_HEADERS_HPP

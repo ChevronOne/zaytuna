@@ -105,10 +105,10 @@ void camera::updateWorld_to_viewMat()
 //    if(camera_position.y > 100.0)
 //        camera_position.y = 100.0;
 
-//    if(camera_position.y < 0.1)
-//        camera_position.y = 0.1;
-//    if(camera_position.y > 100.0)
-//        camera_position.y = 100.0;
+    if(camera_position.y < 0.011)
+        camera_position.y = 0.011;
+    if(camera_position.y > 100.0)
+        camera_position.y = 100.0;
 
     if(camera_position.x < -147.8)
         camera_position.x = -147.8;

@@ -41,11 +41,43 @@
 #define __OPENGL__
 #define __GLM__
 #include "zay_headers.hpp"
+#include <vector>
+#include <boost/assign/list_of.hpp>
+#include <QImage>
 
 namespace zaytuna {
 
 glm::vec3 rCol(void);
+
 std::ostream& operator<<(std::ostream&, const glm::vec3&);
+
+void _load_tex(QImage&, const QString&, const char*, bool, bool);
+
+template<class T>
+class ptr_vector : public std::vector<T>
+{
+public:
+    virtual ~ptr_vector() {}
+};
+
+template<class T>
+class ptr_vector<T *> : public std::vector<T *>
+{
+public:
+    ptr_vector&
+    operator=(std::initializer_list<T*> _list)
+    {
+        this->assign(_list.begin(), _list.end());
+        return *this;
+    }
+
+    virtual ~ptr_vector()
+    {
+        class std::vector< T *>::reverse_iterator it;
+        for (it = this->rbegin(); it != this->rend(); ++it)
+            delete *it;
+    }
+};
 
 //namespace std{
 //    class warning : public exception
@@ -63,3 +95,7 @@ std::ostream& operator<<(std::ostream&, const glm::vec3&);
 
 
 #endif // ZAY_UTILITY_HPP
+
+
+
+

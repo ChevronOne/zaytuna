@@ -162,7 +162,7 @@ void win_mainliner::on_cam_rotation_speed_valueChanged(double arg1)
 void win_mainliner::on_speedV_valueChanged(int value)
 {
     ui->speedDis->setText(QString::number(value));
-    ui->SQwidget->model.MOVEMENT_SPEED = static_cast<double>(-value);
+    ui->SQwidget->model->MOVEMENT_SPEED = static_cast<double>(-value);
 }
 
 //void win_mainliner::on_steeringAng_valueChanged(int value)
@@ -215,7 +215,7 @@ void win_mainliner::on_radioButton_Global_clicked()
 
 void win_mainliner::on_radioButton_Local_clicked()
 {
-    ui->SQwidget->activeCam = &ui->SQwidget->model.frontCam;
+    ui->SQwidget->activeCam = &ui->SQwidget->model->frontCam;
     ui->camTransformation->setEnabled(0);
     ui->SQwidget->updateProjection();
 }
@@ -225,9 +225,9 @@ void win_mainliner::on_steeringV_valueChanged(int value)
         ui->steeringDis->setText(QString::number(value));
 
         if(value == 0){
-            ui->SQwidget->model.STEERING_WHEEL = 0.00000001;  // 0.001f;
+            ui->SQwidget->model->STEERING_WHEEL = 0.00000001;  // 0.001f;
         }else{
-            ui->SQwidget->model.STEERING_WHEEL = (static_cast<double>(value)*PI) /180.0  ;///30;
+            ui->SQwidget->model->STEERING_WHEEL = (static_cast<double>(value)*PI) /180.0  ;///30;
         }
 }
 

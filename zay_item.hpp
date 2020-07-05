@@ -40,12 +40,13 @@
 #ifndef ZAY_ITEM_HPP
 #define ZAY_ITEM_HPP
 
-#define __OPENGL__
-#define __GLM__
 
 
 #include "zay_headers.hpp"
 #include "zay_vertex.hpp"
+#include "zay_shape_maker.hpp"
+#include "zay_utility.hpp"
+#include "zay_cam.hpp"
 
 namespace zaytuna{
 
@@ -54,79 +55,177 @@ typedef uint16_t _itm1_indRange_t;
 typedef uint16_t _itm2_indRange_t;
 
 
-class _item
+class scene_object
 {
+protected:
 
-private:
+    QOpenGLFunctions_3_0* _widg{nullptr};
+    GLuint _programID;
+    GLuint _VAO_ID;
+    std::string name{"uninitialized object name"};
+    GLuint inds_offset;
+    GLsizei num_indices;
 
-    GLuint _ind_strip;
+    glm::dmat4 initial_rotaionMat{glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0))};
+    glm::dmat4 initial_translationMat{glm::translate(glm::dvec3(0.0, 0.0, 0.0))};
+    glm::mat4 initial_transformationMat{glm::translate(glm::dvec3(0.0, 0.0, 0.0))};
 
 
 public:
-    virtual const GLuint& g_ind_striop(void) const;
-    virtual void s_ind_striop(const GLuint&);
 
+    scene_object() = default;
+    scene_object(QOpenGLFunctions_3_0 * const,
+                 const GLuint,
+                 const std::string&,
+                 const glm::dmat4,
+                 const glm::dmat4
+                 );
 
-    _item() = default;
-    _item(const GLuint&, const GLuint&,
-          const glm::dmat4&);
-    virtual ~_item() = default;
-    GLuint itID;
-    GLuint program_id;
-    glm::dmat4 transform;
+    virtual GLsizeiptr buffer_size(void) const = 0;
+    virtual void clean_up(void) = 0;
+    virtual void carry_data(GLintptr&) = 0;
+    virtual void parse_VertexArraysObject(const GLuint&, GLuint&) = 0;
+    virtual void render_obj(zaytuna::camera*) = 0;
+    virtual ~scene_object() = default;
 };
 
 //===========================================
 
-class _item0 : public _item
+class external_obj : public scene_object
 {
 
 private:
-//    vertexL1_F* vertices;
-//    _itm0_indRange_t* indices;
+
+    shape_data<zaytuna::vertexL1_16> primitives;
+    GLuint _texID;
+    GLenum MODE;
+    glm::mat4 transformationMat{glm::translate(glm::dvec3(0.0, 0.0, 0.0))};
+    static GLint transformMatLocation;
 
 
 public:
-//    uint64_t i_BufSize(void) const;
-//    const vertexL1_F* g_vertices(void) const;
-//    const _itm0_indRange_t* g_indices(void) const;
-    virtual const GLuint& g_tex_id(void) const;
-    virtual void s_tex_id(const GLuint&);
+
+    external_obj() = default;
+    external_obj(QOpenGLFunctions_3_0 * const,
+                 const GLuint,
+                 const std::string&,
+                 const std::string&,
+                 const std::string&,
+                 const GLenum MODE = GL_TRIANGLES,
+                 const glm::dmat4 _rotaion = glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0)),
+                 const glm::dmat4 _translation =glm::translate(glm::dvec3(0.0, 0.0, 0.0)));
+    virtual ~external_obj() override;
+    virtual void clean_up(void) override;
+    virtual void carry_data(GLintptr&) override;
+    virtual void parse_VertexArraysObject(const GLuint&, GLuint&) override;
+    virtual void render_obj(zaytuna::camera*) override;
+    virtual GLsizeiptr buffer_size(void) const override;
+
+};
 
 
-    _item0() = default;
-    _item0(const GLuint&, const GLuint&,
-           const glm::dmat4&, const GLuint&);
-    virtual ~_item0() = default;
+//===========================================
 
-    GLuint tex_id;
+class coord_sys : public scene_object
+{
+
+private:
+
+    shape_data<zaytuna::vertexL1_12> primitives;
+    glm::mat4 transformationMat{glm::translate(glm::dvec3(0.0, 0.0, 0.0))};
+    static GLint transformMatLocation;
+
+public:
+
+    coord_sys() = default;
+    coord_sys(QOpenGLFunctions_3_0 * const,
+                 const GLuint,
+                 const std::string&,
+                 const GLfloat axes_length = 10.f,
+                 const glm::dmat4 _rotaion = glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0)),
+                 const glm::dmat4 _translation =glm::translate(glm::dvec3(0.0, 0.0, 0.0)));
+    virtual ~coord_sys() override;
+    virtual void clean_up(void) override;
+    virtual void carry_data(GLintptr&) override;
+    virtual void parse_VertexArraysObject(const GLuint&, GLuint&) override;
+    virtual void render_obj(zaytuna::camera*) override;
+    virtual GLsizeiptr buffer_size(void) const override;
+
 };
 
 //===========================================
 
-//class _item1 : public _item
-//{
+class grid_plane : public scene_object
+{
 
-//private:
-//    vertexL1_12* vertices;
-//    _itm0_indRange_t* indices;
+private:
 
-//    void cleanUp();
+    shape_data<zaytuna::vertexL1_12> primitives;
+    glm::mat4 transformationMat{glm::translate(glm::dvec3(0.0, 0.0, 0.0))};
+    static GLint transformMatLocation;
 
-//public:
-//    uint64_t i_BufSize(void) const;
-//    const vertexL1_12* g_vertices(void) const;
-//    const _itm1_indRange_t* g_indices(void) const;
+public:
+
+    grid_plane() = default;
+    grid_plane(QOpenGLFunctions_3_0 * const,
+                 const GLuint,
+                 const std::string&,
+                 const GLfloat length = 150.f,
+                 const GLfloat width = 150.f,
+                 const GLfloat tessellation = 1.f,
+                 const glm::dmat4 _rotaion = glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0)),
+                 const glm::dmat4 _translation =glm::translate(glm::dvec3(0.0, 0.0, 0.0)));
+    virtual ~grid_plane() override;
+    virtual void clean_up(void) override;
+    virtual void carry_data(GLintptr&) override;
+    virtual void parse_VertexArraysObject(const GLuint&, GLuint&) override;
+    virtual void render_obj(zaytuna::camera*) override;
+    virtual GLsizeiptr buffer_size(void) const override;
+
+};
+
+//=============================================
 
 
-//    _item1();
-//    _item1(zaytuna::details*&, const uint32_t&,
-//           vertexL1_12*&, const uint32_t&,
-//           _itm0_indRange_t*&, const uint32_t&);
-//    virtual ~_item1();
+class skybox_obj : public scene_object
+{
 
-//};
+private:
+
+    shape_data<zaytuna::vertexL1_0> primitives;
+    GLuint _texID;
+    GLenum MODE;
+    glm::mat4 transformationMat{glm::translate(glm::dvec3(0.0, 0.0, 0.0))};
+    static GLint transformMatLocation;
+
+
+public:
+
+    skybox_obj() = default;
+    skybox_obj(QOpenGLFunctions_3_0 * const,
+                 const GLuint,
+                 const std::string&,
+                 const GLenum MODE = GL_TRIANGLES,
+                 const glm::dmat4 _rotaion = glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0)),
+                 const glm::dmat4 _translation =glm::translate(glm::dvec3(0.0, 0.0, 0.0)));
+    virtual ~skybox_obj() override;
+    virtual void clean_up(void) override;
+    virtual void carry_data(GLintptr&) override;
+    virtual void parse_VertexArraysObject(const GLuint&, GLuint&) override;
+    virtual void render_obj(zaytuna::camera*) override;
+    virtual GLsizeiptr buffer_size(void) const override;
+
+};
+
+
+
 
 } // namespace zaytuna
 
+
+
 #endif // ZAY_ITEM_HPP
+
+
+
+

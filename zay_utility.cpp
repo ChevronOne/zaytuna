@@ -55,4 +55,37 @@ std::ostream& operator<<(std::ostream& out, const glm::vec3& vec)
 
 }
 
+void _load_tex(QImage& buff, const QString& _dir,
+                          const char* _format, bool hMir, bool vMir)
+{
+    if(!(buff.load(_dir, _format))){
+        std::cout << "image couldn't be loaded <" << _dir.toStdString() << ">!\n";
+        exit(EXIT_FAILURE);
+    }
+
+    buff = QGLWidget::convertToGLFormat(buff.mirrored(hMir, vMir));
+    if(buff.isNull()){
+        std::cout << "error occurred while converting the image <" <<_dir.toStdString() <<">!\n";
+        exit(EXIT_FAILURE);
+    }
+}
+
+
+
 } // namespace  zaytuna
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
