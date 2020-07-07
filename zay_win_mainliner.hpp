@@ -43,8 +43,6 @@
 #include <QtGui/QMouseEvent>
 #include <QtGui/QKeyEvent>
 #include <QTimer>
-#include <math.h>
-//#include "__headers__.h"
 #include "zay_scene_widg.hpp"
 
 
@@ -120,3 +118,6 @@ private:
 
 
 #endif // ZAY_WIN_MAINLINER_HPP
+
+
+

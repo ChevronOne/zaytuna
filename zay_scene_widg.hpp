@@ -37,11 +37,11 @@
 
 
 
-#ifndef ZAY__SCENE_WIDG_HPP
-#define ZAY__SCENE_WIDG_HPP
+#ifndef ZAY_SCENE_WIDG_HPP
+#define ZAY_SCENE_WIDG_HPP
 
 
-#include "zay_win_mainliner.hpp"
+//#include "zay_win_mainliner.hpp"
 
 //#include <QGLWidget>
 #include <QOpenGLWidget>
@@ -95,7 +95,8 @@ enum class VarType { PROGRAM, SHADER };
 
 
 
-class _scene_widg : public QOpenGLWidget, protected QOpenGLFunctions_3_0 // QOpenGLExtraFunctions
+class _scene_widg : public QOpenGLWidget,
+                    protected QOpenGLFunctions_3_0 // QOpenGLExtraFunctions
 //class _scene_widg : public QGLWidget, protected QOpenGLFunctions_3_0 // QOpenGLExtraFunctions
 {
     Q_OBJECT
@@ -104,12 +105,19 @@ class _scene_widg : public QOpenGLWidget, protected QOpenGLFunctions_3_0 // QOpe
     FileStatus fStatus;
     GLuint programs[PROGRAMS_NUM];
 
-    ptr_vector<zaytuna::scene_object*> beings;
+    ptr_vector<zaytuna::scene_object*> basic_objects;
+    ptr_vector<zaytuna::model_vehicle*> model_vehicles;
+    ptr_vector<zaytuna::scene_object*> lap_objects;
+    ptr_vector<zaytuna::scene_object*> obstacle_objects;
+    ptr_vector<zaytuna::scene_object*> environmental_objects;
+//    ptr_vector<zaytuna::scene_object*> beings;
     unsigned int _Shaders[SHADERS_NUM];
-    void checkError(GLuint, GLuint, VarType, const std::string&);
+    void checkError(GLuint, GLuint,
+                    VarType, const std::string&);
     unsigned int compileShader(const std::string&, GLenum);
     void updat_cam(void);
-    inline void load_tex(QImage&, const QString&, const char*, bool, bool);
+    inline void load_tex(QImage&, const QString&,
+                         const char*, bool, bool);
 
     double accum{0};
     std::chrono::time_point<std::chrono::_V2::system_clock,
@@ -118,7 +126,9 @@ class _scene_widg : public QOpenGLWidget, protected QOpenGLFunctions_3_0 // QOpe
 
     QTimer timer;
 
-    bool k_forward, k_backward, k_left, k_right, k_up, k_back;
+    bool k_forward, k_backward,
+         k_left, k_right,
+         k_up, k_back;
 
 
     GLuint theBufferID;
@@ -141,8 +151,12 @@ public:
     explicit _scene_widg(QWidget* parent = nullptr);
 
 
+//    std::vector<GLfloat> depth{std::vector<GLfloat>( this->width() * this->height(), 0.f )};
 
-    void initShader(const std::string&, GLuint&, const std::size_t&);
+
+
+    void initShader(const std::string&, GLuint&,
+                    const std::size_t&);
     void makeUnderUse(GLuint&);
     void detachProgram(void);
     unsigned int getProgram(void) const;
@@ -182,3 +196,6 @@ public slots:
 
 
 #endif // ZAY_SCENE_WIDG_HPP
+
+
+

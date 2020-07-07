@@ -38,8 +38,6 @@
 #ifndef ZAY_SHAPE_MAKER_HPP
 #define ZAY_SHAPE_MAKER_HPP
 
-#define __GLM__
-#define __OPENGL__
 
 #include <iterator>
 #include "zay_headers.hpp"
@@ -47,8 +45,6 @@
 #include "zay_shape_data.hpp"
 
 
-#define PI 3.14159265358979323846   // pi
-//#define NUM_OF(arr)  sizeof(arr) / sizeof(*arr)
 
 namespace zaytuna {
 
@@ -57,18 +53,26 @@ template <typename VERT>
 class shape_maker
 {
 public:
-    static shape_data<VERT> makeSphere(GLfloat PERS = 0.1f, GLfloat RAD = 1, glm::vec3 CENT = glm::vec3(0.0f, 0.0f, 0.0f));
+    static shape_data<VERT>
+    makeSphere(GLfloat PERS = 0.1f,
+               GLfloat RAD = 1,
+               glm::vec3 CENT = glm::vec3(0.0f, 0.0f, 0.0f));
     static shape_data<VERT> makePyramide();
-    static shape_data<VERT> makePlane(int dim = 20);
+
     static shape_data<VERT> makeCube(void);
     static shape_data<VERT> makeCubemap(void);
-    static shape_data<VERT> makeGrid(GLfloat length = 10.0f, GLfloat width = 10.0f, GLfloat tessellation = 1.0f);
-    static shape_data<VERT> makeCoord(GLfloat axes_length = 10.0f);
+    static shape_data<VERT>
+    makeGrid(GLfloat length = 10.0f,
+             GLfloat width = 10.0f,
+             GLfloat tessellation = 1.0f);
+    static shape_data<VERT>
+    makeCoord(GLfloat axes_length = 10.0f);
     static shape_data<VERT> makeLap();
 
-    static shape_data<VERT> makePlaneVerts(int);
-    static shape_data<VERT> makePlaneIndices(int);
-    static shape_data<VERT> extractExternal(const std::string&);
+    static shape_data<VERT>
+    extractExternal(const std::string&);
+
+
 };
 
 
@@ -79,3 +83,9 @@ public:
 
 
 #endif // ZAY_SHAPE_MAKER_HPP
+
+
+
+
+
+

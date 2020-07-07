@@ -38,7 +38,6 @@
 #ifndef ZAY_VERTEX_HPP
 #define ZAY_VERTEX_HPP
 
-#define __GLM__
 
 #include "zay_headers.hpp"
 
@@ -223,13 +222,9 @@ struct details{
 };
 
 
-
-struct vertex {  // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< orig
-    glm::vec3 position; // x y z
-    glm::vec3 color; // r g b
-    glm::vec3 normal; // x y z
-};
-
 } // namespace
 
 #endif // ZAY_VERTEX_HPP
+
+
+

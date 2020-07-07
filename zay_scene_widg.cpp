@@ -161,19 +161,54 @@ void _scene_widg::paintGL()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
-    model->update_attribs();
+//    model->update_attribs();
+
+    for(const auto& _obj:model_vehicles)
+        _obj->update_attribs();
 
 
     activeCam->updateWorld_to_viewMat();
 
-    for(const auto& _obj:beings)
+    if(coord_checked)
+        basic_objects[0]->render_obj(activeCam);
+
+    if(grid_checked)
+        basic_objects[1]->render_obj(activeCam);
+
+
+    for(const auto& _obj:lap_objects)
         _obj->render_obj(activeCam);
 
+//    for(const auto& _obj:obstacle_objects)
+//        _obj->render_obj(activeCam);
+
+    for(const auto& _obj:environmental_objects)
+        _obj->render_obj(activeCam);
+
+    for(const auto& _obj:model_vehicles)
+        _obj->render_obj(activeCam);
+
+
+
+
+
+
+    // // model_vehicles[0]->render_vectors_state(activeCam);
+
     // frame's rate
-    accum += std::chrono::duration<double, std::ratio< 1, 1>>(std::chrono::high_resolution_clock::now() - start_t).count();
+    accum += std::chrono::duration<double,
+              std::ratio< 1, 1>>(std::chrono::high_resolution_clock::now()
+                                 - start_t).count();
     ++f;
     if(accum>=1.0) {
-//        std::cout << "--------------------\n";
+
+//        std::cout << DebugGLerr(glGetError()) << "\n";
+//        this->glReadPixels( 0, 0, width(), height(), GL_DEPTH_COMPONENT, GL_FLOAT, &depth[0] );
+
+//        std::cout << DebugGLerr(glGetError()) << "\n";
+
+
+        std::cout << "\n--------------------\n";
         std::cout << "frame freq counter: "<< 1.0/(accum/f) << " f/s \n";
 //        // std::cout.precision(15);
 //        // std::cout << model->traveled_dist << " meters \n";
@@ -216,14 +251,14 @@ void _scene_widg::mouseMoveEvent(QMouseEvent *ev)
                 mainCam.move_down();
             if(delta_sY < 0)
                 mainCam.move_up();
-            sX = (double)ev->x();
-            sY = (double)ev->y();
+            sX = static_cast<double>(ev->x());
+            sY = static_cast<double>(ev->y());
         }
         else{
             sX = static_cast<double>(ev->x());
-            sY = (double)ev->y();
-            glX =  (sX/ ((double)this->width()/2) ) -1;
-            glY =  -((sY/ ((double)this->height()/2) ) -1);
+            sY = static_cast<double>(ev->y());
+            glX =  (sX/ (static_cast<double>(this->width())/2.0) ) -1;
+            glY =  -((sY/ (static_cast<double>(this->height())/2.0) ) -1);
             mainCam.mouse_update(glm::vec2(ev->x(),ev->y()));
         }
     }
@@ -250,7 +285,13 @@ void _scene_widg::updat_cam()
 void _scene_widg::keyPressEvent(QKeyEvent* ev)
 {
 
-    if( (activeCam != &mainCam) | k_forward | k_backward | k_left | k_right | k_up | k_back)
+    if( (activeCam != &mainCam)
+            | k_forward
+            | k_backward
+            | k_left
+            | k_right
+            | k_up
+            | k_back)
         return;
 
     switch (ev->key())
@@ -346,12 +387,14 @@ std::string _scene_widg::getShader(const std::string& file_dir)
     std::ifstream _stream(file_dir.c_str(), std::ios::in);
     if (!_stream)
     {
-        std::cerr << "file coudl not be opened: " << file_dir << std::endl;
+        std::cerr << "file could not be opened: " << file_dir << std::endl;
         exit(EXIT_FAILURE);
     }
     else
     {
-        std::string program = std::string(std::istreambuf_iterator<char>(_stream), std::istreambuf_iterator<char>());
+        std::string program =
+                std::string(std::istreambuf_iterator<char>(_stream),
+                            std::istreambuf_iterator<char>());
         _stream.close();
         fStatus = FileStatus::LOADED;
         return program;
@@ -359,7 +402,10 @@ std::string _scene_widg::getShader(const std::string& file_dir)
 
 }
 
-void _scene_widg::checkError(GLuint Object, GLuint ObjectParameter, VarType ObjectType, const std::string& _attachment)
+void _scene_widg::checkError(GLuint Object,
+                             GLuint ObjectParameter,
+                             VarType ObjectType,
+                             const std::string& _attachment)
 {
     // GL error handling
     int _status{0};
@@ -375,13 +421,13 @@ void _scene_widg::checkError(GLuint Object, GLuint ObjectParameter, VarType Obje
         if (ObjectType == VarType::PROGRAM)
         {
             glGetProgramiv(Object, GL_INFO_LOG_LENGTH, &len);
-            errorMessage = new char[(unsigned)len];
+            errorMessage = new char[static_cast<unsigned>(len)];
             glGetProgramInfoLog(Object, len, nullptr, errorMessage);
         }
         else if (ObjectType == VarType::SHADER)
         {
             glGetShaderiv(Object, GL_INFO_LOG_LENGTH, &len);
-            errorMessage = new char[(unsigned)len];
+            errorMessage = new char[static_cast<unsigned>(len)];
             glGetShaderInfoLog(Object, len, nullptr, errorMessage);
         }
 
@@ -391,31 +437,41 @@ void _scene_widg::checkError(GLuint Object, GLuint ObjectParameter, VarType Obje
     }
 }
 
-unsigned int _scene_widg::compileShader(const std::string& _shaders, GLenum _type)
+unsigned int
+_scene_widg::compileShader(const std::string& _shaders,
+                           GLenum _type)
 {
 
     GLuint _SH = glCreateShader(_type);
 
     if (_SH == 0){
-        std::cerr << "error occurs creating the shader object " << _type << std::endl;
+        std::cerr << "error occurs creating the shader object "
+                  << _type << std::endl;
         exit(EXIT_FAILURE);
     }
     else
     {
-        const GLchar* adapter = reinterpret_cast<const GLchar*>(_shaders.c_str());
-        const int leng = static_cast<int>(_shaders.length());
+        const GLchar* adapter =
+                reinterpret_cast<const GLchar*>
+                (_shaders.c_str());
+        const int leng = static_cast<int>
+                (_shaders.length());
 
         glShaderSource(_SH, 1, &adapter, &leng);
 
         glCompileShader(_SH);
-        checkError(_SH, GL_COMPILE_STATUS, VarType::SHADER, "Compilation Error: ");
+        checkError(_SH, GL_COMPILE_STATUS,
+                   VarType::SHADER,
+                   "Shader Compile Error: ");
     }
     return _SH;
 }
 
 
 
-void _scene_widg::initShader(const std::string& file_Dir, GLuint& programLinker, const std::size_t& attrib_location)
+void _scene_widg::initShader(const std::string& file_Dir,
+                             GLuint& programLinker,
+                             const std::size_t& attrib_location)
 {
     programLinker = glCreateProgram();
     // load vertex shader
@@ -431,10 +487,12 @@ void _scene_widg::initShader(const std::string& file_Dir, GLuint& programLinker,
             if (fStatus == FileStatus::LOADED)
             {
                 // compile fragment shader
-                _Shaders[1] = compileShader(_program, GL_FRAGMENT_SHADER);
+                _Shaders[1] = compileShader(_program,
+                                            GL_FRAGMENT_SHADER);
                 if (_Shaders[1] != 0)
                 {
-                    // attach the both vertex and fragment shaders to one program
+                    // attach the both vertex and
+                    // fragment shaders to one program
                     for (size_t _ind = 0; _ind != SHADERS_NUM; ++_ind)
                         glAttachShader(programLinker, _Shaders[_ind]);
 
@@ -456,16 +514,24 @@ void _scene_widg::initShader(const std::string& file_Dir, GLuint& programLinker,
                         glBindAttribLocation(programLinker, 2, "texCoor");
 
                     }else{
-                        std::cout << "program " << file_Dir << " not initialized!\n";
+                        std::cout << "program "
+                                  << file_Dir
+                                  << " not initialized!\n";
                         exit(EXIT_FAILURE);
                     }
 
                     glLinkProgram(programLinker);
 
                     // check for linker errors
-                    checkError(programLinker, GL_LINK_STATUS, VarType::PROGRAM, "Object Linking Error: ");
+                    checkError(programLinker,
+                               GL_LINK_STATUS,
+                               VarType::PROGRAM,
+                               "Shaders Linking Error: ");
                     glValidateProgram(programLinker);
-                    checkError(programLinker, GL_VALIDATE_STATUS, VarType::PROGRAM, "Program Validation Error: ");
+                    checkError(programLinker,
+                               GL_VALIDATE_STATUS,
+                               VarType::PROGRAM,
+                               "Program Validation Error: ");
 
                     for (size_t ind = 0; ind != SHADERS_NUM; ++ind)
                         glDeleteShader(_Shaders[ind]);
@@ -482,7 +548,7 @@ void _scene_widg::makeUnderUse(GLuint& p_linker)
 
 void _scene_widg::detachProgram()
 {
-    // calling this function with '0' argument will remove the program
+    // calling this with '0' argument removes the program
     glUseProgram(0);
 }
 
@@ -493,113 +559,159 @@ unsigned int _scene_widg::getProgram() const
 
 void _scene_widg::send_data()
 {
-
-        beings = {
-            new external_obj(this,
-                             programs[1],
-                             "plane",
-                             "./primitives/plane1sm_300x300m_150subdivs.obj",
-                             "tex/plane_grass_1024x1024.jpg",
-                             GL_QUADS
-//                             ,glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0)),
-//                             glm::translate(glm::dvec3(0.0, 0.0, 0.0))
-            ),
-            new external_obj(this,
-                             programs[1],
-                             "fence",
-                             "./primitives/fence2m300x300m.obj",
-                             "tex/fence_brick_1024x1024.jpg",
-                             GL_QUADS
-//                             ,glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0)),
-//                             glm::translate(glm::dvec3(0.0, 0.0, 0.0))
-            ),
-            new external_obj(this,
-                             programs[1],
-                             "mini_lap",
-                             "./primitives/mini-lap.obj",
-                             "tex/mini_lap_exemplar.jpg",
-                             GL_QUADS
-//                             ,glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0)),
-//                             glm::translate(glm::dvec3(0.0, 0.0, 0.0))
-            ),
-            new external_obj(this,
-                             programs[1],
-                             "lap1",
-                             "./primitives/lap1_first_attep.obj",
-                             "tex/lap1_exemplar.jpg",
-                             GL_QUADS
-//                             ,glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0)),
-//                              glm::translate(glm::dvec3(0.0, 0.0, 0.0))
-            ),
-            new external_obj(this,
-                             programs[1],
-                             "lap2",
-                             "./primitives/lap2_first_attep.obj",
-                             "tex/lap2_exemplar.jpg",
-                             GL_QUADS
-//                             ,glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0)),
-//                              glm::translate(glm::dvec3(0.0, 0.0, 0.0))
-            ),
-            new external_obj(this,
-                             programs[1],
-                             "lap3",
-                             "./primitives/lap3_first_attep.obj",
-                             "tex/lap3_exemplar.jpg",
-                             GL_QUADS
-//                             ,glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0)),
-//                              glm::translate(glm::dvec3(0.0, 0.0, 0.0))
-            ),
-            new coord_sys(this,
-                          programs[0],
-                          "coord_sys",
-                          10.f
-//                        ,glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0)),
-//                        glm::translate(glm::dvec3(0.0, 0.0, 0.0))
-            ),
-            new grid_plane(this,
-                          programs[0],
-                          "grid_plane",
-                          150.f,
-                          150.f,
-                          1.f
-//                        ,glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0)),
-//                        glm::translate(glm::dvec3(0.0, 0.0, 0.0))
-            ),
-            new skybox_obj(this,
-                           programs[2],
-                           "skybox"
+    basic_objects = {
+        new coord_sys(this,
+                      programs[0],
+                      "coord_sys",
+                      10.f,
+                      1.5f
+//                      ,glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0)),
+//                      glm::translate(glm::dvec3(0.0, 0.0, 0.0))
+        ),
+        new grid_plane(this,
+                      programs[0],
+                      "grid_plane",
+                      150.f,
+                      150.f,
+                      1.0f,
+                      1.0f
+//                      ,glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0)),
+//                      glm::translate(glm::dvec3(0.0, 0.0, 0.0))
+        )
+    };
+    //-----------------------------------------------
+    environmental_objects = {
+        new external_obj(this,
+                         programs[1],
+                         "plane",
+                         "./primitives/plane1sm_300x300m_150subdivs.obj",
+                         "tex/plane_grass_1024x1024.jpg",
+                         GL_QUADS
 //                         ,glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0)),
 //                         glm::translate(glm::dvec3(0.0, 0.0, 0.0))
-            ),
-            new model_vehicle(this,
-                          programs[3],
-                          "model_vehicle",
-                          "./primitives/zaytuna_model",
-                          "tex/zaytuna-fragments.png",
-                          GL_TRIANGLES
-//                        ,glm::rotate(45.0, glm::dvec3(0.0, 1.0, 0.0)),
-//                        glm::translate(glm::dvec3(3.0, 0.0, 2.5))
-            )
-        };
+        ),
+        new external_obj(this,
+                         programs[1],
+                         "fence",
+                         "./primitives/fence2m300x300m.obj",
+                         "tex/fence_brick_1024x1024.jpg",
+                         GL_QUADS
+//                         ,glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0)),
+//                         glm::translate(glm::dvec3(0.0, 0.0, 0.0))
+        ),
+        new skybox_obj(this,
+                       programs[2],
+                       "skybox"
+//                       ,glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0)),
+//                       glm::translate(glm::dvec3(0.0, 0.0, 0.0))
+        )
+    };
+    //--------------------------------------------------------------------
+    lap_objects = {
+        new external_obj(this,
+                         programs[1],
+                         "mini_lap",
+                         "./primitives/mini-lap.obj",
+                         "tex/mini_lap_exemplar.jpg",
+                         GL_QUADS
+//                         ,glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0)),
+//                         glm::translate(glm::dvec3(0.0, 0.0, 0.0))
+        ),
+        new external_obj(this,
+                         programs[1],
+                         "lap1",
+                         "./primitives/lap1_first_attep.obj",
+                         "tex/lap1_exemplar.jpg",
+                         GL_QUADS
+//                         ,glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0)),
+//                         glm::translate(glm::dvec3(0.0, 0.0, 0.0))
+        ),
+        new external_obj(this,
+                         programs[1],
+                         "lap2",
+                         "./primitives/lap2_first_attep.obj",
+                         "tex/lap2_exemplar.jpg",
+                         GL_QUADS
+//                         ,glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0)),
+//                         glm::translate(glm::dvec3(0.0, 0.0, 0.0))
+        ),
+        new external_obj(this,
+                         programs[1],
+                         "lap3",
+                         "./primitives/lap3_first_attep.obj",
+                         "tex/lap3_exemplar.jpg",
+                         GL_QUADS
+//                        ,glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0)),
+//                        glm::translate(glm::dvec3(0.0, 0.0, 0.0))
+        )
+    };
+    //---------------------------------------------------------------------
+    model_vehicles = {
+        new model_vehicle(this,
+                      programs[3],
+                      "model_vehicle",
+                      "./primitives/zaytuna_model",
+                      "tex/zaytuna-fragments.png",
+                      GL_TRIANGLES
+                      ,glm::rotate(45.0, glm::dvec3(0.0, 1.0, 0.0)),
+                      glm::translate(glm::dvec3(3.0, 0.0, 2.5))
+        )
+//        ,new model_vehicle(this,
+//                      programs[3],
+//                      "model_vehicle",
+//                      "./primitives/zaytuna_model",
+//                      "tex/zaytuna-fragments.png",
+//                      GL_TRIANGLES
+//                      ,glm::rotate(45.0, glm::dvec3(0.0, 1.0, 0.0)),
+//                      glm::translate(glm::dvec3(3.0, 0.0, 2.5))
+//        )
+    };
+    //------------------------------------------------------------------
 
-        std::cout << "num of objects: " << beings.size() << "\n";
-        GLsizeiptr BUF_SIZE{0};
-        for(const auto& _obj:beings)
-            BUF_SIZE+=_obj->buffer_size();
 
-        glGenBuffers(1, &theBufferID);
-        glBindBuffer(GL_ARRAY_BUFFER, theBufferID);
-        glBufferData(GL_ARRAY_BUFFER, BUF_SIZE, nullptr, GL_STATIC_DRAW);
+//    std::cout << "num of objects: " << beings.size() << "\n";
+    GLsizeiptr BUF_SIZE{0};
+    for(const auto& _obj:basic_objects)
+        BUF_SIZE+=_obj->buffer_size();
+    for(const auto& _obj:model_vehicles)
+        BUF_SIZE+=_obj->buffer_size();
+    for(const auto& _obj:lap_objects)
+        BUF_SIZE+=_obj->buffer_size();
+//    for(const auto& _obj:obstacle_objects)
+//        BUF_SIZE+=_obj->buffer_size();
+    for(const auto& _obj:environmental_objects)
+        BUF_SIZE+=_obj->buffer_size();
 
-        GLintptr current_offset{0};
-        for(auto& _obj:beings)
-            _obj->carry_data(current_offset);
+    glGenBuffers(1, &theBufferID);
+    glBindBuffer(GL_ARRAY_BUFFER, theBufferID);
+    glBufferData(GL_ARRAY_BUFFER, BUF_SIZE, nullptr, GL_STATIC_DRAW);
 
-        GLuint priv_offset{0};
-        for(const auto& _obj:beings)
-            _obj->parse_VertexArraysObject(theBufferID, priv_offset);
+    GLintptr current_offset{0};
+    for(auto& _obj:basic_objects)
+        _obj->carry_data(current_offset);
+    for(auto& _obj:model_vehicles)
+        _obj->carry_data(current_offset);
+    for(auto& _obj:lap_objects)
+        _obj->carry_data(current_offset);
+//    for(auto& _obj:obstacle_objects)
+//        _obj->carry_data(current_offset);
+    for(auto& _obj:environmental_objects)
+        _obj->carry_data(current_offset);
 
-        model = dynamic_cast<model_vehicle*>(beings.back());
+    GLuint previous_offset{0};
+    for(const auto& _obj:basic_objects)
+        _obj->parse_VertexArraysObject(theBufferID, previous_offset);
+    for(const auto& _obj:model_vehicles)
+        _obj->parse_VertexArraysObject(theBufferID, previous_offset);
+    for(const auto& _obj:lap_objects)
+        _obj->parse_VertexArraysObject(theBufferID, previous_offset);
+//    for(const auto& _obj:obstacle_objects)
+//        _obj->parse_VertexArraysObject(theBufferID, previous_offset);
+    for(const auto& _obj:environmental_objects)
+        _obj->parse_VertexArraysObject(theBufferID, previous_offset);
+
+
+    model = dynamic_cast<model_vehicle*>(model_vehicles.front());
 
 }
 
@@ -621,3 +733,6 @@ void _scene_widg::load_tex(QImage& buff, const QString& _dir,
 
 
 } // namespace  zaytuna
+
+
+

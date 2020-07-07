@@ -56,8 +56,15 @@ class model_vehicle : public scene_object
     shape_data<zaytuna::vertexL1_16> backtires_primitives;
     shape_data<zaytuna::vertexL1_16> lidar_primitives;
 
-    glm::mat4 modeltransformMat{glm::translate(glm::dvec3(0.0, 0.0, 0.0))}; // model transformation matrix
-    glm::mat4 inverse_transpose_transformMat{glm::translate(glm::dvec3(0.0, 0.0, 0.0))}; // the inverse of the transposed transformation matrix
+    // model transformation matrix
+    glm::mat4 modeltransformMat{
+        glm::translate(glm::dvec3(0.0, 0.0, 0.0))
+    };
+
+    // the inverse of the transposed transformation matrix
+    glm::mat4 inverse_transpose_transformMat{
+        glm::translate(glm::dvec3(0.0, 0.0, 0.0))
+    };
     static GLint transformMatLocation;
     static GLint inverse_transpose_transformMatLocation;
 
@@ -100,6 +107,8 @@ public:
     virtual GLsizeiptr buffer_size(void) const override;
 
 
+
+
     void actuate();
 
 
@@ -133,6 +142,8 @@ public:
     void update_rotation_att();
     void update_steerin(void);
     void update_cent(void);
+    void update_positional_attributes(const glm::dmat4&, const glm::dmat4&);
+    void render_vectors_state(zaytuna::camera*); // useful for debugging
 
 
     glm::dmat4 transformationMats[5]; // /model vehicle/, /right front tire/, /left front tire/, /back tires/, /lidar/
@@ -153,7 +164,7 @@ public:
 
     // Physical Specifications
     const double front_back_distance{0.2862}; // distance between back and front ideal tires
-    const double ticks_per_meter{173.0}; // 73 ticks per meter 'can be adjusted'
+    const double ticks_per_meter{173.0}; // 173 ticks per meter 'can be adjusted'
     const double meters_per_tick{1.0/ticks_per_meter}; // meters per tick
     const double tires_radius{0.0311};
     const double PI2{2.0*M_PI};

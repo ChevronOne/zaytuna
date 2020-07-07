@@ -39,11 +39,6 @@
 
 
 
-//#define ROTATION_SPEED 0.2f
-//#define MOVEMENT_SPEED 0.05f
-
-//float camera::MOVEMENT_SPEED = 0.15f;
-//float camera::ROTATION_SPEED = 0.3f;
 
 namespace zaytuna {
 
@@ -56,9 +51,9 @@ camera::camera() : FIELD_OF_VIEW{60.0}, NEAR_PLANE{0.01}, FAR_PLANE{400.0}, auto
 //  camera_position(glm::dvec3(56.87f , 22.3f, 45.55f))
 
 
-view_direction{glm::dvec3(-1.0f , 0.0f , 0.0f)},
+view_direction{glm::dvec3(0.0f , 0.0f , -1.0f)},
 up_direction{glm::dvec3(0.0f, 1.0f, 0.0f)},
-camera_position{glm::dvec3(+7.0f , 0.3f, -0.5f)}
+camera_position{glm::dvec3(+0.0f , 0.5f, 2.0f)}
 
 
 //view_direction{glm::dvec3(0.0f , 0.0f , -1.0f)},
@@ -73,8 +68,8 @@ camera_position{glm::dvec3(+7.0f , 0.3f, -0.5f)}
 //camera_position(glm::dvec3(+1.8f , 0.3f, -0.65f))
 {
 
-    MOVEMENT_SPEED = 0.094;
-    ROTATION_SPEED = 0.6;
+    MOVEMENT_SPEED = 0.024;
+    ROTATION_SPEED = 0.3;
 
 //    projectionMat = glm::perspective(glm::radians(FIELD_OF_VIEW),  // 5.0 angle of field of view
 //                                     w / h,  // aspect ratio
@@ -105,20 +100,20 @@ void camera::updateWorld_to_viewMat()
 //    if(camera_position.y > 100.0)
 //        camera_position.y = 100.0;
 
-    if(camera_position.y < 0.011)
-        camera_position.y = 0.011;
-    if(camera_position.y > 100.0)
-        camera_position.y = 100.0;
+//    if(camera_position.y < 0.011)
+//        camera_position.y = 0.011;
+//    if(camera_position.y > 100.0)
+//        camera_position.y = 100.0;
 
-    if(camera_position.x < -147.8)
-        camera_position.x = -147.8;
-    if(camera_position.x > 147.8)
-        camera_position.x = 147.8;
+//    if(camera_position.x < -147.8)
+//        camera_position.x = -147.8;
+//    if(camera_position.x > 147.8)
+//        camera_position.x = 147.8;
 
-    if(camera_position.z < -147.8)
-        camera_position.z = -147.8;
-    if(camera_position.z > 147.8)
-        camera_position.z = 147.8;
+//    if(camera_position.z < -147.8)
+//        camera_position.z = -147.8;
+//    if(camera_position.z > 147.8)
+//        camera_position.z = 147.8;
 
     world_to_viewMat = glm::lookAt(
                 camera_position,
@@ -145,10 +140,16 @@ void camera::mouse_update(const glm::dvec2& new_mouse_position)
         mouse_position = new_mouse_position;
         return;
     }
-    view_direction = glm::mat3(glm::rotate(glm::radians(-mouse_delta.x*ROTATION_SPEED), up_direction)) * view_direction;
+    view_direction =
+            glm::mat3(glm::rotate(glm::radians(-mouse_delta.x*ROTATION_SPEED),
+                                  up_direction))
+                                  * view_direction;
 
-    glm::dvec3 verticalRotaionVec = glm::cross(view_direction, up_direction);
-    view_direction = glm::dmat3(glm::rotate(glm::radians(-mouse_delta.y*ROTATION_SPEED), verticalRotaionVec)) * view_direction;
+    glm::dvec3 verticalRotaionVec = glm::cross(view_direction,
+                                               up_direction);
+    view_direction = glm::dmat3(glm::rotate(glm::radians(-mouse_delta.y*ROTATION_SPEED),
+                                            verticalRotaionVec))
+                                            * view_direction;
     mouse_position = new_mouse_position;
 }
 glm::dvec2 camera::get_moutse_position()
@@ -185,3 +186,6 @@ void camera::strafe_left(void)
 }
 
 } // namespace  zaytuna
+
+
+

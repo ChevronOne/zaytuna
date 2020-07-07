@@ -42,7 +42,11 @@ namespace zaytuna {
 
 glm::vec3 rCol(void)
 {
-    return {rand() / (float)RAND_MAX, rand() / (float)RAND_MAX, rand() / (float)RAND_MAX };
+    return {
+        rand() / static_cast<float>(RAND_MAX),
+        rand() / static_cast<float>(RAND_MAX),
+        rand() / static_cast<float>(RAND_MAX)
+    };
 }
 
 std::ostream& operator<<(std::ostream& out, const glm::vec3& vec)
@@ -55,27 +59,47 @@ std::ostream& operator<<(std::ostream& out, const glm::vec3& vec)
 
 }
 
-void _load_tex(QImage& buff, const QString& _dir,
-                          const char* _format, bool hMir, bool vMir)
+
+
+
+void _load_tex(QImage& buff,
+               const QString& _dir,
+               const char* _format,
+               bool hMir, bool vMir)
 {
     if(!(buff.load(_dir, _format))){
-        std::cout << "image couldn't be loaded <" << _dir.toStdString() << ">!\n";
+        std::cout << "image couldn't be loaded <"
+                  << _dir.toStdString() << ">!\n";
         exit(EXIT_FAILURE);
     }
 
     buff = QGLWidget::convertToGLFormat(buff.mirrored(hMir, vMir));
     if(buff.isNull()){
-        std::cout << "error occurred while converting the image <" <<_dir.toStdString() <<">!\n";
+        std::cout << "error occurred while converting the image <"
+                  <<_dir.toStdString() <<">!\n";
         exit(EXIT_FAILURE);
+    }
+}
+
+const char *DebugGLerr(unsigned GL_enum)
+{
+
+    switch( GL_enum ){
+        case 0:      return "GL Error Message: GL_NO_ERROR";
+        case 0x0500: return "GL Error Message: GL_INVALID_ENUM";
+        case 0x0501: return "GL Error Message: GL_INVALID_VALUE";
+        case 0x0502: return "GL Error Message: GL_INVALID_OPERATION";
+        case 0x0503: return "GL Error Message: GL_STACK_OVERFLOW";
+        case 0x0504: return "GL Error Message: GL_STACK_UNDERFLOW";
+        case 0x0505: return "GL Error Message: GL_OUT_OF_MEMORY";
+
+        default:     return "GL Error Message: unknown error value";
     }
 }
 
 
 
 } // namespace  zaytuna
-
-
-
 
 
 

@@ -38,7 +38,6 @@
 #ifndef ZAY_FRONT_CAM_HPP
 #define ZAY_FRONT_CAM_HPP
 
-#define __GLM__
 
 #include "zay_headers.hpp"
 

@@ -38,7 +38,6 @@
 #ifndef ZAY_SHAPE_DATA_HPP
 #define ZAY_SHAPE_DATA_HPP
 
-#define __OPENGL__
 
 
 #include "zay_headers.hpp"
@@ -58,7 +57,8 @@ namespace zaytuna {
 template <typename VERT>
 struct shape_data
 {
-    shape_data() : verts(nullptr), verNum(0), indices(nullptr), indNum(0) {}
+    shape_data() : verts(nullptr), verNum(0),
+        indices(nullptr), indNum(0) {}
     VERT* verts;
     GLuint verNum;
     GLuint* indices;
@@ -91,3 +91,6 @@ struct shape_data
 } // namespace zaytuna
 
 #endif // ZAY_SHAPE_DATA_HPP
+
+
+

@@ -39,7 +39,6 @@
 #define ZAY_CAM_HPP
 
 
-#define __GLM__
 
 #include "zay_headers.hpp"
 namespace zaytuna {
@@ -92,3 +91,7 @@ private:
 } // namespace zaytuna
 
 #endif // ZAY_CAM_HPP
+
+
+
+

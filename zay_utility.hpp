@@ -38,8 +38,7 @@
 #ifndef ZAY_UTILITY_HPP
 #define ZAY_UTILITY_HPP
 
-#define __OPENGL__
-#define __GLM__
+
 #include "zay_headers.hpp"
 #include <vector>
 #include <boost/assign/list_of.hpp>
@@ -52,6 +51,8 @@ glm::vec3 rCol(void);
 std::ostream& operator<<(std::ostream&, const glm::vec3&);
 
 void _load_tex(QImage&, const QString&, const char*, bool, bool);
+
+const char* DebugGLerr(unsigned);
 
 template<class T>
 class ptr_vector : public std::vector<T>

@@ -66,9 +66,15 @@ protected:
     GLuint inds_offset;
     GLsizei num_indices;
 
-    glm::dmat4 initial_rotaionMat{glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0))};
-    glm::dmat4 initial_translationMat{glm::translate(glm::dvec3(0.0, 0.0, 0.0))};
-    glm::mat4 initial_transformationMat{glm::translate(glm::dvec3(0.0, 0.0, 0.0))};
+    glm::dmat4 initial_rotaionMat{
+                   glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0))
+               };
+    glm::dmat4 initial_translationMat{
+                   glm::translate(glm::dvec3(0.0, 0.0, 0.0))
+               };
+    glm::dmat4 initial_transformationMat{
+                   glm::translate(glm::dvec3(0.0, 0.0, 0.0))
+               };
 
 
 public:
@@ -89,7 +95,9 @@ public:
     virtual ~scene_object() = default;
 };
 
-//===========================================
+
+
+// ---------------------------------------------
 
 class external_obj : public scene_object
 {
@@ -99,7 +107,9 @@ private:
     shape_data<zaytuna::vertexL1_16> primitives;
     GLuint _texID;
     GLenum MODE;
-    glm::mat4 transformationMat{glm::translate(glm::dvec3(0.0, 0.0, 0.0))};
+    glm::mat4 transformationMat{
+                glm::translate(glm::dvec3(0.0, 0.0, 0.0))
+              };
     static GLint transformMatLocation;
 
 
@@ -112,19 +122,23 @@ public:
                  const std::string&,
                  const std::string&,
                  const GLenum MODE = GL_TRIANGLES,
-                 const glm::dmat4 _rotaion = glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0)),
-                 const glm::dmat4 _translation =glm::translate(glm::dvec3(0.0, 0.0, 0.0)));
+                 const glm::dmat4 _rotaion =
+                        glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0)),
+                 const glm::dmat4 _translation =
+                        glm::translate(glm::dvec3(0.0, 0.0, 0.0)));
     virtual ~external_obj() override;
     virtual void clean_up(void) override;
     virtual void carry_data(GLintptr&) override;
-    virtual void parse_VertexArraysObject(const GLuint&, GLuint&) override;
+    virtual void parse_VertexArraysObject(const GLuint&,
+                                          GLuint&) override;
     virtual void render_obj(zaytuna::camera*) override;
     virtual GLsizeiptr buffer_size(void) const override;
 
 };
 
 
-//===========================================
+
+// --------------------------------------------
 
 class coord_sys : public scene_object
 {
@@ -132,8 +146,11 @@ class coord_sys : public scene_object
 private:
 
     shape_data<zaytuna::vertexL1_12> primitives;
-    glm::mat4 transformationMat{glm::translate(glm::dvec3(0.0, 0.0, 0.0))};
+    glm::mat4 transformationMat{
+        glm::translate(glm::dvec3(0.0, 0.0, 0.0))
+    };
     static GLint transformMatLocation;
+    GLfloat LINE_WIDTH;
 
 public:
 
@@ -142,18 +159,24 @@ public:
                  const GLuint,
                  const std::string&,
                  const GLfloat axes_length = 10.f,
-                 const glm::dmat4 _rotaion = glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0)),
-                 const glm::dmat4 _translation =glm::translate(glm::dvec3(0.0, 0.0, 0.0)));
+                 const GLfloat line_width = 1.5f,
+                 const glm::dmat4 _rotaion =
+                        glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0)),
+                 const glm::dmat4 _translation =
+                        glm::translate(glm::dvec3(0.0, 0.0, 0.0)));
     virtual ~coord_sys() override;
     virtual void clean_up(void) override;
     virtual void carry_data(GLintptr&) override;
-    virtual void parse_VertexArraysObject(const GLuint&, GLuint&) override;
+    virtual void parse_VertexArraysObject(const GLuint&,
+                                          GLuint&) override;
     virtual void render_obj(zaytuna::camera*) override;
     virtual GLsizeiptr buffer_size(void) const override;
 
 };
 
-//===========================================
+
+
+//-----------------------------------------
 
 class grid_plane : public scene_object
 {
@@ -161,8 +184,11 @@ class grid_plane : public scene_object
 private:
 
     shape_data<zaytuna::vertexL1_12> primitives;
-    glm::mat4 transformationMat{glm::translate(glm::dvec3(0.0, 0.0, 0.0))};
+    glm::mat4 transformationMat{
+        glm::translate(glm::dvec3(0.0, 0.0, 0.0))
+    };
     static GLint transformMatLocation;
+    GLfloat LINE_WIDTH;
 
 public:
 
@@ -172,20 +198,26 @@ public:
                  const std::string&,
                  const GLfloat length = 150.f,
                  const GLfloat width = 150.f,
-                 const GLfloat tessellation = 1.f,
-                 const glm::dmat4 _rotaion = glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0)),
-                 const glm::dmat4 _translation =glm::translate(glm::dvec3(0.0, 0.0, 0.0)));
+                 const GLfloat tessellation = 1.0f,
+                 const GLfloat line_width = 1.0f,
+                 const glm::dmat4 _rotaion =
+                        glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0)),
+                 const glm::dmat4 _translation =
+                        glm::translate(glm::dvec3(0.0, 0.0, 0.0)));
     virtual ~grid_plane() override;
     virtual void clean_up(void) override;
     virtual void carry_data(GLintptr&) override;
-    virtual void parse_VertexArraysObject(const GLuint&, GLuint&) override;
+    virtual void parse_VertexArraysObject(const GLuint&,
+                                          GLuint&) override;
     virtual void render_obj(zaytuna::camera*) override;
     virtual GLsizeiptr buffer_size(void) const override;
 
 };
 
-//=============================================
 
+
+
+// ----------------------------------------------
 
 class skybox_obj : public scene_object
 {
@@ -195,7 +227,9 @@ private:
     shape_data<zaytuna::vertexL1_0> primitives;
     GLuint _texID;
     GLenum MODE;
-    glm::mat4 transformationMat{glm::translate(glm::dvec3(0.0, 0.0, 0.0))};
+    glm::mat4 transformationMat{
+        glm::translate(glm::dvec3(0.0, 0.0, 0.0))
+    };
     static GLint transformMatLocation;
 
 
@@ -206,12 +240,15 @@ public:
                  const GLuint,
                  const std::string&,
                  const GLenum MODE = GL_TRIANGLES,
-                 const glm::dmat4 _rotaion = glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0)),
-                 const glm::dmat4 _translation =glm::translate(glm::dvec3(0.0, 0.0, 0.0)));
+                 const glm::dmat4 _rotaion =
+                        glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0)),
+                 const glm::dmat4 _translation =
+                        glm::translate(glm::dvec3(0.0, 0.0, 0.0)));
     virtual ~skybox_obj() override;
     virtual void clean_up(void) override;
     virtual void carry_data(GLintptr&) override;
-    virtual void parse_VertexArraysObject(const GLuint&, GLuint&) override;
+    virtual void parse_VertexArraysObject(const GLuint&,
+                                          GLuint&) override;
     virtual void render_obj(zaytuna::camera*) override;
     virtual GLsizeiptr buffer_size(void) const override;
 

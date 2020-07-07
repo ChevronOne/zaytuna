@@ -39,7 +39,10 @@
 
 
 template <typename VERT>
-shape_data<VERT> shape_maker<VERT>::makeGrid(GLfloat length, GLfloat width, GLfloat tessellation)
+shape_data<VERT>
+shape_maker<VERT>::makeGrid(GLfloat length,
+                            GLfloat width,
+                            GLfloat tessellation)
 {
     shape_data<VERT> plane;
     std::vector<VERT> ver;
@@ -77,21 +80,24 @@ shape_data<VERT> shape_maker<VERT>::makeGrid(GLfloat length, GLfloat width, GLfl
 
     plane.verNum = ver.size();
     plane.verts = new VERT[ver.size()];
-    //std::copy(ver.begin(), ver.end(), stdext::checked_array_iterator<Vertex*>(plane.verts, ver.size()));
+    //std::copy(ver.begin(), ver.end(),
+    //          stdext::checked_array_iterator<Vertex*>
+    //                  (plane.verts, ver.size()));
     std::copy(ver.begin(), ver.end(), plane.verts);
 
     plane.indNum = ind.size();
     plane.indices = new GLuint[ind.size()];
-    //std::copy(ind.begin(), ind.end(), stdext::checked_array_iterator<GLuint*>(plane.indices, ind.size()));
+    //std::copy(ind.begin(), ind.end(),
+    //          stdext::checked_array_iterator<GLuint*>
+    //                  (plane.indices, ind.size()));
     std::copy(ind.begin(), ind.end(),plane.indices);
 
-//    std::cout << ver.size() << std::endl;
-//    std::cout << ind.size() << std::endl;
     return plane;
 }
 
 template <typename VERT>
-shape_data<VERT> shape_maker<VERT>::makeCoord(GLfloat axes_length)
+shape_data<VERT>
+shape_maker<VERT>::makeCoord(GLfloat axes_length)
 {
     shape_data<VERT> coord;
     coord.verNum = 6;
@@ -141,7 +147,7 @@ template <typename VERT>
 shape_data<VERT> shape_maker<VERT>::makeLap()
 {
 
-    unsigned int indices[] = { 0, 1, 2, 3,}; // GL_TRIANGLES { 0, 1, 3, 1, 2, 3, };
+    unsigned int indices[] = { 0, 1, 2, 3,};
     shape_data<VERT> rectangle;
     zaytuna::vertexL1_16 vertsT[] = {
         // Top
@@ -184,16 +190,31 @@ shape_data<VERT> shape_maker<VERT>::extractExternal(const std::string& _dir)
     std::vector<float> _normals;
     std::vector<uint32_t> _faces;
 
-    auto pos_capture  = [&](auto& ctx){ _positions.emplace_back(_attr(ctx)); };
-    auto tex_capture  = [&](auto& ctx){ _texcoords.emplace_back(_attr(ctx)); };
-    auto norm_capture = [&](auto& ctx){ _normals.emplace_back(_attr(ctx)); };
-    auto face_capture = [&](auto& ctx){ _faces.emplace_back(_attr(ctx)-1); };
+    auto pos_capture  = [&](auto& ctx){
+        _positions.emplace_back(_attr(ctx));
+    };
+    auto tex_capture  = [&](auto& ctx){
+        _texcoords.emplace_back(_attr(ctx));
+    };
+    auto norm_capture = [&](auto& ctx){
+        _normals.emplace_back(_attr(ctx));
+    };
+    auto face_capture = [&](auto& ctx){
+        _faces.emplace_back(_attr(ctx)-1);
+    };
 
 
-    auto pos_rule      = "v" >> x3::float_[pos_capture] >> x3::float_[pos_capture] >> x3::float_[pos_capture];
-    auto tex_rule      = "vt" >> x3::float_[tex_capture] >> x3::float_[tex_capture];
-    auto norm_rule     = "vn" >> x3::float_[norm_capture] >> x3::float_[norm_capture] >> x3::float_[norm_capture];
-    auto VERTEX_rule   = x3::uint_[face_capture] >> '/' >> x3::uint_[face_capture] >> '/' >> x3::uint_[face_capture];
+    auto pos_rule      = "v" >> x3::float_[pos_capture]
+                             >> x3::float_[pos_capture]
+                             >> x3::float_[pos_capture];
+    auto tex_rule      = "vt" >> x3::float_[tex_capture]
+                              >> x3::float_[tex_capture];
+    auto norm_rule     = "vn" >> x3::float_[norm_capture]
+                              >> x3::float_[norm_capture]
+                              >> x3::float_[norm_capture];
+    auto VERTEX_rule   = x3::uint_[face_capture] >> '/'
+                         >> x3::uint_[face_capture] >> '/'
+                         >> x3::uint_[face_capture];
     //    auto LINE_rule     = "f" >> x3::repeat(2)[VERTEX];
     //    auto TRIANGLE_rule = "f" >> x3::repeat(3)[VERTEX];
     //    auto QUAD_rule     = "f" >> x3::repeat(4)[VERTEX];
@@ -201,10 +222,11 @@ shape_data<VERT> shape_maker<VERT>::extractExternal(const std::string& _dir)
     // auto faces   = "f" >> VERTEX >> VERTEX >> VERTEX;
     // auto faces = "f" >> x3::repeat(3)[VERTEX];
     auto face_rule  = "f" >> +VERTEX_rule;
-    // auto faces   = "f" >> (QUAD  | TRIANGLE | LINE);  XXXX
 
 
-    auto skipper = x3::blank | '#' >> *(x3::char_ - x3::eol) >> (x3::eol|x3::eoi);
+    auto skipper = x3::blank | '#'
+                   >> *(x3::char_ - x3::eol)
+                   >> (x3::eol|x3::eoi);
 
     auto __OBJ = x3::skip(skipper) [ *x3::eol >> *(
             +(pos_rule  >> (x3::eoi|+x3::eol)) >>
@@ -214,7 +236,8 @@ shape_data<VERT> shape_maker<VERT>::extractExternal(const std::string& _dir)
         )];
 
 
-    boost::spirit::istream_iterator _f(f_stream >> std::noskipws), _l;
+    boost::spirit::istream_iterator _f(f_stream
+                                    >> std::noskipws), _l;
     shape_data<VERT> _object;
 
     if (x3::parse(_f, _l, __OBJ)) {
@@ -225,9 +248,11 @@ shape_data<VERT> shape_maker<VERT>::extractExternal(const std::string& _dir)
                    *norm_arr{reinterpret_cast<glm::vec3*>(_normals.data())};
         glm::vec2*  tex_arr{reinterpret_cast<glm::vec2*>(_texcoords.data())};
 
-        for(uint32_t i{0}, j{0}; i<_object.verNum; ++i, j+=3 ){
-            _object.verts[i] = {pos_arr[_faces[j]], norm_arr[_faces[j+2]], tex_arr[_faces[j+1]]};
-        }
+        for(uint32_t i{0}, j{0}; i<_object.verNum; ++i, j+=3 )
+            _object.verts[i] = {pos_arr[_faces[j]],
+                                norm_arr[_faces[j+2]],
+                                tex_arr[_faces[j+1]]
+                               };
 
         _object.indices = new unsigned int[_object.indNum];
         for(uint32_t i{0}; i<_object.indNum; ++i)
@@ -238,72 +263,23 @@ shape_data<VERT> shape_maker<VERT>::extractExternal(const std::string& _dir)
         exit(EXIT_FAILURE);
     }
     if (_f!=_l){
-        std::cerr << "WARNING: file did not parsed properly <" << _dir << ">\n";
-        std::cout << "Unparsed: " << std::distance(_f,_l) << " characters remained unparsed! object may not be rendered properly\n";
+        std::cerr << "WARNING: file did not parsed properly <"
+                  << _dir << ">\n";
+        std::cout << "Unparsed: " << std::distance(_f,_l)
+                  << " characters remained unparsed! object may not be rendered properly!\n";
     }
 
     return _object;
 }
 
 
-template <typename VERT>
-shape_data<VERT> shape_maker<VERT>::makePlaneVerts(int dim)
-{
-    shape_data<VERT> ret;
-    ret.verNum = dim * dim;
-    int half = dim / 2;
-    ret.verts = new VERT[ret.verNum];
-    for (int i = 0; i < dim; i++)
-    {
-        for (int j = 0; j < dim; j++)
-        {
-            VERT& thisVert = ret.verts[i * dim + j];
-            thisVert.position.x = j - half;
-            thisVert.position.z = i - half;
-            thisVert.position.y = -0.004f;
-            thisVert.normal = glm::vec3(0.0f, 1.0f, 0.0f);
-            thisVert.color = glm::vec3(0.843f, 0.8f, 0.69f); // glm::vec3(0.74f, 0.74f, 0.74f);
-        }
-    }
-    return ret;
-}
+
 
 template <typename VERT>
-shape_data<VERT> shape_maker<VERT>::makePlaneIndices(int dim)
-{
-    shape_data<VERT> ret;
-    ret.indNum = (dim - 1) * (dim - 1) * 2 * 3; // 2 triangles per square, 3 indices per triangle
-    ret.indices = new GLuint[ret.indNum];
-    int runner = 0;
-    for (int row = 0; row < dim - 1; row++)
-    {
-        for (int col = 0; col < dim - 1; col++)
-        {
-            ret.indices[runner++] = dim * row + col;
-            ret.indices[runner++] = dim * row + col + dim;
-            ret.indices[runner++] = dim * row + col + dim + 1;
-
-            ret.indices[runner++] = dim * row + col;
-            ret.indices[runner++] = dim * row + col + dim + 1;
-            ret.indices[runner++] = dim * row + col + 1;
-        }
-    }
-    assert(runner = ret.indNum);
-    return ret;
-}
-
-template <typename VERT>
-shape_data<VERT> shape_maker<VERT>::makePlane(int dim)
-{
-    shape_data<VERT> ret = makePlaneVerts(dim);
-    shape_data<VERT> ret2 = makePlaneIndices(dim);
-    ret.indNum = ret2.indNum;
-    ret.indices = ret2.indices;
-    return ret;
-}
-
-template <typename VERT>
-shape_data<VERT> shape_maker<VERT>::makeSphere(GLfloat PERS, GLfloat RAD, glm::vec3 CENT)
+shape_data<VERT>
+shape_maker<VERT>::makeSphere(GLfloat PERS,
+                              GLfloat RAD,
+                              glm::vec3 CENT)
 {
     shape_data<VERT> sphere;
     std::vector<VERT> ver;
@@ -311,15 +287,25 @@ shape_data<VERT> shape_maker<VERT>::makeSphere(GLfloat PERS, GLfloat RAD, glm::v
     VERT v;
 //    glm::vec3 ret;
 
-    for (float i = -PI / 2; i <= PI / 2; i += PERS)
+    for (float i = -M_PI / 2; i <= M_PI / 2; i += PERS)
     {
-        for (float j = 0.0f; j <= PI * 2 + PI / 27; j += PERS)
+        for (float j = 0.0f; j <= M_PI * 2 + M_PI / 27; j += PERS)
         {
-            v.position = glm::vec3(cosf(j) * cosf(i) * RAD, sinf(i) * RAD, sinf(j) * cosf(i) * RAD) + CENT;
+            v.position = glm::vec3(cosf(j) * cosf(i)
+                                   * RAD, sinf(i)
+                                   * RAD, sinf(j)
+                                   * cosf(i)
+                                   * RAD)
+                                    + CENT;
             v.color = rCol();
             v.normal = v.position;
             ver.push_back(v);
-            v.position = glm::vec3(cosf(j) * cosf(i + PERS) * RAD, sinf(i + PERS) * RAD, sinf(j) * cosf(i + PERS) * RAD) + CENT;
+            v.position = glm::vec3(cosf(j) * cosf(i + PERS)
+                                   * RAD, sinf(i + PERS)
+                                   * RAD, sinf(j)
+                                   * cosf(i + PERS)
+                                   * RAD)
+                                   + CENT;
             v.color = rCol();
             v.normal = v.position;
             ver.push_back(v);
@@ -333,12 +319,16 @@ shape_data<VERT> shape_maker<VERT>::makeSphere(GLfloat PERS, GLfloat RAD, glm::v
 
     sphere.verNum = ver.size();
     sphere.verts = new VERT[ver.size()];
-    //std::copy(ver.begin(), ver.end(), stdext::checked_array_iterator<Vertex*>(sphere.verts, ver.size()));
+    //std::copy(ver.begin(), ver.end(),
+    //          stdext::checked_array_iterator<Vertex*>
+    //              (sphere.verts, ver.size()));
     std::copy(ver.begin(), ver.end(), sphere.verts);
 
     sphere.indNum = ind.size();
     sphere.indices = new GLuint[ind.size()];
-    //std::copy(ind.begin(), ind.end(), stdext::checked_array_iterator<GLuint*>(sphere.indices, ind.size()));
+    //std::copy(ind.begin(), ind.end(),
+    //          stdext::checked_array_iterator<GLuint*>
+    //              (sphere.indices, ind.size()));
     std::copy(ind.begin(), ind.end(),sphere.indices);
 
     return sphere;
@@ -554,8 +544,6 @@ shape_data<VERT> shape_maker<VERT>::makeCubemap() {
         20, 22, 21, 20, 23, 22, // Bottom
     };
 
-//    for(GLuint i = 0; i<NUM_OF(indices); ++i)
-//        indices[i] = i;
     cube.verNum = NUM_OF(verts);
     cube.verts = new VERT[cube.verNum];
     memcpy(cube.verts, verts, sizeof(verts));
@@ -565,6 +553,9 @@ shape_data<VERT> shape_maker<VERT>::makeCubemap() {
 
     return cube;
 }
+
+
+
 
 
 

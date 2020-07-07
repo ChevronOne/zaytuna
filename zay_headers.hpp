@@ -50,6 +50,7 @@
 #include <limits.h>
 #include <chrono>
 #include <iomanip>
+#include <math.h>
 
 #include <QOpenGLFunctions>
 #include <QOpenGLWidget>
@@ -57,13 +58,16 @@
 
 #include <QGL>
 
+#if __has_include(<experimental/filesystem>)
 
 #include <experimental/filesystem>
+namespace fs = std::experimental::filesystem::v1;
 
-//#define __GLM__
+#endif
+
 
 typedef GLfloat DATA_TYPE;
-namespace fs = std::experimental::filesystem::v1;
+
 
 #define _USE_MATH_DEFINES
 #include <math.h>
@@ -71,7 +75,7 @@ namespace fs = std::experimental::filesystem::v1;
 #define PI 3.14159265358979323846
 #define NUM_OF(arr)  sizeof(arr) / sizeof(*arr)
 
-#define __sign(val)  (float(0) < val) - (val < float(0))
+#define SIGN_OF(val)  (float(0) < val) - (val < float(0))
 
 
 #define TYPE_SIZE sizeof(DATA_TYPE)
@@ -104,3 +108,7 @@ namespace fs = std::experimental::filesystem::v1;
 
 
 #endif // ZAY_HEADERS_HPP
+
+
+
+

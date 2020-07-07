@@ -165,16 +165,6 @@ void win_mainliner::on_speedV_valueChanged(int value)
     ui->SQwidget->model->MOVEMENT_SPEED = static_cast<double>(-value);
 }
 
-//void win_mainliner::on_steeringAng_valueChanged(int value)
-//{
-//    ui->steeringDis->setText(QString::number(value));
-
-//    if(value == 0){
-//        ui->SQwidget->model.STEERING_WHEEL = 0.00000001;  // 0.001f;
-//    }else{
-//        ui->SQwidget->model.STEERING_WHEEL = (static_cast<double>(value)*PI) /180.0  ;///30;
-//    }
-//}
 
 void win_mainliner::on_radioButton_clicked()
 {
