@@ -41,14 +41,9 @@
 #define ZAY_SCENE_WIDG_HPP
 
 
-//#include "zay_win_mainliner.hpp"
 
-//#include <QGLWidget>
-#include <QOpenGLWidget>
-#include <QTimer>
-//#include <QOpenGLFunctions>
 
-#include <QOpenGLFunctions_3_0>
+#include "zay_headers.hpp"
 #include <QtGui/QMouseEvent>
 #include <QtGui/QKeyEvent>
 //#include <QWheelEvent>
@@ -61,7 +56,7 @@
 
 #include <ostream>
 #include <limits>
-#include "zay_headers.hpp"
+
 
 #include "zay_cam.hpp"
 #include "zay_vertex.hpp"
@@ -80,9 +75,7 @@
 //#include <QOpenGLFunctions_4_0>
 
 
-#include <QImage>
-#include <QGLFormat>
-#include <QSurfaceFormat>
+
 
 
 namespace zaytuna {
@@ -95,9 +88,9 @@ enum class VarType { PROGRAM, SHADER };
 
 
 
-class _scene_widg : public QOpenGLWidget,
-                    protected QOpenGLFunctions_3_0 // QOpenGLExtraFunctions
-//class _scene_widg : public QGLWidget, protected QOpenGLFunctions_3_0 // QOpenGLExtraFunctions
+//class _scene_widg : public QOpenGLWidget,
+//                    protected QOpenGLFunctions_3_0 // QOpenGLExtraFunctions
+class _scene_widg : public QGLWidget, protected QOpenGLFunctions_3_0 // QOpenGLExtraFunctions
 {
     Q_OBJECT
 
@@ -147,8 +140,8 @@ protected:
 
 
 public:
-//    explicit _scene_widg(QGLFormat, QWidget* parent = nullptr);
-    explicit _scene_widg(QWidget* parent = nullptr);
+    explicit _scene_widg(QGLFormat, QWidget* parent = nullptr);
+//    explicit _scene_widg(QWidget* parent = nullptr);
 
 
 //    std::vector<GLfloat> depth{std::vector<GLfloat>( this->width() * this->height(), 0.f )};

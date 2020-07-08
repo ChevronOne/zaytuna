@@ -104,7 +104,7 @@ private slots:
 private:
     Ui::win_mainliner *ui;
     QTimer timer;
-//    zaytuna::_scene_wid* _scene_w;
+    zaytuna::_scene_widg* _scene_widget;
 
 
     //-----------------------

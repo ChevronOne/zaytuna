@@ -69,14 +69,14 @@ double _scene_widg::glX, _scene_widg::glY; //, _scene_widg::glZ;
 
 
 
-_scene_widg::_scene_widg(QWidget* parent): QOpenGLWidget(parent),
-//_scene_widg::_scene_widg(QGLFormat _format, QWidget* parent): QGLWidget(_format, parent),
+//_scene_widg::_scene_widg(QWidget* parent): QOpenGLWidget(parent),
+_scene_widg::_scene_widg(QGLFormat _format, QWidget* parent): QGLWidget(_format, parent),
     fStatus{ FileStatus::UNDEFINED },
     k_forward{0}, k_backward{0}, k_left{0}, k_right{0}, k_up{0}, k_back{0}
 {
-    QSurfaceFormat _format;
-    _format.setSamples(8);
-    this->setFormat(_format);
+//    QSurfaceFormat _format;
+//    _format.setSamples(8);
+//    this->setFormat(_format);
 
 
     activeCam = &mainCam;
@@ -584,7 +584,7 @@ void _scene_widg::send_data()
         new external_obj(this,
                          programs[1],
                          "plane",
-                         "./primitives/plane1sm_300x300m_150subdivs.obj",
+                         "./primitives/plane_300x300_1sub-div",
                          "tex/plane_grass_1024x1024.jpg",
                          GL_QUADS
 //                         ,glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0)),
@@ -593,7 +593,7 @@ void _scene_widg::send_data()
         new external_obj(this,
                          programs[1],
                          "fence",
-                         "./primitives/fence2m300x300m.obj",
+                         "./primitives/fence_300x300_2H_1W",
                          "tex/fence_brick_1024x1024.jpg",
                          GL_QUADS
 //                         ,glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0)),
@@ -611,7 +611,7 @@ void _scene_widg::send_data()
         new external_obj(this,
                          programs[1],
                          "mini_lap",
-                         "./primitives/mini-lap.obj",
+                         "./primitives/mini-lap",
                          "tex/mini_lap_exemplar.jpg",
                          GL_QUADS
 //                         ,glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0)),
@@ -620,7 +620,7 @@ void _scene_widg::send_data()
         new external_obj(this,
                          programs[1],
                          "lap1",
-                         "./primitives/lap1_first_attep.obj",
+                         "./primitives/lap1",
                          "tex/lap1_exemplar.jpg",
                          GL_QUADS
 //                         ,glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0)),
@@ -629,7 +629,7 @@ void _scene_widg::send_data()
         new external_obj(this,
                          programs[1],
                          "lap2",
-                         "./primitives/lap2_first_attep.obj",
+                         "./primitives/lap2",
                          "tex/lap2_exemplar.jpg",
                          GL_QUADS
 //                         ,glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0)),
@@ -638,7 +638,7 @@ void _scene_widg::send_data()
         new external_obj(this,
                          programs[1],
                          "lap3",
-                         "./primitives/lap3_first_attep.obj",
+                         "./primitives/lap3",
                          "tex/lap3_exemplar.jpg",
                          GL_QUADS
 //                        ,glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0)),

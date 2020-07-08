@@ -47,19 +47,37 @@ win_mainliner::win_mainliner(QWidget *parent) :
     ui(new Ui::win_mainliner)
 {
     ui->setupUi(this);
+    QGLFormat _format;
+    _format.setSamples(8);
+
+    _scene_widget = new _scene_widg(_format, this);
+
+
+    //-------------------------------------------------
+//    Place_Tracker = new QWidget(centralWidget);
+    _scene_widget->setObjectName(QStringLiteral("Place_Tracker"));
+    _scene_widget->setEnabled(true);
+    _scene_widget->setGeometry(QRect(581, 25, 850, 450));
+    QSizePolicy sizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    sizePolicy.setHorizontalStretch(0);
+    sizePolicy.setVerticalStretch(0);
+    sizePolicy.setHeightForWidth(_scene_widget->sizePolicy().hasHeightForWidth());
+    _scene_widget->setSizePolicy(sizePolicy);
+    _scene_widget->setMinimumSize(QSize(850, 450));
+    _scene_widget->setMaximumSize(QSize(850, 450));
+    // -------------------------------------------------
 
 
 
-//    QPainter painter(this);
-//    painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform | QPainter::TextAntialiasing);
 
-    ui->lcdCamViewX->display(ui->SQwidget->mainCam.view_direction.x);
-    ui->lcdCamViewY->display(ui->SQwidget->mainCam.view_direction.y);
-    ui->lcdCamViewZ->display(ui->SQwidget->mainCam.view_direction.z);
 
-    ui->lcdCamCoordX->display(ui->SQwidget->mainCam.camera_position.x);
-    ui->lcdCamCoordY->display(ui->SQwidget->mainCam.camera_position.y);
-    ui->lcdCamCoordZ->display(ui->SQwidget->mainCam.camera_position.z);
+    ui->lcdCamViewX->display(_scene_widget->mainCam.view_direction.x);
+    ui->lcdCamViewY->display(_scene_widget->mainCam.view_direction.y);
+    ui->lcdCamViewZ->display(_scene_widget->mainCam.view_direction.z);
+
+    ui->lcdCamCoordX->display(_scene_widget->mainCam.camera_position.x);
+    ui->lcdCamCoordY->display(_scene_widget->mainCam.camera_position.y);
+    ui->lcdCamCoordZ->display(_scene_widget->mainCam.camera_position.z);
 
     ui->speedDis->setText(QString::number(0));
     ui->steeringDis->setText(QString::number(0));
@@ -90,6 +108,7 @@ win_mainliner::win_mainliner(QWidget *parent) :
 
 win_mainliner::~win_mainliner()
 {
+    delete _scene_widget;
     timer.deleteLater();
     delete ui;
 }
@@ -104,22 +123,22 @@ void win_mainliner::closeEvent(QCloseEvent *event)
 void win_mainliner::update_displys()
 {
 
-    ui->lcdCamViewX->display(ui->SQwidget->activeCam->view_direction.x);
-    ui->lcdCamViewY->display(ui->SQwidget->activeCam->view_direction.y);
-    ui->lcdCamViewZ->display(ui->SQwidget->activeCam->view_direction.z);
+    ui->lcdCamViewX->display(_scene_widget->activeCam->view_direction.x);
+    ui->lcdCamViewY->display(_scene_widget->activeCam->view_direction.y);
+    ui->lcdCamViewZ->display(_scene_widget->activeCam->view_direction.z);
 
-    ui->lcdCamCoordX->display(ui->SQwidget->activeCam->camera_position.x);
-    ui->lcdCamCoordY->display(ui->SQwidget->activeCam->camera_position.y);
-    ui->lcdCamCoordZ->display(ui->SQwidget->activeCam->camera_position.z);
+    ui->lcdCamCoordX->display(_scene_widget->activeCam->camera_position.x);
+    ui->lcdCamCoordY->display(_scene_widget->activeCam->camera_position.y);
+    ui->lcdCamCoordZ->display(_scene_widget->activeCam->camera_position.z);
 
 
 
-    ui->cam_movement_speed->setValue(ui->SQwidget->mainCam.MOVEMENT_SPEED);
-    ui->cam_rotation_speed->setValue(ui->SQwidget->mainCam.ROTATION_SPEED);
+    ui->cam_movement_speed->setValue(_scene_widget->mainCam.MOVEMENT_SPEED);
+    ui->cam_rotation_speed->setValue(_scene_widget->mainCam.ROTATION_SPEED);
 
-    ui->SpinBox_FieldOfView->setValue(ui->SQwidget->activeCam->FIELD_OF_VIEW);
-    ui->SpinBox_Near->setValue(ui->SQwidget->activeCam->NEAR_PLANE);
-    ui->SpinBox_Far->setValue(ui->SQwidget->activeCam->FAR_PLANE);
+    ui->SpinBox_FieldOfView->setValue(_scene_widget->activeCam->FIELD_OF_VIEW);
+    ui->SpinBox_Near->setValue(_scene_widget->activeCam->NEAR_PLANE);
+    ui->SpinBox_Far->setValue(_scene_widget->activeCam->FAR_PLANE);
 
 
 }
@@ -137,24 +156,24 @@ void win_mainliner::update_displys()
 
 void win_mainliner::on_grid_check_clicked(bool checked)
 {
-    ui->SQwidget->grid_checked = checked;
-    ui->SQwidget->repaint();
+    _scene_widget->grid_checked = checked;
+    _scene_widget->repaint();
 }
 
 void win_mainliner::on_coord_check_clicked(bool checked)
 {
-    ui->SQwidget->coord_checked = checked;
-    ui->SQwidget->repaint();
+    _scene_widget->coord_checked = checked;
+    _scene_widget->repaint();
 }
 
 void win_mainliner::on_cam_movement_speed_valueChanged(double arg1)
 {
-    ui->SQwidget->mainCam.MOVEMENT_SPEED = arg1;
+    _scene_widget->mainCam.MOVEMENT_SPEED = arg1;
 }
 
 void win_mainliner::on_cam_rotation_speed_valueChanged(double arg1)
 {
-    ui->SQwidget->mainCam.ROTATION_SPEED = arg1;
+    _scene_widget->mainCam.ROTATION_SPEED = arg1;
 }
 
 
@@ -162,52 +181,52 @@ void win_mainliner::on_cam_rotation_speed_valueChanged(double arg1)
 void win_mainliner::on_speedV_valueChanged(int value)
 {
     ui->speedDis->setText(QString::number(value));
-    ui->SQwidget->model->MOVEMENT_SPEED = static_cast<double>(-value);
+    _scene_widget->model->MOVEMENT_SPEED = static_cast<double>(-value);
 }
 
 
 void win_mainliner::on_radioButton_clicked()
 {
     ui->frame_perspective->setDisabled(1);
-    ui->SQwidget->activeCam->auto_perspective = 1;
+    _scene_widget->activeCam->auto_perspective = 1;
 }
 
 void win_mainliner::on_radioButton_2_clicked()
 {
     ui->frame_perspective->setEnabled(1);
-    ui->SQwidget->activeCam->auto_perspective = 0;
+    _scene_widget->activeCam->auto_perspective = 0;
 }
 
 void win_mainliner::on_SpinBox_Near_valueChanged(double arg1)
 {
-    ui->SQwidget->activeCam->NEAR_PLANE = arg1;
-    ui->SQwidget->updateProjection();
+    _scene_widget->activeCam->NEAR_PLANE = arg1;
+    _scene_widget->updateProjection();
 }
 
 void win_mainliner::on_SpinBox_Far_valueChanged(double arg1)
 {
-    ui->SQwidget->activeCam->FAR_PLANE = arg1;
-    ui->SQwidget->updateProjection();
+    _scene_widget->activeCam->FAR_PLANE = arg1;
+    _scene_widget->updateProjection();
 }
 
 void win_mainliner::on_SpinBox_FieldOfView_valueChanged(double arg1)
 {
-    ui->SQwidget->activeCam->FIELD_OF_VIEW = arg1;
-    ui->SQwidget->updateProjection();
+    _scene_widget->activeCam->FIELD_OF_VIEW = arg1;
+    _scene_widget->updateProjection();
 }
 
 void win_mainliner::on_radioButton_Global_clicked()
 {
-    ui->SQwidget->activeCam = &ui->SQwidget->mainCam;
+    _scene_widget->activeCam = &_scene_widget->mainCam;
     ui->camTransformation->setEnabled(1);
-    ui->SQwidget->updateProjection();
+    _scene_widget->updateProjection();
 }
 
 void win_mainliner::on_radioButton_Local_clicked()
 {
-    ui->SQwidget->activeCam = &ui->SQwidget->model->frontCam;
+    _scene_widget->activeCam = &_scene_widget->model->frontCam;
     ui->camTransformation->setEnabled(0);
-    ui->SQwidget->updateProjection();
+    _scene_widget->updateProjection();
 }
 
 void win_mainliner::on_steeringV_valueChanged(int value)
@@ -215,10 +234,12 @@ void win_mainliner::on_steeringV_valueChanged(int value)
         ui->steeringDis->setText(QString::number(value));
 
         if(value == 0){
-            ui->SQwidget->model->STEERING_WHEEL = 0.00000001;  // 0.001f;
+            _scene_widget->model->STEERING_WHEEL = 0.00000001;  // 0.001f;
         }else{
-            ui->SQwidget->model->STEERING_WHEEL = (static_cast<double>(value)*PI) /180.0  ;///30;
+            _scene_widget->model->STEERING_WHEEL = (static_cast<double>(value)*M_PI) /180.0;
         }
 }
 
 } // namespace  zaytuna
+
+
