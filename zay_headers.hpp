@@ -98,7 +98,7 @@ typedef GLfloat DATA_TYPE;
 
 #define SIGN_OF(val)  (float(0) < val) - (val < float(0))
 
-//double xxx = M_PI;
+
 
 
 #define TYPE_SIZE sizeof(DATA_TYPE)
