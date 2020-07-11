@@ -61,8 +61,10 @@
 #include <QGL>
 
 #include <QImage>
+#include <QMessageBox>
 #include <QGLFormat>
 //#include <QSurfaceFormat>
+#include <QGLFramebufferObject>
 
 #if __has_include(<experimental/filesystem>)
 
@@ -73,6 +75,7 @@ namespace fs = std::experimental::filesystem::v1;
 
 
 typedef GLfloat DATA_TYPE;
+typedef  QOpenGLFunctions_3_0 USED_GL_VERSION;
 
 
 #define _USE_MATH_DEFINES
@@ -104,12 +107,13 @@ typedef GLfloat DATA_TYPE;
 #define TYPE_SIZE sizeof(DATA_TYPE)
 #define NUM_VERTICES_PER_TRI 3
 #define NUM_VERTICES_PER_TEXCOR 2
-#define NUM_FLOATS_PER_VERTICE_0 9
-#define NUM_FLOATS_PER_VERTICE_1 8
+#define NUM_FLOATS_PER_VERTEX_0 9
+#define NUM_FLOATS_PER_VERTEX_1 8
 #define SHADERS_NUM 2
 #define PROGRAMS_NUM 4
-#define VERTEX_BYTE_SIZE_0  NUM_FLOATS_PER_VERTICE_0 * TYPE_SIZE
-#define VERTEX_BYTE_SIZE_1 NUM_FLOATS_PER_VERTICE_1 * TYPE_SIZE
+#define VERTEX_BYTE_SIZE_0  NUM_FLOATS_PER_VERTEX_0 * TYPE_SIZE
+#define VERTEX_BYTE_SIZE_1 NUM_FLOATS_PER_VERTEX_1 * TYPE_SIZE
+#define MOUSE_DELTA_IGNORE 7
 
 
 

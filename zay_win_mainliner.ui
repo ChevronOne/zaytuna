@@ -37,8 +37,8 @@
      <rect>
       <x>581</x>
       <y>10</y>
-      <width>850</width>
-      <height>450</height>
+      <width>800</width>
+      <height>500</height>
      </rect>
     </property>
     <property name="sizePolicy">
@@ -49,14 +49,14 @@
     </property>
     <property name="minimumSize">
      <size>
-      <width>850</width>
-      <height>450</height>
+      <width>800</width>
+      <height>500</height>
      </size>
     </property>
     <property name="maximumSize">
      <size>
-      <width>850</width>
-      <height>450</height>
+      <width>800</width>
+      <height>500</height>
      </size>
     </property>
    </widget>
@@ -129,7 +129,7 @@
         <property name="frameShadow">
          <enum>QFrame::Raised</enum>
         </property>
-        <widget class="QWidget" name="">
+        <widget class="QWidget" name="layoutWidget">
          <property name="geometry">
           <rect>
            <x>6</x>

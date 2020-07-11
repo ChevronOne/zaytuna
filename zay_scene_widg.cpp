@@ -40,6 +40,7 @@
 
 
 #include "zay_scene_widg.hpp"
+#include "zay_win_mainliner.hpp"
 
 namespace zaytuna {
 
@@ -92,6 +93,7 @@ _scene_widg::_scene_widg(QGLFormat _format, QWidget* parent): QGLWidget(_format,
     accum = 0;
 
 
+
 }
 
 _scene_widg::~_scene_widg()
@@ -103,6 +105,7 @@ _scene_widg::~_scene_widg()
     glUseProgram(0);
 
     cleanUp();
+    delete local_viewFBO;
 
 }
 
@@ -112,6 +115,35 @@ void _scene_widg::cleanUp()
     glDeleteBuffers(1, &theBufferID);
     detachProgram();
 }
+
+
+void _scene_widg::render_scene(camera const*const current_cam)
+{
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    if(coord_checked)
+        basic_objects[0]->render_obj(current_cam);
+
+    if(grid_checked)
+        basic_objects[1]->render_obj(current_cam);
+
+
+    for(const auto& _obj:lap_objects)
+        _obj->render_obj(current_cam);
+
+//    for(const auto& _obj:obstacle_objects)
+//        _obj->render_obj(current_cam);
+
+    for(const auto& _obj:environmental_objects)
+        _obj->render_obj(current_cam);
+
+    for(const auto& _obj:model_vehicles)
+        _obj->render_obj(current_cam);
+
+//    glFlush();
+}
+
 
 void _scene_widg::initializeGL()
 {
@@ -124,19 +156,26 @@ void _scene_widg::initializeGL()
     glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     glViewport(0, 0, this->width(), this->height());
     for(std::size_t i = 0; i<PROGRAMS_NUM; ++i)
         initShader("./Shaders/source"+std::to_string(i), programs[i], i);
 
     send_data();
 
+
+    QGLFramebufferObjectFormat fboFormat;
+    fboFormat.setSamples(8);
+    fboFormat.setAttachment(QGLFramebufferObject::CombinedDepthStencil);
+
+    local_viewFBO = new QGLFramebufferObject(this->width(), this->height(), fboFormat);
+
 }
 
 void _scene_widg::paintGL()
 {
-
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     if(activeCam == &mainCam){
         updat_cam();
@@ -157,43 +196,25 @@ void _scene_widg::paintGL()
     }
 
 
-
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-
-//    model->update_attribs();
-
     for(const auto& _obj:model_vehicles)
         _obj->update_attribs();
 
+    if(activeCam==&mainCam)
+        mainCam.updateWorld_to_viewMat();
 
-    activeCam->updateWorld_to_viewMat();
+    render_scene(activeCam);
 
-    if(coord_checked)
-        basic_objects[0]->render_obj(activeCam);
+    local_viewFBO->bind();
+    for(const auto& _obj:model_vehicles){
+        render_scene(&(_obj->frontCam));
+        _obj->local_cam_img = local_viewFBO->toImage();
 
-    if(grid_checked)
-        basic_objects[1]->render_obj(activeCam);
+    }
 
+    local_viewFBO->release();
 
-    for(const auto& _obj:lap_objects)
-        _obj->render_obj(activeCam);
+    // model_vehicles[0]->render_vectors_state(activeCam);
 
-//    for(const auto& _obj:obstacle_objects)
-//        _obj->render_obj(activeCam);
-
-    for(const auto& _obj:environmental_objects)
-        _obj->render_obj(activeCam);
-
-    for(const auto& _obj:model_vehicles)
-        _obj->render_obj(activeCam);
-
-
-
-
-
-
-    // // model_vehicles[0]->render_vectors_state(activeCam);
 
     // frame's rate
     accum += std::chrono::duration<double,
@@ -203,10 +224,13 @@ void _scene_widg::paintGL()
     if(accum>=1.0) {
 
 //        std::cout << DebugGLerr(glGetError()) << "\n";
-//        this->glReadPixels( 0, 0, width(), height(), GL_DEPTH_COMPONENT, GL_FLOAT, &depth[0] );
 
-//        std::cout << DebugGLerr(glGetError()) << "\n";
 
+//        img = this->grabFrameBuffer();
+
+        for(const auto& _obj:model_vehicles)
+            _obj->pubFront_img();
+//        img.save("file.jpg");
 
         std::cout << "\n--------------------\n";
         std::cout << "frame freq counter: "<< 1.0/(accum/f) << " f/s \n";
@@ -321,6 +345,7 @@ void _scene_widg::keyPressEvent(QKeyEvent* ev)
             k_right=1;
             break;
     }
+//    updat_cam();
 }
 
 void _scene_widg::wheelEvent(QWheelEvent *ev)
@@ -646,10 +671,11 @@ void _scene_widg::send_data()
         )
     };
     //---------------------------------------------------------------------
-    model_vehicles = {
+
+    model_vehicles = {    // more than one vehicle sitill do not work!
         new model_vehicle(this,
                       programs[3],
-                      "model_vehicle",
+                      "model_vehicle1",
                       "./primitives/zaytuna_model",
                       "tex/zaytuna-fragments.png",
                       GL_TRIANGLES
@@ -658,14 +684,26 @@ void _scene_widg::send_data()
         )
 //        ,new model_vehicle(this,
 //                      programs[3],
-//                      "model_vehicle",
+//                      "model_vehicle2",
 //                      "./primitives/zaytuna_model",
 //                      "tex/zaytuna-fragments.png",
 //                      GL_TRIANGLES
-//                      ,glm::rotate(45.0, glm::dvec3(0.0, 1.0, 0.0)),
-//                      glm::translate(glm::dvec3(3.0, 0.0, 2.5))
+//                      ,glm::rotate(-45.0, glm::dvec3(0.0, 1.0, 0.0)),
+//                      glm::translate(glm::dvec3(-3.0, 0.0, -2.5))
+//        ),
+//        new model_vehicle(this,
+//                      programs[3],
+//                      "model_vehicle3",
+//                      "./primitives/zaytuna_model",
+//                      "tex/zaytuna-fragments.png",
+//                      GL_TRIANGLES
+////                      ,glm::rotate(-45.0, glm::dvec3(0.0, 1.0, 0.0)),
+////                      glm::translate(glm::dvec3(-3.0, 0.0, -2.5))
 //        )
     };
+
+
+
     //------------------------------------------------------------------
 
 
@@ -709,6 +747,7 @@ void _scene_widg::send_data()
 //        _obj->parse_VertexArraysObject(theBufferID, previous_offset);
     for(const auto& _obj:environmental_objects)
         _obj->parse_VertexArraysObject(theBufferID, previous_offset);
+
 
 
     model = dynamic_cast<model_vehicle*>(model_vehicles.front());

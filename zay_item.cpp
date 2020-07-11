@@ -47,7 +47,7 @@ GLint zaytuna::grid_plane::transformMatLocation=-1;
 GLint zaytuna::skybox_obj::transformMatLocation=-1;
 
 
-zaytuna::scene_object::scene_object(QOpenGLFunctions_3_0 * const _widg,
+zaytuna::scene_object::scene_object(USED_GL_VERSION * const _widg,
                                     const GLuint programID,
                                     const std::string& _name,
                                     const glm::dmat4 _rotaion,
@@ -64,7 +64,7 @@ zaytuna::scene_object::scene_object(QOpenGLFunctions_3_0 * const _widg,
 //==================================================================================================
 
 
-zaytuna::external_obj::external_obj(QOpenGLFunctions_3_0 * const _widg,
+zaytuna::external_obj::external_obj(USED_GL_VERSION * const _widg,
                                     const GLuint programID,
                                     const std::string& _name,
                                     const std::string& _dir,
@@ -163,7 +163,7 @@ void external_obj::parse_VertexArraysObject(const GLuint& theBufferID,
 
 }
 
-void external_obj::render_obj(zaytuna::camera *activeCam)
+void external_obj::render_obj(zaytuna::camera const*const activeCam)
 {
     _widg->glUseProgram(_programID);
     transformationMat = activeCam->transformationMat;
@@ -185,7 +185,7 @@ GLsizeiptr external_obj::buffer_size() const
 
 // // -------
 
-zaytuna::coord_sys::coord_sys(QOpenGLFunctions_3_0 * const _widg,
+zaytuna::coord_sys::coord_sys(USED_GL_VERSION * const _widg,
                               const GLuint programID,
                               const std::string& _name,
                               const GLfloat axes_lenght,
@@ -261,7 +261,7 @@ void coord_sys::parse_VertexArraysObject(const GLuint& theBufferID,
     _widg->glLineWidth(1.0f);
 }
 
-void coord_sys::render_obj(zaytuna::camera *activeCam)
+void coord_sys::render_obj(zaytuna::camera const*const activeCam)
 {
     _widg->glUseProgram(_programID);
     transformationMat = activeCam->transformationMat;
@@ -285,7 +285,7 @@ GLsizeiptr coord_sys::buffer_size() const
 
 // // --------------------
 
-zaytuna::grid_plane::grid_plane(QOpenGLFunctions_3_0 * const _widg,
+zaytuna::grid_plane::grid_plane(USED_GL_VERSION * const _widg,
                               const GLuint programID,
                               const std::string& _name,
                               const GLfloat length,
@@ -365,7 +365,7 @@ void grid_plane::parse_VertexArraysObject(const GLuint& theBufferID,
     _widg->glLineWidth(1.0f);
 }
 
-void grid_plane::render_obj(zaytuna::camera *activeCam)
+void grid_plane::render_obj(zaytuna::camera const*const activeCam)
 {
     _widg->glUseProgram(_programID);
     transformationMat = activeCam->transformationMat;
@@ -389,7 +389,7 @@ GLsizeiptr grid_plane::buffer_size() const
 // // -----------------
 
 
-zaytuna::skybox_obj::skybox_obj(QOpenGLFunctions_3_0 * const _widg,
+zaytuna::skybox_obj::skybox_obj(USED_GL_VERSION * const _widg,
                                     const GLuint programID,
                                     const std::string& _name,
                                     const GLenum _MODE,
@@ -432,7 +432,7 @@ zaytuna::skybox_obj::skybox_obj(QOpenGLFunctions_3_0 * const _widg,
                     GL_TEXTURE_MAX_LEVEL, 0);
     for (GLuint i = 0; i < 6; ++i){
         _load_tex(tex_buffer, faces[i], "JPG", 0, 1);
-        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X+i,
+        _widg->glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X+i,
                      0, 3, tex_buffer.width(),
                      tex_buffer.height(), 0,
                      GL_RGBA, GL_UNSIGNED_BYTE,
@@ -496,7 +496,7 @@ void skybox_obj::parse_VertexArraysObject(const GLuint& theBufferID,
 
 }
 
-void skybox_obj::render_obj(zaytuna::camera *activeCam)
+void skybox_obj::render_obj(zaytuna::camera const*const activeCam)
 {
     _widg->glDepthFunc(GL_LEQUAL);
     _widg->glUseProgram(_programID);

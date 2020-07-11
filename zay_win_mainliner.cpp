@@ -57,14 +57,14 @@ win_mainliner::win_mainliner(QWidget *parent) :
 //    Place_Tracker = new QWidget(centralWidget);
     _scene_widget->setObjectName(QStringLiteral("Place_Tracker"));
     _scene_widget->setEnabled(true);
-    _scene_widget->setGeometry(QRect(581, 25, 850, 450));
+    _scene_widget->setGeometry(QRect(581, 25, 800, 500));
     QSizePolicy sizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     sizePolicy.setHorizontalStretch(0);
     sizePolicy.setVerticalStretch(0);
     sizePolicy.setHeightForWidth(_scene_widget->sizePolicy().hasHeightForWidth());
     _scene_widget->setSizePolicy(sizePolicy);
-    _scene_widget->setMinimumSize(QSize(850, 450));
-    _scene_widget->setMaximumSize(QSize(850, 450));
+    _scene_widget->setMinimumSize(QSize(800, 500));
+    _scene_widget->setMaximumSize(QSize(800, 500));
     // -------------------------------------------------
 
 

@@ -36,6 +36,7 @@
 
 
 #include "zay_model_vehicle.hpp"
+#include "zay_scene_widg.hpp"
 
 namespace zaytuna {
 
@@ -49,7 +50,7 @@ GLint zaytuna::model_vehicle::transformMatLocation=-1;
 GLint zaytuna::model_vehicle::inverse_transpose_transformMatLocation=-1;
 
 
-zaytuna::model_vehicle::model_vehicle(QOpenGLFunctions_3_0 * const _widg,
+zaytuna::model_vehicle::model_vehicle(USED_GL_VERSION * const _widg,
                                     const GLuint programID,
                                     const std::string& _name,
                                     const std::string& _dir,
@@ -57,12 +58,16 @@ zaytuna::model_vehicle::model_vehicle(QOpenGLFunctions_3_0 * const _widg,
                                     const GLenum _MODE,
                                     const glm::dmat4 _rotaion,
                                     const glm::dmat4 _translation):
+
     scene_object(_widg, programID, _name,
                  _rotaion, _translation ),
     MODE{_MODE}, AMOUNT_OF_ROTATION(0.0), MOVEMENT_SPEED(0.0),
     STEERING_WHEEL(0.00000001), accumulated_dist(0.0), traveled_dist(0.0),
     ticks_counter(0), radius_of_rotation(0.0), center_of_rotation(glm::dvec3(0.0,0.0,0.0))
 {
+
+//    connect(&timer, SIGNAL(timeout()), this, SLOT(draw()));
+
 
     model_primitives = shape_maker<zaytuna::vertexL1_16>::extractExternal(_dir);
     fronttires_primitives = shape_maker<zaytuna::vertexL1_16>::extractExternal(_dir+"-single_tire");
@@ -82,10 +87,9 @@ zaytuna::model_vehicle::model_vehicle(QOpenGLFunctions_3_0 * const _widg,
          exit(EXIT_FAILURE);
     }
     tex_buffer = QGLWidget::convertToGLFormat(tex_buffer);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tex_buffer.width(),
+    _widg->glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tex_buffer.width(),
                  tex_buffer.height(), 0, GL_RGBA,
                  GL_UNSIGNED_BYTE, tex_buffer.bits());
-
 
 
     update_positional_attributes(_translation, _rotaion);
@@ -94,6 +98,8 @@ zaytuna::model_vehicle::model_vehicle(QOpenGLFunctions_3_0 * const _widg,
     transformationMats[2] = f_leftT;
     transformationMats[3] = backT;
     transformationMats[4] = lidar;
+
+
 
 }
 
@@ -123,6 +129,7 @@ void model_vehicle::update_positional_attributes(const glm::dmat4 &translation_,
     frontCam.camera_position = initial_transformationMat * camPos;
     frontCam.view_direction  = initial_rotaionMat
                             * (glm::dvec4(0.5 , 0.17 , 0.0, 1.0) - camPos);
+    frontCam.updateWorld_to_viewMat();
 
     tires_hRotation = glm::rotate(amount_of_hRotation,
                                   glm::dvec3(0.0, 0.0, 1.0));
@@ -197,7 +204,7 @@ void model_vehicle::update_rotation_att()
                                                     up_direction))
                               * frontCam.view_direction;
 
-
+    frontCam.updateWorld_to_viewMat();
 }
 
 void model_vehicle::actuate()
@@ -318,6 +325,7 @@ void model_vehicle::carry_data(GLintptr& _offset)
 
     lidarNumIndices = static_cast<GLsizei>(lidar_primitives.indNum);
 
+
 }
 
 void model_vehicle::parse_VertexArraysObject(const GLuint& theBufferID,
@@ -430,11 +438,12 @@ void model_vehicle::parse_VertexArraysObject(const GLuint& theBufferID,
     backtires_primitives.cleanUP();
     lidar_primitives.cleanUP();
 
+
     timer_t = std::chrono::high_resolution_clock::now();
 
 }
 
-void model_vehicle::render_obj(zaytuna::camera *activeCam)
+void model_vehicle::render_obj(zaytuna::camera const*const activeCam)
 {
 
     modeltransformMat = activeCam->transformationMat
@@ -533,8 +542,17 @@ GLsizeiptr model_vehicle::buffer_size() const
            + lidar_primitives.indBufSize();
 }
 
+void model_vehicle::pubFront_img()
+{
+    local_cam_img.save((name+".jpg").c_str());
+}
 
-//----------------------------------
+void model_vehicle::animate()
+{
+    std::cout<< "repaint!!!\n";
+}
+
+//===================================================================
 
 // old approache
 glm::dvec3 rotate(glm::dvec3 p, const glm::dvec3 c,
@@ -666,6 +684,8 @@ void model_vehicle::render_vectors_state(camera *activeCam)
     glFlush();
 
 }
+
+
 
 
 

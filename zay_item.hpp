@@ -50,16 +50,13 @@
 
 namespace zaytuna{
 
-typedef uint16_t _itm0_indRange_t;
-typedef uint16_t _itm1_indRange_t;
-typedef uint16_t _itm2_indRange_t;
 
 
 class scene_object
 {
 protected:
 
-    QOpenGLFunctions_3_0* _widg{nullptr};
+    USED_GL_VERSION* _widg{nullptr};
     GLuint _programID;
     GLuint _VAO_ID;
     std::string name{"uninitialized object name"};
@@ -80,7 +77,7 @@ protected:
 public:
 
     scene_object() = default;
-    scene_object(QOpenGLFunctions_3_0 * const,
+    scene_object(USED_GL_VERSION * const,
                  const GLuint,
                  const std::string&,
                  const glm::dmat4,
@@ -91,7 +88,7 @@ public:
     virtual void clean_up(void) = 0;
     virtual void carry_data(GLintptr&) = 0;
     virtual void parse_VertexArraysObject(const GLuint&, GLuint&) = 0;
-    virtual void render_obj(zaytuna::camera*) = 0;
+    virtual void render_obj(zaytuna::camera const*const) = 0;
     virtual ~scene_object() = default;
 };
 
@@ -116,7 +113,7 @@ private:
 public:
 
     external_obj() = default;
-    external_obj(QOpenGLFunctions_3_0 * const,
+    external_obj(USED_GL_VERSION * const,
                  const GLuint,
                  const std::string&,
                  const std::string&,
@@ -131,7 +128,7 @@ public:
     virtual void carry_data(GLintptr&) override;
     virtual void parse_VertexArraysObject(const GLuint&,
                                           GLuint&) override;
-    virtual void render_obj(zaytuna::camera*) override;
+    virtual void render_obj(zaytuna::camera const*const) override;
     virtual GLsizeiptr buffer_size(void) const override;
 
 };
@@ -155,7 +152,7 @@ private:
 public:
 
     coord_sys() = default;
-    coord_sys(QOpenGLFunctions_3_0 * const,
+    coord_sys(USED_GL_VERSION * const,
                  const GLuint,
                  const std::string&,
                  const GLfloat axes_length = 10.f,
@@ -169,7 +166,7 @@ public:
     virtual void carry_data(GLintptr&) override;
     virtual void parse_VertexArraysObject(const GLuint&,
                                           GLuint&) override;
-    virtual void render_obj(zaytuna::camera*) override;
+    virtual void render_obj(zaytuna::camera const*const) override;
     virtual GLsizeiptr buffer_size(void) const override;
 
 };
@@ -193,7 +190,7 @@ private:
 public:
 
     grid_plane() = default;
-    grid_plane(QOpenGLFunctions_3_0 * const,
+    grid_plane(USED_GL_VERSION * const,
                  const GLuint,
                  const std::string&,
                  const GLfloat length = 150.f,
@@ -209,7 +206,7 @@ public:
     virtual void carry_data(GLintptr&) override;
     virtual void parse_VertexArraysObject(const GLuint&,
                                           GLuint&) override;
-    virtual void render_obj(zaytuna::camera*) override;
+    virtual void render_obj(zaytuna::camera const*const) override;
     virtual GLsizeiptr buffer_size(void) const override;
 
 };
@@ -236,7 +233,7 @@ private:
 public:
 
     skybox_obj() = default;
-    skybox_obj(QOpenGLFunctions_3_0 * const,
+    skybox_obj(USED_GL_VERSION * const,
                  const GLuint,
                  const std::string&,
                  const GLenum MODE = GL_TRIANGLES,
@@ -249,7 +246,7 @@ public:
     virtual void carry_data(GLintptr&) override;
     virtual void parse_VertexArraysObject(const GLuint&,
                                           GLuint&) override;
-    virtual void render_obj(zaytuna::camera*) override;
+    virtual void render_obj(zaytuna::camera const*const) override;
     virtual GLsizeiptr buffer_size(void) const override;
 
 };

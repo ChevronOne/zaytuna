@@ -46,10 +46,13 @@
 
 namespace zaytuna {
 
-
+class _scene_widg;
 
 class model_vehicle : public scene_object
 {
+//    Q_OBJECT
+
+    QImage local_cam_img;
 
     shape_data<zaytuna::vertexL1_16> model_primitives;
     shape_data<zaytuna::vertexL1_16> fronttires_primitives;
@@ -72,9 +75,10 @@ class model_vehicle : public scene_object
                     std::chrono::nanoseconds> timer_t;
     double elapsed_t;
 
-
     GLuint _texID;
     GLenum MODE;
+
+
 
     GLuint fronttiresVAO_ID;
     GLuint backtiresVAO_ID;
@@ -88,10 +92,13 @@ class model_vehicle : public scene_object
     GLsizei backtiresNumIndices;
     GLsizei lidarNumIndices;
 
+    friend class _scene_widg;
+
+
 
 public:
     model_vehicle() = default;
-    model_vehicle(QOpenGLFunctions_3_0 * const,
+    explicit model_vehicle(USED_GL_VERSION * const,
                  const GLuint,
                  const std::string&,
                  const std::string&,
@@ -103,7 +110,7 @@ public:
     virtual void clean_up(void) override;
     virtual void carry_data(GLintptr&) override;
     virtual void parse_VertexArraysObject(const GLuint&, GLuint&) override;
-    virtual void render_obj(zaytuna::camera*) override;
+    virtual void render_obj(zaytuna::camera const*const) override;
     virtual GLsizeiptr buffer_size(void) const override;
 
 
@@ -145,12 +152,16 @@ public:
     void update_positional_attributes(const glm::dmat4&, const glm::dmat4&);
     void render_vectors_state(zaytuna::camera*); // useful for debugging
 
+    void pubFront_img(void);
+
 
     glm::dmat4 transformationMats[5]; // /model vehicle/, /right front tire/, /left front tire/, /back tires/, /lidar/
     glm::dmat4 tires_hRotation, // rotation matrix of horizontal rotation of the wheels
             front_tires_vRotation; // rotation matrix of vertical rotation of the front tires
 
     zaytuna::camera frontCam; // front camera
+
+//    QTimer timer;
 
 
     // Default Positional Parameters
@@ -170,6 +181,10 @@ public:
     const double PI2{2.0*M_PI};
     const double tires_circumference{PI2*tires_radius};
 
+
+
+public slots:
+        void animate();
 
 
 

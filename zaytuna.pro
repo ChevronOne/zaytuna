@@ -46,7 +46,6 @@ SOURCES += \
     zay_item.cpp \
     zay_shape_maker.inl \
     zay_scene_widg.cpp \
-    zay_front_cam.cpp \
     zaytuna.cpp \
     zay_model_vehicle.cpp \
     zay_win_mainliner.cpp
@@ -62,7 +61,6 @@ HEADERS += \
     zay_scene_widg.hpp \
     zay_model_vehicle.hpp \
     zay_win_mainliner.hpp \
-    zay_front_cam.hpp \
     zay_cam.hpp
 
 FORMS += \

@@ -71,10 +71,7 @@ camera_position{glm::dvec3(+0.0f , 0.5f, 2.0f)}
     MOVEMENT_SPEED = 0.024;
     ROTATION_SPEED = 0.3;
 
-//    projectionMat = glm::perspective(glm::radians(FIELD_OF_VIEW),  // 5.0 angle of field of view
-//                                     w / h,  // aspect ratio
-//                                     NEAR_PLANE,          // 0.005 near plane
-//                                     FAR_PLANE);
+
 }
 
 glm::dmat4 camera::getWorld_to_view_Mat()
@@ -87,10 +84,11 @@ glm::dmat4 camera::getWorld_to_view_Mat()
 
 void camera::updateProjection(const double& w, const double& h)
 {
-    projectionMat = glm::perspective(glm::radians(FIELD_OF_VIEW),  // 5.0 angle of field of view
-                                         w / h,  // aspect ratio
-                                         NEAR_PLANE,          // 0.005 near plane
+    projectionMat = glm::perspective(glm::radians(FIELD_OF_VIEW),  // angle of field of view
+                                     w / h,                // aspect ratio
+                                     NEAR_PLANE,
                                      FAR_PLANE);
+    updateWorld_to_viewMat();
 }
 
 void camera::updateWorld_to_viewMat()
@@ -134,14 +132,14 @@ camera::~camera()
 
 void camera::mouse_update(const glm::dvec2& new_mouse_position)
 {
-    glm::vec2 mouse_delta = new_mouse_position - mouse_position;
-    if (glm::length(mouse_delta) > 7.0f)
+    glm::dvec2 mouse_delta = new_mouse_position - mouse_position;
+    if (glm::length(mouse_delta) > MOUSE_DELTA_IGNORE)
     {
         mouse_position = new_mouse_position;
         return;
     }
     view_direction =
-            glm::mat3(glm::rotate(glm::radians(-mouse_delta.x*ROTATION_SPEED),
+            glm::dmat3(glm::rotate(glm::radians(-mouse_delta.x*ROTATION_SPEED),
                                   up_direction))
                                   * view_direction;
 

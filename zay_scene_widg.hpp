@@ -84,13 +84,13 @@ namespace zaytuna {
 
 enum class FileStatus { UNDEFINED, LOADED, FAILED };
 enum class VarType { PROGRAM, SHADER };
-
+class win_mainliner;
 
 
 
 //class _scene_widg : public QOpenGLWidget,
-//                    protected QOpenGLFunctions_3_0 // QOpenGLExtraFunctions
-class _scene_widg : public QGLWidget, protected QOpenGLFunctions_3_0 // QOpenGLExtraFunctions
+//                    protected USED_GL_VERSION // QOpenGLExtraFunctions
+class _scene_widg : public QGLWidget, protected USED_GL_VERSION // QOpenGLExtraFunctions
 {
     Q_OBJECT
 
@@ -112,10 +112,30 @@ class _scene_widg : public QGLWidget, protected QOpenGLFunctions_3_0 // QOpenGLE
     inline void load_tex(QImage&, const QString&,
                          const char*, bool, bool);
 
+    void initShader(const std::string&, GLuint&,
+                    const std::size_t&);
+    void makeUnderUse(GLuint&);
+    void detachProgram(void);
+    unsigned int getProgram(void) const;
+
+    void send_data(void);
+    void updateProjection(void);
+
+    void cleanUp();
+    void draw_local(void);
+    void render_scene(zaytuna::camera const*const);
+
     double accum{0};
     std::chrono::time_point<std::chrono::_V2::system_clock,
                     std::chrono::nanoseconds> start_t;
 
+    camera mainCam ;
+    camera* activeCam;
+
+    model_vehicle* model;
+
+
+    bool coord_checked{true}, grid_checked{true};
 
     QTimer timer;
 
@@ -125,6 +145,15 @@ class _scene_widg : public QGLWidget, protected QOpenGLFunctions_3_0 // QOpenGLE
 
 
     GLuint theBufferID;
+
+
+
+    QGLFramebufferObject *local_viewFBO;
+    QImage img;
+
+
+    friend class zaytuna::win_mainliner;
+//    friend class model_vehicle;
 
 protected:
 
@@ -148,14 +177,7 @@ public:
 
 
 
-    void initShader(const std::string&, GLuint&,
-                    const std::size_t&);
-    void makeUnderUse(GLuint&);
-    void detachProgram(void);
-    unsigned int getProgram(void) const;
 
-    void send_data(void);
-    void updateProjection(void);
 
     virtual ~_scene_widg() override;
 
@@ -164,16 +186,6 @@ public:
     static double delta_sX, delta_sY;//, delta_sZ;
     static double glX, glY; //, glZ;
 
-    camera mainCam ;
-    camera* activeCam;
-
-    model_vehicle* model;
-    QGLFormat format;
-
-    void cleanUp();
-
-
-    bool coord_checked{true}, grid_checked{true};
 
 
 public slots:

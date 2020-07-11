@@ -55,6 +55,12 @@ int main(int argc, char *argv[])
     }else
         std::cerr << "WARNING: fonts did not load!\n";
 
+    if (!QGLFormat::hasOpenGL() || !QGLFramebufferObject::hasOpenGLFramebufferObjects()) {
+        QMessageBox::information(nullptr, "OpenGL FrameBuffer Object",
+                                 "This system does not support OpenGL/FrameBuffer Object!");
+        return -1;
+    }
+
     zaytuna::win_mainliner w;
     w.setWindowTitle("Zaytuna-Simulator");
     w.show();
