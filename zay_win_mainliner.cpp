@@ -10,7 +10,7 @@
 //  If not, see <http://www.gnu.org/licenses/>.
 //
 //
-//  This library is distributed in the hope that it will be useful, but WITHOUT
+//  This software is distributed in the hope that it will be useful, but WITHOUT
 //  WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
 //  WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE AND
 //  NON-INFRINGEMENT. IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR ANYONE
@@ -38,9 +38,15 @@
 #include "zay_win_mainliner.hpp"
 #include "ui_zay_win_mainliner.h"
 #include <QString>
+//#include "zay_headers.hpp"
 
 
 namespace zaytuna {
+
+
+//// for debugging
+double GLOBAL_MOVEMENT_SPEED{0.0};
+double GLOBAL_STEERING_WHEEL{0.00000001};
 
 win_mainliner::win_mainliner(QWidget *parent) :
     QMainWindow(parent),
@@ -168,6 +174,7 @@ void win_mainliner::on_coord_check_clicked(bool checked)
 
 void win_mainliner::on_cam_movement_speed_valueChanged(double arg1)
 {
+//    _scene_widget->mainCam.MOVEMENT_SPEED = arg1;
     _scene_widget->mainCam.MOVEMENT_SPEED = arg1;
 }
 
@@ -181,7 +188,8 @@ void win_mainliner::on_cam_rotation_speed_valueChanged(double arg1)
 void win_mainliner::on_speedV_valueChanged(int value)
 {
     ui->speedDis->setText(QString::number(value));
-    _scene_widget->model->MOVEMENT_SPEED = static_cast<double>(-value);
+    GLOBAL_MOVEMENT_SPEED = static_cast<double>(-value);
+//    _scene_widget->model->MOVEMENT_SPEED = static_cast<double>(-value);
 }
 
 
@@ -234,9 +242,11 @@ void win_mainliner::on_steeringV_valueChanged(int value)
         ui->steeringDis->setText(QString::number(value));
 
         if(value == 0){
-            _scene_widget->model->STEERING_WHEEL = 0.00000001;  // 0.001f;
+            GLOBAL_STEERING_WHEEL = 0.00000001;  // 0.001f;
+//            _scene_widget->model->STEERING_WHEEL = 0.00000001;  // 0.001f;
         }else{
-            _scene_widget->model->STEERING_WHEEL = (static_cast<double>(value)*M_PI) /180.0;
+            GLOBAL_STEERING_WHEEL = (static_cast<double>(value)*M_PI) /180.0;
+//            _scene_widget->model->STEERING_WHEEL = (static_cast<double>(value)*M_PI) /180.0;
         }
 }
 

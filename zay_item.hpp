@@ -10,7 +10,7 @@
 //  If not, see <http://www.gnu.org/licenses/>.
 //
 //
-//  This library is distributed in the hope that it will be useful, but WITHOUT
+//  This software is distributed in the hope that it will be useful, but WITHOUT
 //  WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
 //  WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE AND
 //  NON-INFRINGEMENT. IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR ANYONE
@@ -47,6 +47,7 @@
 #include "zay_shape_maker.hpp"
 #include "zay_utility.hpp"
 #include "zay_cam.hpp"
+#include "zay_model_vehicle.hpp"
 
 namespace zaytuna{
 
@@ -59,11 +60,10 @@ protected:
     USED_GL_VERSION* _widg{nullptr};
     GLuint _programID;
     GLuint _VAO_ID;
-    std::string name{"uninitialized object name"};
     GLuint inds_offset;
     GLsizei num_indices;
 
-    glm::dmat4 initial_rotaionMat{
+    glm::dmat4 initial_rotationMat{
                    glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0))
                };
     glm::dmat4 initial_translationMat{
@@ -73,21 +73,21 @@ protected:
                    glm::translate(glm::dvec3(0.0, 0.0, 0.0))
                };
 
+    virtual void clean_up(void) = 0;
 
 public:
 
     scene_object() = default;
     scene_object(USED_GL_VERSION * const,
                  const GLuint,
-                 const std::string&,
                  const glm::dmat4,
                  const glm::dmat4
                  );
 
     virtual GLsizeiptr buffer_size(void) const = 0;
-    virtual void clean_up(void) = 0;
-    virtual void carry_data(GLintptr&) = 0;
-    virtual void parse_VertexArraysObject(const GLuint&, GLuint&) = 0;
+
+    virtual void transmit_data(GLintptr&,const GLuint&,
+                            GLuint&) = 0;
     virtual void render_obj(zaytuna::camera const*const) = 0;
     virtual ~scene_object() = default;
 };
@@ -101,6 +101,7 @@ class external_obj : public scene_object
 
 private:
 
+    std::string name{"uninitialized object name"};
     shape_data<zaytuna::vertexL1_16> primitives;
     GLuint _texID;
     GLenum MODE;
@@ -109,7 +110,7 @@ private:
               };
     static GLint transformMatLocation;
 
-
+    virtual void clean_up(void) override;
 public:
 
     external_obj() = default;
@@ -124,10 +125,9 @@ public:
                  const glm::dmat4 _translation =
                         glm::translate(glm::dvec3(0.0, 0.0, 0.0)));
     virtual ~external_obj() override;
-    virtual void clean_up(void) override;
-    virtual void carry_data(GLintptr&) override;
-    virtual void parse_VertexArraysObject(const GLuint&,
-                                          GLuint&) override;
+
+    virtual void transmit_data(GLintptr&,const GLuint&,
+                            GLuint&) override;
     virtual void render_obj(zaytuna::camera const*const) override;
     virtual GLsizeiptr buffer_size(void) const override;
 
@@ -141,14 +141,14 @@ class coord_sys : public scene_object
 {
 
 private:
-
+    std::string name{"uninitialized object name"};
     shape_data<zaytuna::vertexL1_12> primitives;
     glm::mat4 transformationMat{
         glm::translate(glm::dvec3(0.0, 0.0, 0.0))
     };
     static GLint transformMatLocation;
     GLfloat LINE_WIDTH;
-
+    virtual void clean_up(void) override;
 public:
 
     coord_sys() = default;
@@ -162,10 +162,9 @@ public:
                  const glm::dmat4 _translation =
                         glm::translate(glm::dvec3(0.0, 0.0, 0.0)));
     virtual ~coord_sys() override;
-    virtual void clean_up(void) override;
-    virtual void carry_data(GLintptr&) override;
-    virtual void parse_VertexArraysObject(const GLuint&,
-                                          GLuint&) override;
+
+    virtual void transmit_data(GLintptr&,const GLuint&,
+                            GLuint&) override;
     virtual void render_obj(zaytuna::camera const*const) override;
     virtual GLsizeiptr buffer_size(void) const override;
 
@@ -179,14 +178,14 @@ class grid_plane : public scene_object
 {
 
 private:
-
+    std::string name{"uninitialized object name"};
     shape_data<zaytuna::vertexL1_12> primitives;
     glm::mat4 transformationMat{
         glm::translate(glm::dvec3(0.0, 0.0, 0.0))
     };
     static GLint transformMatLocation;
     GLfloat LINE_WIDTH;
-
+    virtual void clean_up(void) override;
 public:
 
     grid_plane() = default;
@@ -202,10 +201,9 @@ public:
                  const glm::dmat4 _translation =
                         glm::translate(glm::dvec3(0.0, 0.0, 0.0)));
     virtual ~grid_plane() override;
-    virtual void clean_up(void) override;
-    virtual void carry_data(GLintptr&) override;
-    virtual void parse_VertexArraysObject(const GLuint&,
-                                          GLuint&) override;
+
+    virtual void transmit_data(GLintptr&,const GLuint&,
+                            GLuint&) override;
     virtual void render_obj(zaytuna::camera const*const) override;
     virtual GLsizeiptr buffer_size(void) const override;
 
@@ -220,7 +218,7 @@ class skybox_obj : public scene_object
 {
 
 private:
-
+    std::string name{"uninitialized object name"};
     shape_data<zaytuna::vertexL1_0> primitives;
     GLuint _texID;
     GLenum MODE;
@@ -228,7 +226,7 @@ private:
         glm::translate(glm::dvec3(0.0, 0.0, 0.0))
     };
     static GLint transformMatLocation;
-
+    virtual void clean_up(void) override;
 
 public:
 
@@ -242,16 +240,89 @@ public:
                  const glm::dmat4 _translation =
                         glm::translate(glm::dvec3(0.0, 0.0, 0.0)));
     virtual ~skybox_obj() override;
-    virtual void clean_up(void) override;
-    virtual void carry_data(GLintptr&) override;
-    virtual void parse_VertexArraysObject(const GLuint&,
-                                          GLuint&) override;
+
+    virtual void transmit_data(GLintptr&,const GLuint&,
+                            GLuint&) override;
     virtual void render_obj(zaytuna::camera const*const) override;
     virtual GLsizeiptr buffer_size(void) const override;
 
 };
 
+//---------------------------------------------------------------
 
+
+class model_vehicle : public scene_object
+{
+    shape_data<zaytuna::vertexL1_16> model_primitives;
+    shape_data<zaytuna::vertexL1_16> fronttires_primitives;
+    shape_data<zaytuna::vertexL1_16> backtires_primitives;
+    shape_data<zaytuna::vertexL1_16> lidar_primitives;
+
+
+    // model transformation matrix
+    glm::mat4 modeltransformMat{
+        glm::translate(glm::dvec3(0.0, 0.0, 0.0))
+    };
+
+    // the inverse of the transposed transformation matrix
+    glm::mat4 inverse_transpose_transformMat{
+        glm::translate(glm::dvec3(0.0, 0.0, 0.0))
+    };
+
+    static GLint transformMatLocation;
+    static GLint inverse_transpose_transformMatLocation;
+
+    QString prims_dir, tex_dir;
+
+    GLuint _texID;
+    GLenum PRIMITIVES_TYPE;
+
+    GLuint fronttiresVAO_ID;
+    GLuint backtiresVAO_ID;
+    GLuint lidarVAO_ID;
+
+    GLuint fronttires_indOffset;
+    GLuint backtires_indOffset;
+    GLuint lidar_indOffset;
+
+    GLsizei fronttiresNumIndices;
+    GLsizei backtiresNumIndices;
+    GLsizei lidarNumIndices;
+
+    ptr_vector<vehicle_attribute*> vehicles;
+    QGLFramebufferObject* local_view_buffer{nullptr};
+
+    virtual void clean_up(void) override;
+
+
+    friend class _scene_widg;
+
+public:
+    model_vehicle() = default;
+    explicit model_vehicle(USED_GL_VERSION * const,
+                 const GLuint,
+                 const std::string&,
+                 const std::string&,
+                 const std::string&,
+                 const GLenum PRIMITIVES_TYPE = GL_TRIANGLES,
+                 const glm::dmat4 _rotaion = glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0)),
+                 const glm::dmat4 _translation =glm::translate(glm::dvec3(0.0, 0.0, 0.0)));
+    virtual ~model_vehicle() override;
+
+    virtual void transmit_data(GLintptr&, const GLuint&,
+                            GLuint&) override;
+    virtual void render_obj(zaytuna::camera const*const) override;
+    virtual GLsizeiptr buffer_size(void) const override;
+    void add_vehicle(const char*,
+                     const glm::dmat4 _rotaion = glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0)),
+                     const glm::dmat4 _translation =glm::translate(glm::dvec3(0.0, 0.0, 0.0)));
+    void delete_vehicle(void*);
+
+
+
+    // useful for debugging
+    void render_vectors_state(vehicle_attribute*, zaytuna::camera*);
+};
 
 
 } // namespace zaytuna

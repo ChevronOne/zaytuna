@@ -10,7 +10,7 @@
 //  If not, see <http://www.gnu.org/licenses/>.
 //
 //
-//  This library is distributed in the hope that it will be useful, but WITHOUT
+//  This software is distributed in the hope that it will be useful, but WITHOUT
 //  WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
 //  WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE AND
 //  NON-INFRINGEMENT. IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR ANYONE
@@ -42,79 +42,38 @@
 #include "zay_utility.hpp"
 #include "zay_cam.hpp"
 #include "zay_shape_data.hpp"
-#include "zay_item.hpp"
 
 namespace zaytuna {
 
+class model_vehicle;
 class _scene_widg;
 
-class model_vehicle : public scene_object
+
+class vehicle_attribute
 {
 //    Q_OBJECT
 
     QImage local_cam_img;
 
-    shape_data<zaytuna::vertexL1_16> model_primitives;
-    shape_data<zaytuna::vertexL1_16> fronttires_primitives;
-    shape_data<zaytuna::vertexL1_16> backtires_primitives;
-    shape_data<zaytuna::vertexL1_16> lidar_primitives;
-
-    // model transformation matrix
-    glm::mat4 modeltransformMat{
-        glm::translate(glm::dvec3(0.0, 0.0, 0.0))
-    };
-
-    // the inverse of the transposed transformation matrix
-    glm::mat4 inverse_transpose_transformMat{
-        glm::translate(glm::dvec3(0.0, 0.0, 0.0))
-    };
-    static GLint transformMatLocation;
-    static GLint inverse_transpose_transformMatLocation;
-
     std::chrono::time_point<std::chrono::_V2::system_clock,
                     std::chrono::nanoseconds> timer_t;
+
+
+    std::string name{"uninitialized object name"};
+
     double elapsed_t;
 
-    GLuint _texID;
-    GLenum MODE;
 
-
-
-    GLuint fronttiresVAO_ID;
-    GLuint backtiresVAO_ID;
-    GLuint lidarVAO_ID;
-
-    GLuint fronttires_indOffset;
-    GLuint backtires_indOffset;
-    GLuint lidar_indOffset;
-
-    GLsizei fronttiresNumIndices;
-    GLsizei backtiresNumIndices;
-    GLsizei lidarNumIndices;
-
+    friend class model_vehicle;
     friend class _scene_widg;
 
 
-
 public:
-    model_vehicle() = default;
-    explicit model_vehicle(USED_GL_VERSION * const,
-                 const GLuint,
-                 const std::string&,
-                 const std::string&,
-                 const std::string&,
-                 const GLenum MODE = GL_TRIANGLES,
+    vehicle_attribute() = default;
+    explicit vehicle_attribute(const std::string&,
                  const glm::dmat4 _rotaion = glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0)),
-                 const glm::dmat4 _translation =glm::translate(glm::dvec3(0.0, 0.0, 0.0)));
-    virtual ~model_vehicle() override;
-    virtual void clean_up(void) override;
-    virtual void carry_data(GLintptr&) override;
-    virtual void parse_VertexArraysObject(const GLuint&, GLuint&) override;
-    virtual void render_obj(zaytuna::camera const*const) override;
-    virtual GLsizeiptr buffer_size(void) const override;
-
-
-
+                 const glm::dmat4 _translation = glm::translate(glm::dvec3(0.0, 0.0, 0.0)));
+    ~vehicle_attribute();
 
     void actuate();
 
@@ -150,7 +109,6 @@ public:
     void update_steerin(void);
     void update_cent(void);
     void update_positional_attributes(const glm::dmat4&, const glm::dmat4&);
-    void render_vectors_state(zaytuna::camera*); // useful for debugging
 
     void pubFront_img(void);
 
@@ -161,8 +119,6 @@ public:
 
     zaytuna::camera frontCam; // front camera
 
-//    QTimer timer;
-
 
     // Default Positional Parameters
     const glm::dvec3 camHeight = glm::dvec3(0.0, 0.466, 0.0);
@@ -171,6 +127,7 @@ public:
     const glm::dmat4 backT =    glm::translate(glm::dvec3( 0.0,  0.031,    0.0));
     const glm::dmat4 lidar =    glm::translate(glm::dvec3( 0.118, 0.419,   0.0));
     const glm::dvec4 camPos =  glm::dvec4(0.13, 0.466, 0.0, 1.0);
+    const glm::dvec4 frontCamViewDirection = glm::dvec4(0.5 , 0.278 , 0.0, 1.0); // should be adjusted!
 
 
     // Physical Specifications
@@ -183,12 +140,8 @@ public:
 
 
 
-public slots:
-        void animate();
-
-
-
 };
+
 
 
 } // namespace zaytuna

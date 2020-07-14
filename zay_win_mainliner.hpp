@@ -10,7 +10,7 @@
 //  If not, see <http://www.gnu.org/licenses/>.
 //
 //
-//  This library is distributed in the hope that it will be useful, but WITHOUT
+//  This software is distributed in the hope that it will be useful, but WITHOUT
 //  WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
 //  WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE AND
 //  NON-INFRINGEMENT. IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR ANYONE
@@ -52,6 +52,11 @@ class win_mainliner;
 }
 
 namespace zaytuna {
+
+
+//// for debugging
+//extern double GLOBAL_MOVEMENT_SPEED;
+//extern double GLOBAL_STEERING_WHEEL;
 
 class win_mainliner : public QMainWindow
 {

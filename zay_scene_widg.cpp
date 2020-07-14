@@ -10,7 +10,7 @@
 //  If not, see <http://www.gnu.org/licenses/>.
 //
 //
-//  This library is distributed in the hope that it will be useful, but WITHOUT
+//  This software is distributed in the hope that it will be useful, but WITHOUT
 //  WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
 //  WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE AND
 //  NON-INFRINGEMENT. IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR ANYONE
@@ -58,9 +58,7 @@ namespace zaytuna {
 
 //static uint32_t total_tiks{0};
 //static double accum_dist{0.0};
-static uint32_t f = 0;
-
-
+static uint32_t f{0};
 
 double _scene_widg::sX, _scene_widg::sY; //, _scene_widg::sZ;
 double _scene_widg::delta_sX, _scene_widg::delta_sY;
@@ -105,7 +103,13 @@ _scene_widg::~_scene_widg()
     glUseProgram(0);
 
     cleanUp();
-    delete local_viewFBO;
+    if(local_viewFBO!=nullptr)
+        delete local_viewFBO;
+
+    if(local_viewFBO1!=nullptr)
+        delete local_viewFBO1;
+
+    delete model_vehicles;
 
 }
 
@@ -114,34 +118,6 @@ void _scene_widg::cleanUp()
 
     glDeleteBuffers(1, &theBufferID);
     detachProgram();
-}
-
-
-void _scene_widg::render_scene(camera const*const current_cam)
-{
-
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    if(coord_checked)
-        basic_objects[0]->render_obj(current_cam);
-
-    if(grid_checked)
-        basic_objects[1]->render_obj(current_cam);
-
-
-    for(const auto& _obj:lap_objects)
-        _obj->render_obj(current_cam);
-
-//    for(const auto& _obj:obstacle_objects)
-//        _obj->render_obj(current_cam);
-
-    for(const auto& _obj:environmental_objects)
-        _obj->render_obj(current_cam);
-
-    for(const auto& _obj:model_vehicles)
-        _obj->render_obj(current_cam);
-
-//    glFlush();
 }
 
 
@@ -172,7 +148,46 @@ void _scene_widg::initializeGL()
 
     local_viewFBO = new QGLFramebufferObject(this->width(), this->height(), fboFormat);
 
+    local_viewFBO1 = new QGLFramebufferObject(this->width(), this->height(), fboFormat);
+
+
+    std::cout << "GL version info: " << glGetString(GL_VERSION) << "\n";
+
 }
+
+
+void _scene_widg::render_scene(camera const*const current_cam)
+{
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    if(coord_checked)
+        basic_objects[0]->render_obj(current_cam);
+
+    if(grid_checked)
+        basic_objects[1]->render_obj(current_cam);
+
+    uint32_t i;
+    for(i=0; i<lap_objects.size(); ++i){
+        lap_objects[i]->render_obj(current_cam);
+    }
+
+//    for(i=0; i<obstacle_objects.size(); ++i){
+//        obstacle_objects[i]->render_obj(current_cam);
+//    }
+//    for(const auto& _obj:obstacle_objects)
+//        _obj->render_obj(current_cam);
+
+    for(i=0; i<environmental_objects.size(); ++i){
+        environmental_objects[i]->render_obj(current_cam);
+    }
+
+
+    model_vehicles->render_obj(current_cam);
+
+//    glFlush();
+}
+
 
 void _scene_widg::paintGL()
 {
@@ -195,25 +210,38 @@ void _scene_widg::paintGL()
         }
     }
 
-
-    for(const auto& _obj:model_vehicles)
-        _obj->update_attribs();
+    for(uint32_t i{0}; i<model_vehicles->vehicles.size(); ++i){
+        model_vehicles->vehicles[i]->update_attribs();
+    }
+//    for(const auto& _obj:model_vehicles->vehicles)
+//        _obj->update_attribs();
 
     if(activeCam==&mainCam)
         mainCam.updateWorld_to_viewMat();
 
+    makeCurrent();
     render_scene(activeCam);
 
     local_viewFBO->bind();
-    for(const auto& _obj:model_vehicles){
-        render_scene(&(_obj->frontCam));
-        _obj->local_cam_img = local_viewFBO->toImage();
 
-    }
+    render_scene(&(model_vehicles->vehicles[0]->frontCam));
+    model_vehicles->vehicles[0]->local_cam_img = local_viewFBO->toImage();
 
-    local_viewFBO->release();
+    local_viewFBO1->bind();
+    render_scene(&(model_vehicles->vehicles[1]->frontCam));
+    model_vehicles->vehicles[1]->local_cam_img = local_viewFBO1->toImage();
 
-    // model_vehicles[0]->render_vectors_state(activeCam);
+
+//    for(uint32_t i{0}; i<model_vehicles->vehicles.size(); ++i){
+//        if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+//            std::cerr << "not complete!\n";
+//        render_scene(&(model_vehicles->vehicles[i]->frontCam));
+//        model_vehicles->vehicles[i]->local_cam_img = local_viewFBO->toImage();
+//    }
+
+//    local_viewFBO->bindDefault();
+
+//    // model_vehicles[0]->render_vectors_state(activeCam);
 
 
     // frame's rate
@@ -228,10 +256,13 @@ void _scene_widg::paintGL()
 
 //        img = this->grabFrameBuffer();
 
-        for(const auto& _obj:model_vehicles)
-            _obj->pubFront_img();
-//        img.save("file.jpg");
 
+////        model_vehicles->vehicles[1]->pubFront_img();
+
+//        for(uint32_t i{0}; i<model_vehicles->vehicles.size(); ++i)
+//            model_vehicles->vehicles[i]->pubFront_img();
+
+///
         std::cout << "\n--------------------\n";
         std::cout << "frame freq counter: "<< 1.0/(accum/f) << " f/s \n";
 //        // std::cout.precision(15);
@@ -251,14 +282,22 @@ void _scene_widg::resizeGL(int W, int H)
 {
     glViewport(0, 0, W, H);
     mainCam.updateProjection(W, H);
-    model->frontCam.updateProjection(W, H);
+    for(uint32_t i{0}; i<model_vehicles->vehicles.size(); ++i){
+        model_vehicles->vehicles[i]->frontCam.updateProjection(W, H);
+    }
+//    model->frontCam.updateProjection(W, H);
 //    projectionMat = activeCam->projectionMat;
     repaint();
 }
 
 void _scene_widg::updateProjection()
 {
-    activeCam->updateProjection(width(), height());
+//    activeCam->updateProjection(width(), height());
+
+    mainCam.updateProjection(width(), height());
+    for(uint32_t i{0}; i<model_vehicles->vehicles.size(); ++i){
+        model_vehicles->vehicles[i]->frontCam.updateProjection(width(), height());
+    }
 }
 
 void _scene_widg::mouseMoveEvent(QMouseEvent *ev)
@@ -614,8 +653,8 @@ void _scene_widg::send_data()
                          GL_QUADS
 //                         ,glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0)),
 //                         glm::translate(glm::dvec3(0.0, 0.0, 0.0))
-        ),
-        new external_obj(this,
+        )
+        ,new external_obj(this,
                          programs[1],
                          "fence",
                          "./primitives/fence_300x300_2H_1W",
@@ -623,8 +662,8 @@ void _scene_widg::send_data()
                          GL_QUADS
 //                         ,glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0)),
 //                         glm::translate(glm::dvec3(0.0, 0.0, 0.0))
-        ),
-        new skybox_obj(this,
+        )
+        ,new skybox_obj(this,
                        programs[2],
                        "skybox"
 //                       ,glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0)),
@@ -672,16 +711,25 @@ void _scene_widg::send_data()
     };
     //---------------------------------------------------------------------
 
-    model_vehicles = {    // more than one vehicle sitill do not work!
-        new model_vehicle(this,
-                      programs[3],
-                      "model_vehicle1",
-                      "./primitives/zaytuna_model",
-                      "tex/zaytuna-fragments.png",
-                      GL_TRIANGLES
-                      ,glm::rotate(45.0, glm::dvec3(0.0, 1.0, 0.0)),
-                      glm::translate(glm::dvec3(3.0, 0.0, 2.5))
-        )
+    model_vehicles = new model_vehicle(this,
+           programs[3],
+           "model_vehicle1",
+           "./primitives/zaytuna_model",
+           "tex/zaytuna-fragments.png",
+           GL_TRIANGLES
+           ,glm::rotate(glm::radians(180.0), glm::dvec3(0.0, 1.0, 0.0)),
+           glm::translate(glm::dvec3(5.0, 0.0, -0.98))   );
+
+//    {    // more than one vehicle sitill do not work!
+//        new model_vehicle(this,
+//                      programs[3],
+//                      "model_vehicle1",
+//                      "./primitives/zaytuna_model",
+//                      "tex/zaytuna-fragments.png",
+//                      GL_TRIANGLES
+//                      ,glm::rotate(45.0, glm::dvec3(0.0, 1.0, 0.0)),
+//                      glm::translate(glm::dvec3(3.0, 0.0, 2.5))
+//        )
 //        ,new model_vehicle(this,
 //                      programs[3],
 //                      "model_vehicle2",
@@ -690,17 +738,17 @@ void _scene_widg::send_data()
 //                      GL_TRIANGLES
 //                      ,glm::rotate(-45.0, glm::dvec3(0.0, 1.0, 0.0)),
 //                      glm::translate(glm::dvec3(-3.0, 0.0, -2.5))
-//        ),
-//        new model_vehicle(this,
-//                      programs[3],
-//                      "model_vehicle3",
-//                      "./primitives/zaytuna_model",
-//                      "tex/zaytuna-fragments.png",
-//                      GL_TRIANGLES
-////                      ,glm::rotate(-45.0, glm::dvec3(0.0, 1.0, 0.0)),
-////                      glm::translate(glm::dvec3(-3.0, 0.0, -2.5))
 //        )
-    };
+////        ,new model_vehicle(this,
+////                      programs[3],
+////                      "model_vehicle3",
+////                      "./primitives/zaytuna_model",
+////                      "tex/zaytuna-fragments.png",
+////                      GL_TRIANGLES
+//////                      ,glm::rotate(-45.0, glm::dvec3(0.0, 1.0, 0.0)),
+//////                      glm::translate(glm::dvec3(-3.0, 0.0, -2.5))
+////        )
+//    };
 
 
 
@@ -711,8 +759,7 @@ void _scene_widg::send_data()
     GLsizeiptr BUF_SIZE{0};
     for(const auto& _obj:basic_objects)
         BUF_SIZE+=_obj->buffer_size();
-    for(const auto& _obj:model_vehicles)
-        BUF_SIZE+=_obj->buffer_size();
+    BUF_SIZE+=model_vehicles->buffer_size();
     for(const auto& _obj:lap_objects)
         BUF_SIZE+=_obj->buffer_size();
 //    for(const auto& _obj:obstacle_objects)
@@ -725,32 +772,21 @@ void _scene_widg::send_data()
     glBufferData(GL_ARRAY_BUFFER, BUF_SIZE, nullptr, GL_STATIC_DRAW);
 
     GLintptr current_offset{0};
-    for(auto& _obj:basic_objects)
-        _obj->carry_data(current_offset);
-    for(auto& _obj:model_vehicles)
-        _obj->carry_data(current_offset);
-    for(auto& _obj:lap_objects)
-        _obj->carry_data(current_offset);
-//    for(auto& _obj:obstacle_objects)
-//        _obj->carry_data(current_offset);
-    for(auto& _obj:environmental_objects)
-        _obj->carry_data(current_offset);
-
     GLuint previous_offset{0};
-    for(const auto& _obj:basic_objects)
-        _obj->parse_VertexArraysObject(theBufferID, previous_offset);
-    for(const auto& _obj:model_vehicles)
-        _obj->parse_VertexArraysObject(theBufferID, previous_offset);
-    for(const auto& _obj:lap_objects)
-        _obj->parse_VertexArraysObject(theBufferID, previous_offset);
-//    for(const auto& _obj:obstacle_objects)
-//        _obj->parse_VertexArraysObject(theBufferID, previous_offset);
-    for(const auto& _obj:environmental_objects)
-        _obj->parse_VertexArraysObject(theBufferID, previous_offset);
+    for(auto& _obj:basic_objects)
+        _obj->transmit_data(current_offset, theBufferID, previous_offset);
+    model_vehicles->transmit_data(current_offset, theBufferID, previous_offset);
+    for(auto& _obj:lap_objects)
+        _obj->transmit_data(current_offset, theBufferID, previous_offset);
+//    for(auto& _obj:obstacle_objects)
+//        _obj->carry_data(current_offset, theBufferID, previous_offset);
+    for(auto& _obj:environmental_objects)
+        _obj->transmit_data(current_offset, theBufferID, previous_offset);
 
 
 
-    model = dynamic_cast<model_vehicle*>(model_vehicles.front());
+
+    model = model_vehicles->vehicles[0]; // .front());
 
 }
 

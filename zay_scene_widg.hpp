@@ -11,7 +11,7 @@
 //  If not, see <http://www.gnu.org/licenses/>.
 //
 //
-//  This library is distributed in the hope that it will be useful, but WITHOUT
+//  This software is distributed in the hope that it will be useful, but WITHOUT
 //  WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
 //  WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE AND
 //  NON-INFRINGEMENT. IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR ANYONE
@@ -98,8 +98,9 @@ class _scene_widg : public QGLWidget, protected USED_GL_VERSION // QOpenGLExtraF
     FileStatus fStatus;
     GLuint programs[PROGRAMS_NUM];
 
+
     ptr_vector<zaytuna::scene_object*> basic_objects;
-    ptr_vector<zaytuna::model_vehicle*> model_vehicles;
+    zaytuna::model_vehicle* model_vehicles;
     ptr_vector<zaytuna::scene_object*> lap_objects;
     ptr_vector<zaytuna::scene_object*> obstacle_objects;
     ptr_vector<zaytuna::scene_object*> environmental_objects;
@@ -123,7 +124,7 @@ class _scene_widg : public QGLWidget, protected USED_GL_VERSION // QOpenGLExtraF
 
     void cleanUp();
     void draw_local(void);
-    void render_scene(zaytuna::camera const*const);
+    inline void render_scene(zaytuna::camera const*const);
 
     double accum{0};
     std::chrono::time_point<std::chrono::_V2::system_clock,
@@ -132,7 +133,7 @@ class _scene_widg : public QGLWidget, protected USED_GL_VERSION // QOpenGLExtraF
     camera mainCam ;
     camera* activeCam;
 
-    model_vehicle* model;
+    vehicle_attribute* model;
 
 
     bool coord_checked{true}, grid_checked{true};
@@ -148,12 +149,12 @@ class _scene_widg : public QGLWidget, protected USED_GL_VERSION // QOpenGLExtraF
 
 
 
-    QGLFramebufferObject *local_viewFBO;
+    QGLFramebufferObject *local_viewFBO{nullptr};
+    QGLFramebufferObject *local_viewFBO1{nullptr};
     QImage img;
 
 
     friend class zaytuna::win_mainliner;
-//    friend class model_vehicle;
 
 protected:
 
