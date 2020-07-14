@@ -54,9 +54,10 @@ glm::dvec3 intersect(const glm::dvec3 p1, const glm::dvec3 p2,
 
 
 zaytuna::vehicle_attribute::vehicle_attribute(const std::string& _name,
+                                    QGLFramebufferObject *const FBO_,
                                     const glm::dmat4 _rotaion,
                                     const glm::dmat4 _translation):
-    name{_name}, elapsed_t{0.0}, AMOUNT_OF_ROTATION(0.0), MOVEMENT_SPEED(0.0),
+    name{_name}, localView_buffer{FBO_}, elapsed_t{0.0}, AMOUNT_OF_ROTATION(0.0), MOVEMENT_SPEED(0.0),
     STEERING_WHEEL(0.00000001), accumulated_dist(0.0), traveled_dist(0.0),
     ticks_counter(0), radius_of_rotation(0.0), center_of_rotation(glm::dvec3(0.0,0.0,0.0))
 {
@@ -220,7 +221,8 @@ void vehicle_attribute::actuate()
 
 vehicle_attribute::~vehicle_attribute()
 {
-//    clean_up();
+    if(localView_buffer!=nullptr)
+        delete localView_buffer;
 }
 
 void vehicle_attribute::pubFront_img()

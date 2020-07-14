@@ -81,6 +81,7 @@ namespace fs = std::experimental::filesystem::v1;
 
 typedef GLfloat DATA_TYPE;
 typedef  QOpenGLFunctions_3_0 USED_GL_VERSION;
+typedef QGLWidget QGL_WIDGET_VERSION;
 
 
 #define _USE_MATH_DEFINES

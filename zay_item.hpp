@@ -290,7 +290,7 @@ class model_vehicle : public scene_object
     GLsizei lidarNumIndices;
 
     ptr_vector<vehicle_attribute*> vehicles;
-    QGLFramebufferObject* local_view_buffer{nullptr};
+
 
     virtual void clean_up(void) override;
 
@@ -304,6 +304,7 @@ public:
                  const std::string&,
                  const std::string&,
                  const std::string&,
+                 QGLFramebufferObject *const,
                  const GLenum PRIMITIVES_TYPE = GL_TRIANGLES,
                  const glm::dmat4 _rotaion = glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0)),
                  const glm::dmat4 _translation =glm::translate(glm::dvec3(0.0, 0.0, 0.0)));
@@ -314,6 +315,7 @@ public:
     virtual void render_obj(zaytuna::camera const*const) override;
     virtual GLsizeiptr buffer_size(void) const override;
     void add_vehicle(const char*,
+                     QGLFramebufferObject *const,
                      const glm::dmat4 _rotaion = glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0)),
                      const glm::dmat4 _translation =glm::translate(glm::dvec3(0.0, 0.0, 0.0)));
     void delete_vehicle(void*);

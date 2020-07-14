@@ -90,7 +90,7 @@ class win_mainliner;
 
 //class _scene_widg : public QOpenGLWidget,
 //                    protected USED_GL_VERSION // QOpenGLExtraFunctions
-class _scene_widg : public QGLWidget, protected USED_GL_VERSION // QOpenGLExtraFunctions
+class _scene_widg : public QGL_WIDGET_VERSION, protected USED_GL_VERSION // QOpenGLExtraFunctions
 {
     Q_OBJECT
 
@@ -134,8 +134,6 @@ class _scene_widg : public QGLWidget, protected USED_GL_VERSION // QOpenGLExtraF
     camera* activeCam;
 
     vehicle_attribute* model;
-
-
     bool coord_checked{true}, grid_checked{true};
 
     QTimer timer;
@@ -144,14 +142,8 @@ class _scene_widg : public QGLWidget, protected USED_GL_VERSION // QOpenGLExtraF
          k_left, k_right,
          k_up, k_back;
 
-
     GLuint theBufferID;
-
-
-
-    QGLFramebufferObject *local_viewFBO{nullptr};
-    QGLFramebufferObject *local_viewFBO1{nullptr};
-    QImage img;
+//    QImage img;
 
 
     friend class zaytuna::win_mainliner;

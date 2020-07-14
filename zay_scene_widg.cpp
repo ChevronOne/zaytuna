@@ -68,18 +68,18 @@ double _scene_widg::glX, _scene_widg::glY; //, _scene_widg::glZ;
 
 
 
-//_scene_widg::_scene_widg(QWidget* parent): QOpenGLWidget(parent),
-_scene_widg::_scene_widg(QGLFormat _format, QWidget* parent): QGLWidget(_format, parent),
+//_scene_widg::_scene_widg(QWidget* parent): QGL_WIDGET_VERSION(parent),
+_scene_widg::_scene_widg(QGLFormat _format, QWidget* parent): QGL_WIDGET_VERSION(_format, parent),
     fStatus{ FileStatus::UNDEFINED },
     k_forward{0}, k_backward{0}, k_left{0}, k_right{0}, k_up{0}, k_back{0}
 {
-//    QSurfaceFormat _format;
-//    _format.setSamples(8);
-//    this->setFormat(_format);
+    //    QSurfaceFormat _format;
+    //    _format.setSamples(8);    // Set the number of samples used for multisampling
+    //    setFormat(_format);
+
 
 
     activeCam = &mainCam;
-
 
     connect(&timer, SIGNAL(timeout()), this, SLOT(animate()));
     timer.start(0);
@@ -103,11 +103,11 @@ _scene_widg::~_scene_widg()
     glUseProgram(0);
 
     cleanUp();
-    if(local_viewFBO!=nullptr)
-        delete local_viewFBO;
+//    if(local_viewFBO!=nullptr)
+//        delete local_viewFBO;
 
-    if(local_viewFBO1!=nullptr)
-        delete local_viewFBO1;
+//    if(local_viewFBO1!=nullptr)
+//        delete local_viewFBO1;
 
     delete model_vehicles;
 
@@ -142,13 +142,13 @@ void _scene_widg::initializeGL()
     send_data();
 
 
-    QGLFramebufferObjectFormat fboFormat;
-    fboFormat.setSamples(8);
-    fboFormat.setAttachment(QGLFramebufferObject::CombinedDepthStencil);
+//    QGLFramebufferObjectFormat fboFormat;
+//    fboFormat.setSamples(8);
+//    fboFormat.setAttachment(QGLFramebufferObject::CombinedDepthStencil);
 
-    local_viewFBO = new QGLFramebufferObject(this->width(), this->height(), fboFormat);
+//    local_viewFBO = new QGLFramebufferObject(this->width(), this->height(), fboFormat);
 
-    local_viewFBO1 = new QGLFramebufferObject(this->width(), this->height(), fboFormat);
+//    local_viewFBO1 = new QGLFramebufferObject(this->width(), this->height(), fboFormat);
 
 
     std::cout << "GL version info: " << glGetString(GL_VERSION) << "\n";
@@ -219,27 +219,30 @@ void _scene_widg::paintGL()
     if(activeCam==&mainCam)
         mainCam.updateWorld_to_viewMat();
 
-    makeCurrent();
+//    makeCurrent();
     render_scene(activeCam);
 
-    local_viewFBO->bind();
+//    local_viewFBO->bind();
 
-    render_scene(&(model_vehicles->vehicles[0]->frontCam));
-    model_vehicles->vehicles[0]->local_cam_img = local_viewFBO->toImage();
+//    render_scene(&(model_vehicles->vehicles[0]->frontCam));
+//    model_vehicles->vehicles[0]->local_cam_img = local_viewFBO->toImage();
 
-    local_viewFBO1->bind();
-    render_scene(&(model_vehicles->vehicles[1]->frontCam));
-    model_vehicles->vehicles[1]->local_cam_img = local_viewFBO1->toImage();
+//    local_viewFBO1->bind();
+//    render_scene(&(model_vehicles->vehicles[1]->frontCam));
+//    model_vehicles->vehicles[1]->local_cam_img = local_viewFBO1->toImage();
 
 
-//    for(uint32_t i{0}; i<model_vehicles->vehicles.size(); ++i){
-//        if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-//            std::cerr << "not complete!\n";
-//        render_scene(&(model_vehicles->vehicles[i]->frontCam));
-//        model_vehicles->vehicles[i]->local_cam_img = local_viewFBO->toImage();
-//    }
+    for(uint32_t i{0}; i<model_vehicles->vehicles.size(); ++i){
+        model_vehicles->vehicles[i]->localView_buffer->bind();
+        if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+            std::cerr << "not complete!\n";
+        render_scene(&(model_vehicles->vehicles[i]->frontCam));
+        model_vehicles->vehicles[i]->local_cam_img = model_vehicles->vehicles[i]->localView_buffer->toImage();
+    }
 
-//    local_viewFBO->bindDefault();
+
+//    model_vehicles->vehicles.back()->localView_buffer->bindDefault();
+//    local_viewFBO1->bindDefault();
 
 //    // model_vehicles[0]->render_vectors_state(activeCam);
 
@@ -259,12 +262,12 @@ void _scene_widg::paintGL()
 
 ////        model_vehicles->vehicles[1]->pubFront_img();
 
-//        for(uint32_t i{0}; i<model_vehicles->vehicles.size(); ++i)
-//            model_vehicles->vehicles[i]->pubFront_img();
+        for(uint32_t i{0}; i<model_vehicles->vehicles.size(); ++i)
+            model_vehicles->vehicles[i]->pubFront_img();
 
 ///
-        std::cout << "\n--------------------\n";
-        std::cout << "frame freq counter: "<< 1.0/(accum/f) << " f/s \n";
+        std::cout << "\n--------------------" << std::endl;
+        std::cout << "frame freq counter: "<< 1.0/(accum/f) << " f/s " << std::endl;
 //        // std::cout.precision(15);
 //        // std::cout << model->traveled_dist << " meters \n";
 //        // std::cout << glm::distance(model->bit, model->old_bit) << " meters \n";
@@ -711,46 +714,31 @@ void _scene_widg::send_data()
     };
     //---------------------------------------------------------------------
 
+    QGLFramebufferObjectFormat fboFormat;
+    fboFormat.setSamples(8);
+    fboFormat.setAttachment(QGLFramebufferObject::CombinedDepthStencil);
+
+
     model_vehicles = new model_vehicle(this,
            programs[3],
            "model_vehicle1",
            "./primitives/zaytuna_model",
            "tex/zaytuna-fragments.png",
+           new QGLFramebufferObject(this->width(), this->height(), fboFormat),
            GL_TRIANGLES
            ,glm::rotate(glm::radians(180.0), glm::dvec3(0.0, 1.0, 0.0)),
            glm::translate(glm::dvec3(5.0, 0.0, -0.98))   );
 
-//    {    // more than one vehicle sitill do not work!
-//        new model_vehicle(this,
-//                      programs[3],
-//                      "model_vehicle1",
-//                      "./primitives/zaytuna_model",
-//                      "tex/zaytuna-fragments.png",
-//                      GL_TRIANGLES
-//                      ,glm::rotate(45.0, glm::dvec3(0.0, 1.0, 0.0)),
-//                      glm::translate(glm::dvec3(3.0, 0.0, 2.5))
-//        )
-//        ,new model_vehicle(this,
-//                      programs[3],
-//                      "model_vehicle2",
-//                      "./primitives/zaytuna_model",
-//                      "tex/zaytuna-fragments.png",
-//                      GL_TRIANGLES
-//                      ,glm::rotate(-45.0, glm::dvec3(0.0, 1.0, 0.0)),
-//                      glm::translate(glm::dvec3(-3.0, 0.0, -2.5))
-//        )
-////        ,new model_vehicle(this,
-////                      programs[3],
-////                      "model_vehicle3",
-////                      "./primitives/zaytuna_model",
-////                      "tex/zaytuna-fragments.png",
-////                      GL_TRIANGLES
-//////                      ,glm::rotate(-45.0, glm::dvec3(0.0, 1.0, 0.0)),
-//////                      glm::translate(glm::dvec3(-3.0, 0.0, -2.5))
-////        )
-//    };
+//    model_vehicles->add_vehicle("model_vehicle2",
+//                                new QGLFramebufferObject(this->width(), this->height(), fboFormat),
+//                                glm::rotate(glm::radians(-45.0), glm::dvec3(0.0, 1.0, 0.0)),
+//                                glm::translate(glm::dvec3(-3.0, 0.0, -2.5)));
 
 
+//    model_vehicles->add_vehicle("model_vehicle3",
+//                                new QGLFramebufferObject(this->width(), this->height(), fboFormat),
+//                                glm::rotate(glm::radians(90.0), glm::dvec3(0.0, 1.0, 0.0)),
+//                                glm::translate(glm::dvec3(0.0, 0.0, 5.0)));
 
     //------------------------------------------------------------------
 

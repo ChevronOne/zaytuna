@@ -60,6 +60,7 @@ class vehicle_attribute
 
 
     std::string name{"uninitialized object name"};
+    QGLFramebufferObject* localView_buffer{nullptr};
 
     double elapsed_t;
 
@@ -71,6 +72,7 @@ class vehicle_attribute
 public:
     vehicle_attribute() = default;
     explicit vehicle_attribute(const std::string&,
+                 QGLFramebufferObject *const,
                  const glm::dmat4 _rotaion = glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0)),
                  const glm::dmat4 _translation = glm::translate(glm::dvec3(0.0, 0.0, 0.0)));
     ~vehicle_attribute();
