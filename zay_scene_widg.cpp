@@ -727,7 +727,7 @@ void _scene_widg::send_data()
            new QGLFramebufferObject(this->width(), this->height(), fboFormat),
            GL_TRIANGLES
            ,glm::rotate(glm::radians(180.0), glm::dvec3(0.0, 1.0, 0.0)),
-           glm::translate(glm::dvec3(5.0, 0.0, -0.98))   );
+           glm::translate(glm::dvec3(6.0, 0.0, -1.25))   );
 
 //    model_vehicles->add_vehicle("model_vehicle2",
 //                                new QGLFramebufferObject(this->width(), this->height(), fboFormat),
