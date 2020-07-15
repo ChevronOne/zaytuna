@@ -83,6 +83,11 @@ zaytuna::external_obj::external_obj(USED_GL_VERSION * const _widg,
     QImage tex_buffer;
     _widg->glGenTextures(1, &_texID);
     _widg->glBindTexture(GL_TEXTURE_2D, _texID);
+
+    GLfloat max_anisotropic_extention{0};
+    _widg->glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &max_anisotropic_extention);
+    _widg->glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, max_anisotropic_extention);
+
     _widg->glTexParameteri(GL_TEXTURE_2D,
                            GL_TEXTURE_WRAP_S,
                            GL_REPEAT);
@@ -100,13 +105,7 @@ zaytuna::external_obj::external_obj(USED_GL_VERSION * const _widg,
                         GL_RGBA, tex_buffer.width(),
                         tex_buffer.height(), 0, GL_RGBA,
                         GL_UNSIGNED_BYTE, tex_buffer.bits());
-//    GLfloat fLargest{0};
-//    _widg->glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &fLargest);
-//    _widg->glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, fLargest);
-////    if(_widg->gltIsExtSupported("GL_EXT_texture_filter_anisotropic"))
-////        std::cout << "anisotropic extension is supported" << std::endl;
     _widg->glGenerateMipmap(GL_TEXTURE_2D);
-
 
 
 }
