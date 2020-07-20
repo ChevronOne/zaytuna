@@ -229,6 +229,9 @@ void vehicle_attribute::pubFront_img()
 {
     local_cam_img.save((name+".jpg").c_str());
 }
+void vehicle_attribute::captureBuffer(){
+    local_cam_img = localView_buffer->toImage();
+}
 
 
 //===================================================================

@@ -173,7 +173,7 @@ void external_obj::transmit_data(GLintptr& _offset,const GLuint& theBufferID,
 void external_obj::render_obj(zaytuna::camera const*const activeCam)
 {
     _widg->glUseProgram(_programID);
-    transformationMat = activeCam->transformationMat;
+    transformationMat = activeCam->transformationMat * initial_transformationMat;
     _widg->glBindVertexArray(_VAO_ID);
     _widg->glBindTexture(GL_TEXTURE_2D, _texID);
     _widg->glUniformMatrix4fv(transformMatLocation, 1,

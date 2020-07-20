@@ -54,6 +54,7 @@ class vehicle_attribute
 //    Q_OBJECT
 
     QImage local_cam_img;
+//    std::vector<GLubyte> raw_img{std::vector<GLubyte>( 800 * 500 * 3, 0 )};
 
     std::chrono::time_point<std::chrono::_V2::system_clock,
                     std::chrono::nanoseconds> timer_t;
@@ -113,6 +114,7 @@ public:
     void update_positional_attributes(const glm::dmat4&, const glm::dmat4&);
 
     void pubFront_img(void);
+    void captureBuffer(void);
 
 
     glm::dmat4 transformationMats[5]; // /model vehicle/, /right front tire/, /left front tire/, /back tires/, /lidar/

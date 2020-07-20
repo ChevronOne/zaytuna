@@ -42,7 +42,7 @@
 
 
 QT       += core gui opengl widgets
-#win32:INCLUDEPATH += C:/boost/boost_1_67_0 C:/glm
+win32:INCLUDEPATH += C:/boost/boost_1_67_0 C:/glm
 LIBS += -lstdc++fs # -lopencv_imgcodecs -lopencv_core
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets

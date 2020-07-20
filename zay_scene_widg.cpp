@@ -58,7 +58,7 @@ namespace zaytuna {
 
 //static uint32_t total_tiks{0};
 //static double accum_dist{0.0};
-static uint32_t f{0};
+//static uint32_t f{0};
 
 double _scene_widg::sX, _scene_widg::sY; //, _scene_widg::sZ;
 double _scene_widg::delta_sX, _scene_widg::delta_sY;
@@ -69,8 +69,10 @@ double _scene_widg::glX, _scene_widg::glY; //, _scene_widg::glZ;
 
 
 //_scene_widg::_scene_widg(QWidget* parent): QGL_WIDGET_VERSION(parent),
-_scene_widg::_scene_widg(QGLFormat _format, QWidget* parent): QGL_WIDGET_VERSION(_format, parent),
+_scene_widg::_scene_widg(QGLFormat _format, QWidget* parent):
+    QGL_WIDGET_VERSION(_format, parent),
     fStatus{ FileStatus::UNDEFINED },
+    elap_accumulated{0.0}, frame_rate{0.0}, frames_counter{0},
     k_forward{0}, k_backward{0}, k_left{0}, k_right{0}, k_up{0}, k_back{0}
 {
     //    QSurfaceFormat _format;
@@ -88,7 +90,7 @@ _scene_widg::_scene_widg(QGLFormat _format, QWidget* parent): QGL_WIDGET_VERSION
     setMouseTracking(true);
     this->setFocusPolicy(Qt::StrongFocus);
 
-    accum = 0;
+//    elap_accumulated = 0;
 
 
 
@@ -182,10 +184,12 @@ void _scene_widg::render_scene(camera const*const current_cam)
         environmental_objects[i]->render_obj(current_cam);
     }
 
-
+//    glDepthMask(false);
     model_vehicles->render_obj(current_cam);
+//    glDepthMask(true);
 
 //    glFlush();
+//    glFinish();
 }
 
 
@@ -221,38 +225,32 @@ void _scene_widg::paintGL()
 
 //    makeCurrent();
     render_scene(activeCam);
-
-//    local_viewFBO->bind();
-
-//    render_scene(&(model_vehicles->vehicles[0]->frontCam));
-//    model_vehicles->vehicles[0]->local_cam_img = local_viewFBO->toImage();
-
-//    local_viewFBO1->bind();
-//    render_scene(&(model_vehicles->vehicles[1]->frontCam));
-//    model_vehicles->vehicles[1]->local_cam_img = local_viewFBO1->toImage();
+//    glReadPixels(0, 0, 800, 500, GL_RGB,  GL_UNSIGNED_BYTE, model_vehicles->vehicles.front()->raw_img.data() );
 
 
     for(uint32_t i{0}; i<model_vehicles->vehicles.size(); ++i){
         model_vehicles->vehicles[i]->localView_buffer->bind();
-        if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-            std::cerr << "not complete!\n";
+//        if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+//            std::cerr << "not complete!\n";
         render_scene(&(model_vehicles->vehicles[i]->frontCam));
-        model_vehicles->vehicles[i]->local_cam_img = model_vehicles->vehicles[i]->localView_buffer->toImage();
+
+//        model_vehicles->vehicles[i]->local_cam_img = model_vehicles->vehicles[i]->localView_buffer->toImage();
     }
 
 
-//    model_vehicles->vehicles.back()->localView_buffer->bindDefault();
+    model_vehicles->vehicles.back()->localView_buffer->bindDefault();
+
 //    local_viewFBO1->bindDefault();
 
 //    // model_vehicles[0]->render_vectors_state(activeCam);
 
 
     // frame's rate
-    accum += std::chrono::duration<double,
+    elap_accumulated += std::chrono::duration<double,
               std::ratio< 1, 1>>(std::chrono::high_resolution_clock::now()
                                  - start_t).count();
-    ++f;
-    if(accum>=1.0) {
+    ++frames_counter;
+    if(elap_accumulated>=NUM_SEC_FRAME_RATE) {
 
 //        std::cout << DebugGLerr(glGetError()) << "\n";
 
@@ -262,16 +260,25 @@ void _scene_widg::paintGL()
 
 ////        model_vehicles->vehicles[1]->pubFront_img();
 
-        for(uint32_t i{0}; i<model_vehicles->vehicles.size(); ++i)
-            model_vehicles->vehicles[i]->pubFront_img();
+//        for(uint32_t i{0}; i<model_vehicles->vehicles.size(); ++i)
+//            model_vehicles->vehicles[i]->pubFront_img();
+
+//        std::cout << "\n--------------------\n";// << std::endl;
+////        for(uint32_t i{80000}; i<80030; ++i)
+//        for(uint32_t i{0}; i<30; ++i)
+//            std::cout << (int)model_vehicles->vehicles.front()->raw_img[i] << ", ";
+//        std::cout<< std::flush;
+//        for(const auto& col:model_vehicles->vehicles.front()->raw_img)
+//            std::cout
 
 ///
-        std::cout << "\n--------------------" << std::endl;
-        std::cout << "frame freq counter: "<< 1.0/(accum/f) << " f/s " << std::endl;
+//        std::cout << "\n--------------------\n";// << std::endl;
+//        std::cout << "frame freq counter: "<< 1.0/(elap_accumulated/frames_counter) << " f/s " << std::flush;
+        frame_rate = 1.0/(elap_accumulated/frames_counter);
 //        // std::cout.precision(15);
 //        // std::cout << model->traveled_dist << " meters \n";
 //        // std::cout << glm::distance(model->bit, model->old_bit) << " meters \n";
-        accum = f = 0;
+        elap_accumulated = frames_counter = 0;
 //        std::cout << "Pos: " << model->back_ideal_tire;
 //        std::cout << "Direc: " << model->vehic_direction;
 //        std::cout << "Ticks-Counter: " << model->ticks_counter <<"\n";
@@ -632,7 +639,7 @@ void _scene_widg::send_data()
                       "coord_sys",
                       10.f,
                       1.5f
-//                      ,glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0)),
+//                      ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
 //                      glm::translate(glm::dvec3(0.0, 0.0, 0.0))
         ),
         new grid_plane(this,
@@ -642,7 +649,7 @@ void _scene_widg::send_data()
                       150.f,
                       1.0f,
                       1.0f
-//                      ,glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0)),
+//                      ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
 //                      glm::translate(glm::dvec3(0.0, 0.0, 0.0))
         )
     };
@@ -654,7 +661,7 @@ void _scene_widg::send_data()
                          "./primitives/plane_300x300_1sub-div",
                          "tex/plane_grass_1024x1024.jpg",
                          GL_QUADS
-//                         ,glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0)),
+//                         ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
 //                         glm::translate(glm::dvec3(0.0, 0.0, 0.0))
         )
         ,new external_obj(this,
@@ -663,13 +670,13 @@ void _scene_widg::send_data()
                          "./primitives/fence_300x300_2H_1W",
                          "tex/fence_brick_1024x1024.jpg",
                          GL_QUADS
-//                         ,glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0)),
+//                         ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
 //                         glm::translate(glm::dvec3(0.0, 0.0, 0.0))
         )
         ,new skybox_obj(this,
                        programs[2],
                        "skybox"
-//                       ,glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0)),
+//                       ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
 //                       glm::translate(glm::dvec3(0.0, 0.0, 0.0))
         )
     };
@@ -681,35 +688,53 @@ void _scene_widg::send_data()
                          "./primitives/mini-lap",
                          "tex/mini_lap_exemplar.jpg",
                          GL_QUADS
-//                         ,glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0)),
+//                         ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
 //                         glm::translate(glm::dvec3(0.0, 0.0, 0.0))
-        ),
-        new external_obj(this,
+        )
+        ,new external_obj(this,
                          programs[1],
                          "lap1",
                          "./primitives/lap1",
                          "tex/lap1_exemplar.jpg",
                          GL_QUADS
-//                         ,glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0)),
+//                         ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
 //                         glm::translate(glm::dvec3(0.0, 0.0, 0.0))
-        ),
-        new external_obj(this,
+        )
+        ,new external_obj(this,
                          programs[1],
                          "lap2",
                          "./primitives/lap2",
                          "tex/lap2_exemplar.jpg",
                          GL_QUADS
-//                         ,glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0)),
+//                         ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
 //                         glm::translate(glm::dvec3(0.0, 0.0, 0.0))
-        ),
-        new external_obj(this,
+        )
+        ,new external_obj(this,
                          programs[1],
                          "lap3",
                          "./primitives/lap3",
                          "tex/lap3_exemplar.jpg",
                          GL_QUADS
-//                        ,glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0)),
+//                        ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
 //                        glm::translate(glm::dvec3(0.0, 0.0, 0.0))
+        )
+        ,new external_obj(this,
+                         programs[1],
+                         "wall1",
+                         "./primitives/wall_1",
+                         "tex/wall_exemplar2.jpg",
+                         GL_QUADS
+                         ,glm::rotate(glm::radians(45.0), glm::dvec3(0.0, 1.0, 0.0)),
+                         glm::translate(glm::dvec3(4.0, 0.0, -3.0))
+        )
+        ,new external_obj(this,
+                         programs[1],
+                         "wall2",
+                         "./primitives/wall_2",
+                         "tex/wall_exemplar3.jpg",
+                         GL_QUADS
+//                         ,glm::rotate(glm::radians(25.0), glm::dvec3(0.0, 1.0, 0.0)),
+//                         glm::translate(glm::dvec3(2.0, 0.0, -1.0))
         )
     };
     //---------------------------------------------------------------------

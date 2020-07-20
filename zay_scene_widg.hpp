@@ -126,7 +126,9 @@ class _scene_widg : public QGL_WIDGET_VERSION, protected USED_GL_VERSION // QOpe
     void draw_local(void);
     inline void render_scene(zaytuna::camera const*const);
 
-    double accum{0};
+    double elap_accumulated{0.0};
+    double frame_rate{0};
+    uint32_t frames_counter{0};
     std::chrono::time_point<std::chrono::_V2::system_clock,
                     std::chrono::nanoseconds> start_t;
 

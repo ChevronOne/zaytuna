@@ -63,7 +63,7 @@ win_mainliner::win_mainliner(QWidget *parent) :
 //    Place_Tracker = new QWidget(centralWidget);
     _scene_widget->setObjectName(QStringLiteral("Place_Tracker"));
     _scene_widget->setEnabled(true);
-    _scene_widget->setGeometry(QRect(581, 25, 800, 500));
+    _scene_widget->setGeometry(QRect(630, 25, 800, 500));
     QSizePolicy sizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     sizePolicy.setHorizontalStretch(0);
     sizePolicy.setVerticalStretch(0);
@@ -85,11 +85,13 @@ win_mainliner::win_mainliner(QWidget *parent) :
     ui->lcdCamCoordY->display(_scene_widget->mainCam.camera_position.y);
     ui->lcdCamCoordZ->display(_scene_widget->mainCam.camera_position.z);
 
+    ui->lcdFrameRate->display(_scene_widget->frame_rate);
+
     ui->speedDis->setText(QString::number(0));
     ui->steeringDis->setText(QString::number(0));
 
     connect(&timer, SIGNAL(timeout()), this, SLOT(update_displys()));
-    timer.start(20);
+    timer.start(1000); // 100
 
 
 //    this->setMouseTracking(true);
@@ -137,7 +139,7 @@ void win_mainliner::update_displys()
     ui->lcdCamCoordY->display(_scene_widget->activeCam->camera_position.y);
     ui->lcdCamCoordZ->display(_scene_widget->activeCam->camera_position.z);
 
-
+    ui->lcdFrameRate->display(_scene_widget->frame_rate);
 
     ui->cam_movement_speed->setValue(_scene_widget->mainCam.MOVEMENT_SPEED);
     ui->cam_rotation_speed->setValue(_scene_widget->mainCam.ROTATION_SPEED);
