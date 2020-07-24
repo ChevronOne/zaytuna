@@ -52,9 +52,9 @@ class _scene_widg;
 class vehicle_attribute
 {
 //    Q_OBJECT
-
+    USED_GL_VERSION* _widg{nullptr};
     QImage local_cam_img;
-//    std::vector<GLubyte> raw_img{std::vector<GLubyte>( 800 * 500 * 3, 0 )};
+    std::vector<GLubyte> raw_img{std::vector<GLubyte>( WIDTH * HEIGHT * 3, 0 )};
 
     std::chrono::time_point<std::chrono::_V2::system_clock,
                     std::chrono::nanoseconds> timer_t;
@@ -72,7 +72,8 @@ class vehicle_attribute
 
 public:
     vehicle_attribute() = default;
-    explicit vehicle_attribute(const std::string&,
+    explicit vehicle_attribute(USED_GL_VERSION*,
+                 const std::string&,
                  QGLFramebufferObject *const,
                  const glm::dmat4 _rotaion = glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0)),
                  const glm::dmat4 _translation = glm::translate(glm::dvec3(0.0, 0.0, 0.0)));

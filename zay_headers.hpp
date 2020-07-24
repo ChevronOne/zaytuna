@@ -121,6 +121,8 @@ typedef QGLWidget QGL_WIDGET_VERSION;
 #define VERTEX_BYTE_SIZE_1 NUM_FLOATS_PER_VERTEX_1 * TYPE_SIZE
 #define MOUSE_DELTA_IGNORE 7
 #define NUM_SEC_FRAME_RATE 1.0 // number of seconds to display frame rate
+#define WIDTH 800
+#define HEIGHT 500
 
 
 

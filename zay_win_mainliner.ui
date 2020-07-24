@@ -369,6 +369,12 @@
         <height>23</height>
        </rect>
       </property>
+      <property name="frameShape">
+       <enum>QFrame::Box</enum>
+      </property>
+      <property name="smallDecimalPoint">
+       <bool>true</bool>
+      </property>
      </widget>
      <widget class="QLabel" name="label_17">
       <property name="geometry">
@@ -1107,7 +1113,7 @@
      <x>0</x>
      <y>0</y>
      <width>1440</width>
-     <height>26</height>
+     <height>20</height>
     </rect>
    </property>
   </widget>

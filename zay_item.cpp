@@ -546,7 +546,7 @@ zaytuna::model_vehicle::model_vehicle(USED_GL_VERSION * const _widg,
 
 
     vehicles = {
-        new vehicle_attribute(_name, FBO_,_rotation, _translation)
+        new vehicle_attribute(_widg, _name, FBO_,_rotation, _translation)
 //        ,new vehicle_attribute("model_vehicle2",
 //        glm::rotate(glm::radians(-45.0), glm::dvec3(0.0, 1.0, 0.0)),
 //        glm::translate(glm::dvec3(-3.0, 0.0, -2.5)))
@@ -558,7 +558,7 @@ void model_vehicle::add_vehicle(const char* _name,
                                 QGLFramebufferObject *const FBO_,
                                 const glm::dmat4 _rotation,
                                 const glm::dmat4 _translation){
-    vehicles.push_back(new vehicle_attribute(_name, FBO_,
+    vehicles.push_back(new vehicle_attribute(_widg, _name, FBO_,
                                              _rotation,
                                              _translation));
 }

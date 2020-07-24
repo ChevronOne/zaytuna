@@ -225,6 +225,7 @@ void _scene_widg::paintGL()
 
 //    makeCurrent();
     render_scene(activeCam);
+
 //    glReadPixels(0, 0, 800, 500, GL_RGB,  GL_UNSIGNED_BYTE, model_vehicles->vehicles.front()->raw_img.data() );
 
 
@@ -234,15 +235,16 @@ void _scene_widg::paintGL()
 //            std::cerr << "not complete!\n";
         render_scene(&(model_vehicles->vehicles[i]->frontCam));
 
-//        model_vehicles->vehicles[i]->local_cam_img = model_vehicles->vehicles[i]->localView_buffer->toImage();
+//        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+//        glReadBuffer(GL_COLOR_ATTACHMENT0);
+//        glReadPixels(0, 0, 800, 500, GL_RGB,  GL_UNSIGNED_BYTE, model_vehicles->vehicles.front()->raw_img.data() );
+        model_vehicles->vehicles[i]->local_cam_img = model_vehicles->vehicles[i]->localView_buffer->toImage();
     }
 
 
-    model_vehicles->vehicles.back()->localView_buffer->bindDefault();
+//    model_vehicles->vehicles.back()->localView_buffer->bindDefault();
+    glBindFramebuffer(GL_FRAMEBUFFER,  0);
 
-//    local_viewFBO1->bindDefault();
-
-//    // model_vehicles[0]->render_vectors_state(activeCam);
 
 
     // frame's rate
@@ -260,8 +262,8 @@ void _scene_widg::paintGL()
 
 ////        model_vehicles->vehicles[1]->pubFront_img();
 
-//        for(uint32_t i{0}; i<model_vehicles->vehicles.size(); ++i)
-//            model_vehicles->vehicles[i]->pubFront_img();
+        for(uint32_t i{0}; i<model_vehicles->vehicles.size(); ++i)
+            model_vehicles->vehicles[i]->pubFront_img();
 
 //        std::cout << "\n--------------------\n";// << std::endl;
 ////        for(uint32_t i{80000}; i<80030; ++i)
@@ -637,7 +639,7 @@ void _scene_widg::send_data()
         new coord_sys(this,
                       programs[0],
                       "coord_sys",
-                      10.f,
+                      20.f,
                       1.5f
 //                      ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
 //                      glm::translate(glm::dvec3(0.0, 0.0, 0.0))
@@ -722,7 +724,7 @@ void _scene_widg::send_data()
                          programs[1],
                          "wall1",
                          "./primitives/wall_1",
-                         "tex/wall_exemplar2.jpg",
+                         "tex/wall_exemplar1.jpg",
                          GL_QUADS
                          ,glm::rotate(glm::radians(45.0), glm::dvec3(0.0, 1.0, 0.0)),
                          glm::translate(glm::dvec3(4.0, 0.0, -3.0))
@@ -754,16 +756,22 @@ void _scene_widg::send_data()
            ,glm::rotate(glm::radians(180.0), glm::dvec3(0.0, 1.0, 0.0)),
            glm::translate(glm::dvec3(6.0, 0.0, -1.25))   );
 
-//    model_vehicles->add_vehicle("model_vehicle2",
-//                                new QGLFramebufferObject(this->width(), this->height(), fboFormat),
-//                                glm::rotate(glm::radians(-45.0), glm::dvec3(0.0, 1.0, 0.0)),
-//                                glm::translate(glm::dvec3(-3.0, 0.0, -2.5)));
+    model_vehicles->add_vehicle("model_vehicle2",
+                                new QGLFramebufferObject(this->width(), this->height(), fboFormat),
+                                glm::rotate(glm::radians(-45.0), glm::dvec3(0.0, 1.0, 0.0)),
+                                glm::translate(glm::dvec3(-3.0, 0.0, -2.5)));
 
 
 //    model_vehicles->add_vehicle("model_vehicle3",
 //                                new QGLFramebufferObject(this->width(), this->height(), fboFormat),
 //                                glm::rotate(glm::radians(90.0), glm::dvec3(0.0, 1.0, 0.0)),
 //                                glm::translate(glm::dvec3(0.0, 0.0, 5.0)));
+
+//    model_vehicles->add_vehicle("model_vehicle4",
+//                                new QGLFramebufferObject(this->width(), this->height(), fboFormat),
+//                                glm::rotate(glm::radians(-90.0), glm::dvec3(0.0, 1.0, 0.0)),
+//                                glm::translate(glm::dvec3(0.0, 0.0, -5.0)));
+
 
     //------------------------------------------------------------------
 

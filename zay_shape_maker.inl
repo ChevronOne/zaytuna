@@ -46,7 +46,6 @@ shape_maker<VERT>::makeGrid(GLfloat length,
 {
     shape_data<VERT> plane;
     std::vector<VERT> ver;
-    std::vector<GLuint> ind;
     VERT v;
 
 
@@ -73,10 +72,6 @@ shape_maker<VERT>::makeGrid(GLfloat length,
         ver.push_back(v);
     }
 
-    for (size_t i{ 0 }; i < ver.size(); ++i)
-    {
-        ind.push_back(i);
-    }
 
     plane.verNum = ver.size();
     plane.verts = new VERT[ver.size()];
@@ -85,12 +80,10 @@ shape_maker<VERT>::makeGrid(GLfloat length,
     //                  (plane.verts, ver.size()));
     std::copy(ver.begin(), ver.end(), plane.verts);
 
-    plane.indNum = ind.size();
-    plane.indices = new GLuint[ind.size()];
-    //std::copy(ind.begin(), ind.end(),
-    //          stdext::checked_array_iterator<GLuint*>
-    //                  (plane.indices, ind.size()));
-    std::copy(ind.begin(), ind.end(),plane.indices);
+    plane.indNum = ver.size();
+    plane.indices = new GLuint[ver.size()];
+    for (size_t i{ 0 }; i < ver.size(); ++i)
+        plane.indices[i] = i;
 
     return plane;
 }
