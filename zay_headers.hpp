@@ -51,6 +51,7 @@
 #include <chrono>
 #include <iomanip>
 #include <math.h>
+#include <map>
 
 #include <QOpenGLFunctions>
 //#include <QOpenGLWidget>
@@ -77,6 +78,12 @@ namespace fs = std::experimental::filesystem::v1;
 
 //extern double GLOBAL_MOVEMENT_SPEED;
 //extern double GLOBAL_STEERING_WHEEL;
+//Q_GLOBAL_STATIC(uint32_t, vehicle_counter)
+//Q_GLOBAL_STATIC(uint32_t, obstacle_counter)
+extern uint32_t vehicle_counter;
+extern uint32_t obstacle_counter;
+//extern QString vehicle_name;
+//extern QString obstacle_name;
 
 
 typedef GLfloat DATA_TYPE;

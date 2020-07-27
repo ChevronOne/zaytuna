@@ -42,7 +42,7 @@
 
 namespace zaytuna {
 
-camera::camera() : FIELD_OF_VIEW{60.0}, NEAR_PLANE{0.01}, FAR_PLANE{400.0}, auto_perspective{1},
+camera::camera() : FIELD_OF_VIEW{55.0}, NEAR_PLANE{0.01}, FAR_PLANE{400.0}, auto_perspective{1},
 
 
 
@@ -51,9 +51,9 @@ camera::camera() : FIELD_OF_VIEW{60.0}, NEAR_PLANE{0.01}, FAR_PLANE{400.0}, auto
 //  camera_position(glm::dvec3(56.87f , 22.3f, 45.55f))
 
 
-view_direction{glm::dvec3(0.0f , 0.0f , -1.0f)},
+view_direction{glm::dvec3(-0.41f , -0.6f , -0.68f)},
 up_direction{glm::dvec3(0.0f, 1.0f, 0.0f)},
-camera_position{glm::dvec3(+0.0f , 0.5f, 2.0f)}
+camera_position{glm::dvec3(+8.55f , 3.26f, 3.5f)}
 
 
 //view_direction{glm::dvec3(0.0f , 0.0f , -1.0f)},

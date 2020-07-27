@@ -35,7 +35,7 @@
 
 
 
-#include "zay_win_mainliner.hpp"
+#include "zay_primary_win.hpp"
 #include <QApplication>
 #include <QFontDatabase>
 #include <QScreen>
@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    zaytuna::win_mainliner w;
+    zaytuna::primary_win w;
     w.setWindowTitle("Zaytuna-Simulator");
     w.show();
 

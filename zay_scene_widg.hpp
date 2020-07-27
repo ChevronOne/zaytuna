@@ -84,7 +84,7 @@ namespace zaytuna {
 
 enum class FileStatus { UNDEFINED, LOADED, FAILED };
 enum class VarType { PROGRAM, SHADER };
-class win_mainliner;
+class primary_win;
 
 
 
@@ -148,7 +148,7 @@ class _scene_widg : public QGL_WIDGET_VERSION, protected USED_GL_VERSION // QOpe
 //    QImage img;
 
 
-    friend class zaytuna::win_mainliner;
+    friend class zaytuna::primary_win;
 
 protected:
 

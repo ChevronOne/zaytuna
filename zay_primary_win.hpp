@@ -43,12 +43,14 @@
 #include <QtGui/QMouseEvent>
 #include <QtGui/QKeyEvent>
 #include <QTimer>
+#include <QTreeWidget>
+#include <QDebug>
 #include "zay_scene_widg.hpp"
 
 
 
 namespace Ui {
-class win_mainliner;
+class primary_win;
 }
 
 namespace zaytuna {
@@ -58,13 +60,19 @@ namespace zaytuna {
 //extern double GLOBAL_MOVEMENT_SPEED;
 //extern double GLOBAL_STEERING_WHEEL;
 
-class win_mainliner : public QMainWindow
+class primary_win : public QMainWindow
 {
     Q_OBJECT
 
 public:
-    explicit win_mainliner(QWidget *parent = nullptr);
-    virtual ~win_mainliner();
+    explicit primary_win(QWidget *parent = nullptr);
+    virtual ~primary_win();
+
+
+    void vehicle_type_menu(const QPoint&);
+    void vehicle_menu(const QPoint&);
+    void obstacle_type_menu(const QPoint&);
+    void obstacle_menu(const QPoint&);
 
 
 
@@ -106,11 +114,22 @@ private slots:
 
     void on_steeringV_valueChanged(int value);
 
-private:
-    Ui::win_mainliner *ui;
-    QTimer timer;
-    zaytuna::_scene_widg* _scene_widget;
+    void menus(const QPoint&);
+    void new_vehicle(void);
+    void new_obstacle(void);
+    void delete_vehicle(const QString&);
+    void edit_vehicle(const QString&);
+    void delete_obstacle(const QString&);
+    void edit_obstacle(const QString&);
 
+private:
+    Ui::primary_win *ui{nullptr};
+    QTimer timer;
+    zaytuna::_scene_widg* _scene_widget{nullptr};
+    QTreeWidget* scene_objects{nullptr};
+    std::map<QString, void(primary_win::*)(const QPoint&)> menus_popups;
+    QTreeWidgetItem *vehicle_type{nullptr}, *obstacle_type{nullptr};
+    std::map<QString, QTreeWidgetItem*> vehicles, obstacles;
 
     //-----------------------
 

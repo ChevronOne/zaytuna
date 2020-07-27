@@ -35,9 +35,10 @@
 
 
 
-#include "zay_win_mainliner.hpp"
-#include "ui_zay_win_mainliner.h"
+#include "zay_primary_win.hpp"
+#include "ui_zay_primary_win.h"
 #include <QString>
+
 //#include "zay_headers.hpp"
 
 
@@ -48,9 +49,14 @@ namespace zaytuna {
 double GLOBAL_MOVEMENT_SPEED{0.0};
 double GLOBAL_STEERING_WHEEL{0.00000001};
 
-win_mainliner::win_mainliner(QWidget *parent) :
+uint32_t vehicle_counter{1};
+uint32_t obstacle_counter{1};
+//QString vehicle_name{"vehicle"};
+//QString obstacle_name{"obstacle"};
+
+primary_win::primary_win(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::win_mainliner)
+    ui(new Ui::primary_win)
 {
     ui->setupUi(this);
     QGLFormat _format;
@@ -71,12 +77,45 @@ win_mainliner::win_mainliner(QWidget *parent) :
     _scene_widget->setSizePolicy(sizePolicy);
     _scene_widget->setMinimumSize(QSize(WIDTH, HEIGHT));
     _scene_widget->setMaximumSize(QSize(WIDTH, HEIGHT));
+
+
+
+
+
     // -------------------------------------------------
+    scene_objects = new QTreeWidget(ui->edit_frame);
+    scene_objects->setGeometry(QRect(300, 10, 150, 250));
+    scene_objects->setColumnCount(1);
+    scene_objects->setObjectName(QStringLiteral("objects"));
+    scene_objects->setEnabled(true);
+    scene_objects->headerItem()->setText(0, "Scene Objects");
+
+    scene_objects->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(scene_objects, &QTreeWidget::customContextMenuRequested, this, &primary_win::menus);
+
+
+    vehicle_type = new QTreeWidgetItem(scene_objects);
+    vehicle_type->setText(0, "Vehicles");
+    vehicle_type->setExpanded(1);
+    scene_objects->addTopLevelItem(vehicle_type);
+    menus_popups["Vehicles"]=&primary_win::vehicle_type_menu;
+
+    obstacle_type = new QTreeWidgetItem(scene_objects);
+    obstacle_type->setText(0, "Obstacles");
+    obstacle_type->setExpanded(1);
+    scene_objects->addTopLevelItem(obstacle_type);
+    menus_popups["Obstacles"]=&primary_win::obstacle_type_menu;
+
+
+    new_vehicle();
+    new_obstacle();
+    new_obstacle();
 
 
 
 
 
+    //--------------------------------------------------
     ui->lcdCamViewX->display(_scene_widget->mainCam.view_direction.x);
     ui->lcdCamViewY->display(_scene_widget->mainCam.view_direction.y);
     ui->lcdCamViewZ->display(_scene_widget->mainCam.view_direction.z);
@@ -112,23 +151,171 @@ win_mainliner::win_mainliner(QWidget *parent) :
 //    setFocusPolicy()
 //    this->setFocusPolicy(Qt::TabFocus);
 
+
+}
+void primary_win::new_vehicle(void)
+{
+    QString veh_name{QString("vehicle_%1").arg(vehicle_counter++)};
+    QTreeWidgetItem* veh = new QTreeWidgetItem();
+    veh->setText(0, veh_name);
+    vehicle_type->addChild(veh);
+    menus_popups[veh_name]=&primary_win::vehicle_menu;
+    vehicles[veh_name] = veh;
+
+
+    qDebug() << "added vehicle: " << veh_name << " \n";
+}
+void primary_win::new_obstacle(void)
+{
+    QString obs_name{QString("obstacle_%1").arg(obstacle_counter++)};
+    QTreeWidgetItem* obs = new QTreeWidgetItem();
+    obs->setText(0, obs_name);
+    obstacle_type->addChild(obs);
+    menus_popups[obs_name]=&primary_win::obstacle_menu;
+    obstacles[obs_name] = obs;
+
+
+    qDebug() << "added obstacle: " << obs_name << " \n";
+}
+void primary_win::delete_vehicle(const QString& _name)
+{
+    qDebug() << "delete vehicle: "<< _name <<" \n";
+}
+void primary_win::delete_obstacle(const QString& _name)
+{
+    qDebug() << "delete obstacle: "<< _name<< " \n";
+}
+void primary_win::edit_vehicle(const QString& _name)
+{
+    qDebug() << "edit vehicle: "<< _name <<" \n";
+}
+void primary_win::edit_obstacle(const QString& _name)
+{
+    qDebug() << "edit obstacle: "<< _name<< " \n";
 }
 
-win_mainliner::~win_mainliner()
+void primary_win::vehicle_type_menu(const QPoint& pos)
+{
+
+    qDebug() << pos << ", vehicle type call \n";
+    QAction *addItem_act = new QAction(QIcon(), tr("&New Vehicle"), this);
+    addItem_act->setStatusTip(tr("add new vehicle"));
+    connect(addItem_act, SIGNAL(triggered()), this, SLOT(new_vehicle()));
+
+
+    QMenu menu(this);
+    menu.addAction(addItem_act);
+
+//    QPoint pt(pos);
+    menu.exec( scene_objects->mapToGlobal(pos) );
+}
+void primary_win::vehicle_menu(const QPoint& pos)
+{
+    qDebug() << pos << "a vehicle call \n";
+    QAction *editItem_act = new QAction(QIcon(), tr("&edit"), this);
+    editItem_act->setStatusTip(tr("edit selected vehicle"));
+    connect(editItem_act, &QAction::triggered, this,
+            [=]{edit_vehicle(scene_objects->itemAt(pos)->text(0));} );
+
+    QAction *delItem_act = new QAction(QIcon(), tr("&delete"), this);
+    delItem_act->setStatusTip(tr("delete selected vehicle"));
+    connect(delItem_act, &QAction::triggered, this,
+            [=]{delete_vehicle(scene_objects->itemAt(pos)->text(0));} );
+
+
+    QMenu menu(this);
+    menu.addAction(editItem_act);
+    menu.addAction(delItem_act);
+
+    menu.exec( scene_objects->mapToGlobal(pos) );
+}
+void primary_win::obstacle_type_menu(const QPoint& pos)
+{
+    qDebug() << pos <<", obstacle type call \n";
+
+    QAction *newAct = new QAction(QIcon(), tr("&New Obstacle"), this);
+    newAct->setStatusTip(tr("add new obstacle"));
+    connect(newAct, SIGNAL(triggered()), this, SLOT(new_obstacle()));
+
+
+    QMenu menu(this);
+    menu.addAction(newAct);
+
+//    QPoint pt(pos);
+    menu.exec( scene_objects->mapToGlobal(pos) );
+}
+void primary_win::obstacle_menu(const QPoint& pos)
+{
+    qDebug() << pos <<"an obstacle call \n";
+    QAction *editItem_act = new QAction(QIcon(), tr("&edit"), this);
+    editItem_act->setStatusTip(tr("edit selected obstacle"));
+    connect(editItem_act, &QAction::triggered, this,
+            [=]{edit_obstacle(scene_objects->itemAt(pos)->text(0));} );
+
+    QAction *delItem_act = new QAction(QIcon(), tr("&delete"), this);
+    delItem_act->setStatusTip(tr("delete selected obstacle"));
+    connect(delItem_act, &QAction::triggered, this,
+            [=]{delete_obstacle(scene_objects->itemAt(pos)->text(0));} );
+
+
+    QMenu menu(this);
+    menu.addAction(editItem_act);
+    menu.addAction(delItem_act);
+
+    menu.exec( scene_objects->mapToGlobal(pos) );
+}
+
+void primary_win::menus(const QPoint& pos)
+{
+    QTreeWidgetItem *selected = scene_objects->itemAt(pos);
+
+    qDebug() << pos << (selected->text(0));
+
+//    QTreeWidgetItem *selected = tree->itemAt(pos);
+
+    qDebug() << "item type: " << selected->type() << "\n";
+
+    (this->*menus_popups[selected->text(0)])(pos);
+//    if(selected->text(0) == "Vehicles")
+//        vehicle_type_menu(selected->text(0), pos);
+//    else if(selected->text(0) == "Obstacles")
+//        obstacle_type_menu(selected->text(0), pos);
+//    else qDebug() << "position were not recognized!\n";
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+primary_win::~primary_win()
 {
     delete _scene_widget;
+    delete scene_objects;
+//    delete vehicle_type;
+//    delete obstacle_type;
     timer.deleteLater();
     delete ui;
 }
 
-void win_mainliner::closeEvent(QCloseEvent *event)
+void primary_win::closeEvent(QCloseEvent *event)
 {
     std::cout << "exited normally with code 0\n" << "close ptr: " << event << "\n";
 //    ui->SQwidget->cleanUp();
 
 }
 
-void win_mainliner::update_displys()
+void primary_win::update_displys()
 {
 
     ui->lcdCamViewX->display(_scene_widget->activeCam->view_direction.x);
@@ -151,7 +338,7 @@ void win_mainliner::update_displys()
 
 }
 
-//void win_mainliner::mouseMoveEvent(QMouseEvent *ev)
+//void primary_win::mouseMoveEvent(QMouseEvent *ev)
 //{
 //    ui->lcdCamCoordX->display(ui->SQwidget->mainCam.view_direction.x);
 //    ui->lcdCamCoordY->display(ui->SQwidget->mainCam.view_direction.y);
@@ -162,32 +349,32 @@ void win_mainliner::update_displys()
 //}
 
 
-void win_mainliner::on_grid_check_clicked(bool checked)
+void primary_win::on_grid_check_clicked(bool checked)
 {
     _scene_widget->grid_checked = checked;
     _scene_widget->repaint();
 }
 
-void win_mainliner::on_coord_check_clicked(bool checked)
+void primary_win::on_coord_check_clicked(bool checked)
 {
     _scene_widget->coord_checked = checked;
     _scene_widget->repaint();
 }
 
-void win_mainliner::on_cam_movement_speed_valueChanged(double arg1)
+void primary_win::on_cam_movement_speed_valueChanged(double arg1)
 {
 //    _scene_widget->mainCam.MOVEMENT_SPEED = arg1;
     _scene_widget->mainCam.MOVEMENT_SPEED = arg1;
 }
 
-void win_mainliner::on_cam_rotation_speed_valueChanged(double arg1)
+void primary_win::on_cam_rotation_speed_valueChanged(double arg1)
 {
     _scene_widget->mainCam.ROTATION_SPEED = arg1;
 }
 
 
 
-void win_mainliner::on_speedV_valueChanged(int value)
+void primary_win::on_speedV_valueChanged(int value)
 {
     ui->speedDis->setText(QString::number(value));
     GLOBAL_MOVEMENT_SPEED = static_cast<double>(-value);
@@ -195,51 +382,51 @@ void win_mainliner::on_speedV_valueChanged(int value)
 }
 
 
-void win_mainliner::on_radioButton_clicked()
+void primary_win::on_radioButton_clicked()
 {
     ui->frame_perspective->setDisabled(1);
     _scene_widget->activeCam->auto_perspective = 1;
 }
 
-void win_mainliner::on_radioButton_2_clicked()
+void primary_win::on_radioButton_2_clicked()
 {
     ui->frame_perspective->setEnabled(1);
     _scene_widget->activeCam->auto_perspective = 0;
 }
 
-void win_mainliner::on_SpinBox_Near_valueChanged(double arg1)
+void primary_win::on_SpinBox_Near_valueChanged(double arg1)
 {
     _scene_widget->activeCam->NEAR_PLANE = arg1;
     _scene_widget->updateProjection();
 }
 
-void win_mainliner::on_SpinBox_Far_valueChanged(double arg1)
+void primary_win::on_SpinBox_Far_valueChanged(double arg1)
 {
     _scene_widget->activeCam->FAR_PLANE = arg1;
     _scene_widget->updateProjection();
 }
 
-void win_mainliner::on_SpinBox_FieldOfView_valueChanged(double arg1)
+void primary_win::on_SpinBox_FieldOfView_valueChanged(double arg1)
 {
     _scene_widget->activeCam->FIELD_OF_VIEW = arg1;
     _scene_widget->updateProjection();
 }
 
-void win_mainliner::on_radioButton_Global_clicked()
+void primary_win::on_radioButton_Global_clicked()
 {
     _scene_widget->activeCam = &_scene_widget->mainCam;
     ui->camTransformation->setEnabled(1);
     _scene_widget->updateProjection();
 }
 
-void win_mainliner::on_radioButton_Local_clicked()
+void primary_win::on_radioButton_Local_clicked()
 {
     _scene_widget->activeCam = &_scene_widget->model->frontCam;
     ui->camTransformation->setEnabled(0);
     _scene_widget->updateProjection();
 }
 
-void win_mainliner::on_steeringV_valueChanged(int value)
+void primary_win::on_steeringV_valueChanged(int value)
 {
         ui->steeringDis->setText(QString::number(value));
 

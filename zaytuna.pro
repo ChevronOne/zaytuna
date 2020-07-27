@@ -86,7 +86,7 @@ SOURCES += \
     zay_scene_widg.cpp \
     zaytuna.cpp \
     zay_model_vehicle.cpp \
-    zay_win_mainliner.cpp
+    zay_primary_win.cpp
 
 HEADERS += \
     zay_utility.hpp \
@@ -98,11 +98,11 @@ HEADERS += \
     zay_vertex.hpp \
     zay_scene_widg.hpp \
     zay_model_vehicle.hpp \
-    zay_win_mainliner.hpp \
-    zay_cam.hpp
+    zay_cam.hpp \
+    zay_primary_win.hpp
 
 FORMS += \
-    zay_win_mainliner.ui
+    zay_primary_win.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

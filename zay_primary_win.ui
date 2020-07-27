@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>win_mainliner</class>
- <widget class="QMainWindow" name="win_mainliner">
+ <class>primary_win</class>
+ <widget class="QMainWindow" name="primary_win">
   <property name="enabled">
    <bool>true</bool>
   </property>
@@ -624,7 +624,7 @@
      </widget>
     </widget>
    </widget>
-   <widget class="QFrame" name="frame">
+   <widget class="QFrame" name="edit_frame">
     <property name="geometry">
      <rect>
       <x>10</x>

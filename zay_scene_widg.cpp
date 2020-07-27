@@ -40,7 +40,7 @@
 
 
 #include "zay_scene_widg.hpp"
-#include "zay_win_mainliner.hpp"
+#include "zay_primary_win.hpp"
 
 namespace zaytuna {
 
