@@ -276,34 +276,14 @@ void primary_win::menus(const QPoint& pos)
     qDebug() << "item type: " << selected->type() << "\n";
 
     (this->*menus_popups[selected->text(0)])(pos);
-//    if(selected->text(0) == "Vehicles")
-//        vehicle_type_menu(selected->text(0), pos);
-//    else if(selected->text(0) == "Obstacles")
-//        obstacle_type_menu(selected->text(0), pos);
-//    else qDebug() << "position were not recognized!\n";
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 primary_win::~primary_win()
 {
     delete _scene_widget;
     delete scene_objects;
-//    delete vehicle_type;
-//    delete obstacle_type;
     timer.deleteLater();
     delete ui;
 }
