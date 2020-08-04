@@ -46,6 +46,8 @@
 #include <QTreeWidget>
 #include <QDebug>
 #include "zay_scene_widg.hpp"
+#include "zay_item_inputs_form.hpp"
+#include "zay_obstacle_inputs_form.hpp"
 
 
 
@@ -116,7 +118,9 @@ private slots:
 
     void menus(const QPoint&);
     void new_vehicle(void);
+    void add_vehicle(const transform_attribs<GLdouble>&);
     void new_obstacle(void);
+    void add_obstacle(const obstacle_attribs<GLdouble>&);
     void delete_vehicle(const QString&);
     void edit_vehicle(const QString&);
     void delete_obstacle(const QString&);

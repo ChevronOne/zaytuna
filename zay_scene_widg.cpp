@@ -153,7 +153,7 @@ void _scene_widg::initializeGL()
 //    local_viewFBO1 = new QGLFramebufferObject(this->width(), this->height(), fboFormat);
 
 
-    std::cout << "GL version info: " << glGetString(GL_VERSION) << "\n";
+    qDebug() << "GL version: " << reinterpret_cast<const char*>(glGetString(GL_VERSION)) << "\n";
 
 }
 
@@ -726,17 +726,18 @@ void _scene_widg::send_data()
                          "./primitives/wall_1",
                          "tex/wall_exemplar1.jpg",
                          GL_QUADS
-                         ,glm::rotate(glm::radians(45.0), glm::dvec3(0.0, 1.0, 0.0)),
-                         glm::translate(glm::dvec3(4.0, 0.0, -3.0))
+                         ,glm::rotate(glm::radians(25.0), glm::dvec3(0.0, 1.0, 0.0)),
+                         glm::translate(glm::dvec3(2.0, 0.0, -1.0))
         )
         ,new external_obj(this,
                          programs[1],
                          "wall2",
                          "./primitives/wall_2",
-                         "tex/wall_exemplar3.jpg",
+                         "tex/wall_exemplar2.jpg",
                          GL_QUADS
-//                         ,glm::rotate(glm::radians(25.0), glm::dvec3(0.0, 1.0, 0.0)),
-//                         glm::translate(glm::dvec3(2.0, 0.0, -1.0))
+                         ,glm::rotate(glm::radians(45.0), glm::dvec3(0.0, 1.0, 0.0)),
+                         glm::translate(glm::dvec3(4.0, 0.0, -3.0))
+
         )
     };
     //---------------------------------------------------------------------

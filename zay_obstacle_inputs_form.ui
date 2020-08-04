@@ -1,0 +1,431 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>obstacle_inputs_form</class>
+ <widget class="QDialog" name="obstacle_inputs_form">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>440</width>
+    <height>540</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <widget class="QDialogButtonBox" name="decision_tools">
+   <property name="geometry">
+    <rect>
+     <x>70</x>
+     <y>490</y>
+     <width>341</width>
+     <height>32</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+   <property name="standardButtons">
+    <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+   </property>
+  </widget>
+  <widget class="QGroupBox" name="transformation_box">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>200</y>
+     <width>411</width>
+     <height>291</height>
+    </rect>
+   </property>
+   <property name="title">
+    <string>Transformation:</string>
+   </property>
+   <widget class="QGroupBox" name="rotation_box">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>30</y>
+      <width>391</width>
+      <height>131</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Rotation:</string>
+    </property>
+    <widget class="QLabel" name="angle_lab">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>27</y>
+       <width>151</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Amount of rotation:</string>
+     </property>
+    </widget>
+    <widget class="QDoubleSpinBox" name="angle">
+     <property name="geometry">
+      <rect>
+       <x>160</x>
+       <y>30</y>
+       <width>71</width>
+       <height>26</height>
+      </rect>
+     </property>
+     <property name="minimum">
+      <double>-360.000000000000000</double>
+     </property>
+     <property name="maximum">
+      <double>360.000000000000000</double>
+     </property>
+    </widget>
+    <widget class="QLabel" name="degrees_lab">
+     <property name="geometry">
+      <rect>
+       <x>240</x>
+       <y>27</y>
+       <width>71</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>degrees</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="vec_rotation_lab">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>60</y>
+       <width>141</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Vector of rotation:</string>
+     </property>
+    </widget>
+    <widget class="QDoubleSpinBox" name="R_X">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>110</x>
+       <y>92</y>
+       <width>69</width>
+       <height>26</height>
+      </rect>
+     </property>
+     <property name="minimum">
+      <double>-999999999999999.000000000000000</double>
+     </property>
+     <property name="maximum">
+      <double>999999999999999.000000000000000</double>
+     </property>
+    </widget>
+    <widget class="QDoubleSpinBox" name="R_Y">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>210</x>
+       <y>92</y>
+       <width>69</width>
+       <height>26</height>
+      </rect>
+     </property>
+     <property name="minimum">
+      <double>-999999999999999.000000000000000</double>
+     </property>
+     <property name="maximum">
+      <double>999999999999999.000000000000000</double>
+     </property>
+     <property name="value">
+      <double>1.000000000000000</double>
+     </property>
+    </widget>
+    <widget class="QDoubleSpinBox" name="R_Z">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>310</x>
+       <y>92</y>
+       <width>69</width>
+       <height>26</height>
+      </rect>
+     </property>
+     <property name="minimum">
+      <double>-999999999999999.000000000000000</double>
+     </property>
+     <property name="maximum">
+      <double>999999999999999.000000000000000</double>
+     </property>
+    </widget>
+    <widget class="QLabel" name="R_X_lab">
+     <property name="geometry">
+      <rect>
+       <x>90</x>
+       <y>90</y>
+       <width>21</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>X</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="R_Y_lab">
+     <property name="geometry">
+      <rect>
+       <x>190</x>
+       <y>90</y>
+       <width>21</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Y</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="R_Z_lab">
+     <property name="geometry">
+      <rect>
+       <x>290</x>
+       <y>90</y>
+       <width>21</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Z</string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QGroupBox" name="translation_box">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>170</y>
+      <width>391</width>
+      <height>111</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Translation:</string>
+    </property>
+    <widget class="QDoubleSpinBox" name="T_Y">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>210</x>
+       <y>62</y>
+       <width>69</width>
+       <height>26</height>
+      </rect>
+     </property>
+     <property name="minimum">
+      <double>-999999999999999.000000000000000</double>
+     </property>
+     <property name="maximum">
+      <double>999999999999999.000000000000000</double>
+     </property>
+     <property name="value">
+      <double>0.000000000000000</double>
+     </property>
+    </widget>
+    <widget class="QLabel" name="T_X_lab">
+     <property name="geometry">
+      <rect>
+       <x>90</x>
+       <y>60</y>
+       <width>21</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>X</string>
+     </property>
+    </widget>
+    <widget class="QDoubleSpinBox" name="T_X">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>110</x>
+       <y>62</y>
+       <width>69</width>
+       <height>26</height>
+      </rect>
+     </property>
+     <property name="minimum">
+      <double>-999999999999999.000000000000000</double>
+     </property>
+     <property name="maximum">
+      <double>999999999999999.000000000000000</double>
+     </property>
+    </widget>
+    <widget class="QLabel" name="T_Z_lab">
+     <property name="geometry">
+      <rect>
+       <x>290</x>
+       <y>60</y>
+       <width>21</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Z</string>
+     </property>
+    </widget>
+    <widget class="QDoubleSpinBox" name="T_Z">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>310</x>
+       <y>62</y>
+       <width>69</width>
+       <height>26</height>
+      </rect>
+     </property>
+     <property name="minimum">
+      <double>-999999999999999.000000000000000</double>
+     </property>
+     <property name="maximum">
+      <double>999999999999999.000000000000000</double>
+     </property>
+    </widget>
+    <widget class="QLabel" name="T_Y_lab">
+     <property name="geometry">
+      <rect>
+       <x>190</x>
+       <y>60</y>
+       <width>21</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Y</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="vec_translation_lab">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>30</y>
+       <width>171</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Amount of translation:</string>
+     </property>
+    </widget>
+   </widget>
+  </widget>
+  <widget class="QGroupBox" name="obstacles_type_groupBox">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>20</y>
+     <width>311</width>
+     <height>161</height>
+    </rect>
+   </property>
+   <property name="title">
+    <string>Obstacles type:</string>
+   </property>
+   <widget class="QRadioButton" name="carton_box_radio">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>30</y>
+      <width>251</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Carton box   0.15x0.15x0.15</string>
+    </property>
+    <property name="checked">
+     <bool>false</bool>
+    </property>
+   </widget>
+   <widget class="QRadioButton" name="wall1_radio">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>70</y>
+      <width>251</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Wall   0.35x0.5x0.2</string>
+    </property>
+   </widget>
+   <widget class="QRadioButton" name="wall2_radio">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>110</y>
+      <width>251</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Wall   1.5x0.6x0.2</string>
+    </property>
+    <property name="checked">
+     <bool>true</bool>
+    </property>
+   </widget>
+  </widget>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>decision_tools</sender>
+   <signal>accepted()</signal>
+   <receiver>obstacle_inputs_form</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>248</x>
+     <y>254</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>157</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>decision_tools</sender>
+   <signal>rejected()</signal>
+   <receiver>obstacle_inputs_form</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>316</x>
+     <y>260</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>286</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

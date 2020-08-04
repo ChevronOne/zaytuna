@@ -43,7 +43,7 @@
 
 int main(int argc, char *argv[])
 {
-//    QCoreApplication::setAttribute(Qt::AA_UseDesktopOpenGL,true);
+
     QApplication a(argc, argv);
 
     QString fontPath = "fonts/OpenSans-Light.ttf";
@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
         QFont font("OpenSans-Regular");
         a.setFont(font);
     }else
-        std::cerr << "WARNING: fonts did not load!\n";
+        std::cerr << "WARNING: fonts did not load!\n" << std::flush;
 
     if (!QGLFormat::hasOpenGL() || !QGLFramebufferObject::hasOpenGLFramebufferObjects()) {
         QMessageBox::information(nullptr, "OpenGL FrameBuffer Object",

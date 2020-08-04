@@ -51,11 +51,12 @@ GLint zaytuna::model_vehicle::inverse_transpose_transformMatLocation=-1;
 
 
 
-zaytuna::scene_object::scene_object(USED_GL_VERSION * const _widg,
-                                    const GLuint programID,
-                                    const glm::dmat4 _rotation,
-                                    const glm::dmat4 _translation
-                                    ):
+scene_object::scene_object
+    (USED_GL_VERSION * const _widg,
+     const GLuint programID,
+     const glm::dmat4 _rotation,
+     const glm::dmat4 _translation ):
+
     _widg{_widg},
     _programID{programID},
     initial_rotationMat{_rotation},
@@ -66,27 +67,33 @@ zaytuna::scene_object::scene_object(USED_GL_VERSION * const _widg,
 //==================================================================================================
 
 
-zaytuna::external_obj::external_obj(USED_GL_VERSION * const _widg,
-                                    const GLuint programID,
-                                    const std::string& _name,
-                                    const std::string& _dir,
-                                    const std::string& _tex,
-                                    const GLenum _MODE,
-                                    const glm::dmat4 _rotation,
-                                    const glm::dmat4 _translation):
+external_obj::external_obj
+        (USED_GL_VERSION * const _widg,
+         const GLuint programID,
+         const std::string& _name,
+         const std::string& _dir,
+         const std::string& _tex,
+         const GLenum _MODE,
+         const glm::dmat4 _rotation,
+         const glm::dmat4 _translation):
+
     scene_object(_widg, programID,
                  _rotation, _translation ),
     name{_name}, MODE{_MODE}
 {
-    primitives = shape_maker<zaytuna::vertexL1_16>::extractExternal(_dir);
+    primitives = shape_maker
+            <zaytuna::vertexL1_16>::extractExternal(_dir);
 
     QImage tex_buffer;
     _widg->glGenTextures(1, &_texID);
     _widg->glBindTexture(GL_TEXTURE_2D, _texID);
 
     GLfloat max_anisotropic_extention{0};
-    _widg->glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &max_anisotropic_extention);
-    _widg->glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, max_anisotropic_extention);
+    _widg->glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT,
+                       &max_anisotropic_extention);
+    _widg->glTexParameterf(GL_TEXTURE_2D,
+                           GL_TEXTURE_MAX_ANISOTROPY_EXT,
+                           max_anisotropic_extention);
 
     _widg->glTexParameteri(GL_TEXTURE_2D,
                            GL_TEXTURE_WRAP_S,
@@ -536,13 +543,18 @@ zaytuna::model_vehicle::model_vehicle(USED_GL_VERSION * const _widg,
     prims_dir{_dir.c_str()}, tex_dir{_tex.c_str()}, PRIMITIVES_TYPE{_MODE}
 {
 
-    model_primitives = shape_maker<zaytuna::vertexL1_16>::extractExternal(prims_dir.toStdString());
-    fronttires_primitives =
-            shape_maker<zaytuna::vertexL1_16>::extractExternal(prims_dir.toStdString()+"-single_tire");
-    backtires_primitives =
-            shape_maker<zaytuna::vertexL1_16>::extractExternal(prims_dir.toStdString()+"-back_tires");
-    lidar_primitives =
-            shape_maker<zaytuna::vertexL1_16>::extractExternal(prims_dir.toStdString()+"-lidar");
+    model_primitives = shape_maker
+            <zaytuna::vertexL1_16>::extractExternal
+            (prims_dir.toStdString());
+    fronttires_primitives = shape_maker
+            <zaytuna::vertexL1_16>::extractExternal
+            (prims_dir.toStdString()+"-single_tire");
+    backtires_primitives = shape_maker
+            <zaytuna::vertexL1_16>::extractExternal
+            (prims_dir.toStdString()+"-back_tires");
+    lidar_primitives = shape_maker
+            <zaytuna::vertexL1_16>::extractExternal
+            (prims_dir.toStdString()+"-lidar");
 
 
     vehicles = {

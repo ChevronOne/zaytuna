@@ -46,13 +46,6 @@
 
 namespace zaytuna {
 
-glm::vec3 rCol(void);
-
-std::ostream& operator<<(std::ostream&, const glm::vec3&);
-
-void _load_tex(QImage&, const QString&, const char*, bool, bool);
-
-const char* DebugGLerr(unsigned);
 
 template<class T>
 class ptr_vector : public std::vector<T>
@@ -66,19 +59,106 @@ class ptr_vector<T *> : public std::vector<T *>
 {
 public:
     ptr_vector&
-    operator=(std::initializer_list<T*> _list)
-    {
+    operator=(std::initializer_list<T*> _list){
         this->assign(_list.begin(), _list.end());
         return *this;
     }
 
-    virtual ~ptr_vector()
-    {
+    virtual ~ptr_vector(){
         class std::vector< T *>::reverse_iterator it;
         for (it = this->rbegin(); it != this->rend(); ++it)
             delete *it;
     }
 };
+enum class Obstacle_Type { CARTON_BOX, WALL_1, WALL_2 };
+
+template<class T>
+struct transform_attribs
+{
+    T angle{static_cast<T>(0.0)};
+    glm::tvec3<T> rotation_vec
+        {static_cast<T>(0.0),
+         static_cast<T>(1.0),
+         static_cast<T>(0.0)};
+    glm::tvec3<T> translation_vec
+        {static_cast<T>(0.0),
+         static_cast<T>(0.0),
+         static_cast<T>(0.0)};
+    transform_attribs() = default;
+    transform_attribs(T angle,
+                      glm::tvec3<T> r_vec,
+                      glm::tvec3<T> t_vec):
+        angle{angle},
+        rotation_vec{r_vec},
+        translation_vec{t_vec}{}
+};
+
+template<class T>
+struct obstacle_attribs : public transform_attribs<T>
+{
+    Obstacle_Type type{Obstacle_Type::WALL_2};
+    obstacle_attribs() = default;
+    obstacle_attribs(Obstacle_Type type,
+                     T angle,
+                     glm::tvec3<T> r_vec,
+                     glm::tvec3<T> t_vec):
+        transform_attribs<T>(angle, r_vec, t_vec),
+        type{type}{}
+};
+
+class basic_program
+{
+protected:
+    USED_GL_VERSION* gl_context{nullptr};
+    GLuint program_ID;
+
+public:
+  basic_program(USED_GL_VERSION* const context,
+                GLuint ID): gl_context{context}, program_ID{ID}{}
+  virtual ~basic_program() = default;
+  virtual void makeUnderUse(void){
+      gl_context->glUseProgram(program_ID);
+  }
+  virtual void detachProgram(void){
+      gl_context->glUseProgram(0);
+  }
+};
+
+class static_program : public basic_program
+{
+protected:
+    GLint transformMatLocation;
+public:
+    static_program(USED_GL_VERSION* const context,
+                   GLuint ID, GLint matLocation):
+        basic_program(context, ID),
+        transformMatLocation{matLocation}{}
+    virtual ~static_program() override = default;
+
+};
+
+class animated_program : public static_program
+{
+protected:
+    GLint inverse_transpose_transformMatLocation;
+public:
+    animated_program(USED_GL_VERSION* const context,
+                     GLuint ID, GLint matLocation,
+                     GLint itt_matLocation):
+        static_program(context, ID, matLocation),
+        inverse_transpose_transformMatLocation{itt_matLocation}{}
+    virtual ~animated_program() override = default;
+
+
+};
+
+glm::vec3 rCol(void);
+
+std::ostream& operator<<(std::ostream&, const glm::vec3&);
+
+void _load_tex(QImage&, const QString&, const char*, bool, bool);
+
+const char* DebugGLerr(unsigned);
 
 //namespace std{
 //    class warning : public exception

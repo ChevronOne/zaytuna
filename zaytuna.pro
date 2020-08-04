@@ -63,7 +63,8 @@ TEMPLATE = app
 # any feature of Qt which has been marked as deprecated (the exact warnings
 # depend on your compiler). Please consult the documentation of the
 # deprecated API in order to know how to port your code away from it.
-DEFINES += QT_DEPRECATED_WARNINGS
+
+ DEFINES += QT_DEPRECATED_WARNINGS
 
 # You can also make your code fail to compile if you use deprecated APIs.
 # In order to do so, uncomment the following line.
@@ -74,7 +75,8 @@ CONFIG += c++17
 
 # --std=c++1z
 
-QMAKE_CXXFLAGS += -g -Wall -std=c++1z -Werror -Wno-old-style-cast
+QMAKE_CXXFLAGS += -g -Wall -std=c++1z -Wno-old-style-cast
+#QMAKE_CXXFLAGS += -g -Wall -std=c++1z -Werror -Wno-old-style-cast
 #QMAKE_CXXFLAGS += -g -Wall -Werror
 #QMAKE_CXXFLAGS += -O2 # -g -Wall -Werror
 
@@ -86,7 +88,9 @@ SOURCES += \
     zay_scene_widg.cpp \
     zaytuna.cpp \
     zay_model_vehicle.cpp \
-    zay_primary_win.cpp
+    zay_primary_win.cpp \
+    zay_item_inputs_form.cpp \
+    zay_obstacle_inputs_form.cpp
 
 HEADERS += \
     zay_utility.hpp \
@@ -99,10 +103,14 @@ HEADERS += \
     zay_scene_widg.hpp \
     zay_model_vehicle.hpp \
     zay_cam.hpp \
-    zay_primary_win.hpp
+    zay_primary_win.hpp \
+    zay_item_inputs_form.hpp \
+    zay_obstacle_inputs_form.hpp
 
 FORMS += \
-    zay_primary_win.ui
+    zay_primary_win.ui \
+    zay_item_inputs_form.ui \
+    zay_obstacle_inputs_form.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

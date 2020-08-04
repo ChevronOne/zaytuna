@@ -107,9 +107,20 @@ primary_win::primary_win(QWidget *parent) :
     menus_popups["Obstacles"]=&primary_win::obstacle_type_menu;
 
 
-    new_vehicle();
-    new_obstacle();
-    new_obstacle();
+    add_vehicle({180.0,
+                {0.0, 1.0, 0.0},
+                {6.0, 0.0, -1.25}});
+
+    add_obstacle(obstacle_attribs<GLdouble>
+                    (Obstacle_Type::WALL_2,
+                    45.0,
+                    {0.0, 1.0, 0.0},
+                    {4.0, 0.0, -3.0}));
+    add_obstacle(obstacle_attribs<GLdouble>
+                    (Obstacle_Type::WALL_1,
+                    0.0,
+                    {0.0, 1.0, 0.0},
+                    {0.0, 0.0, 0.0}));
 
 
 
@@ -155,6 +166,17 @@ primary_win::primary_win(QWidget *parent) :
 }
 void primary_win::new_vehicle(void)
 {
+    item_inputs_form inputs_d;
+    inputs_d.setWindowTitle("new vehicle");
+    inputs_d.setModal(1);
+
+    if (inputs_d.exec() == QDialog::Accepted){
+        add_vehicle(inputs_d.transform);
+    }
+
+}
+void primary_win::add_vehicle(const transform_attribs<GLdouble>& T)
+{
     QString veh_name{QString("vehicle_%1").arg(vehicle_counter++)};
     QTreeWidgetItem* veh = new QTreeWidgetItem();
     veh->setText(0, veh_name);
@@ -162,10 +184,18 @@ void primary_win::new_vehicle(void)
     menus_popups[veh_name]=&primary_win::vehicle_menu;
     vehicles[veh_name] = veh;
 
-
-    qDebug() << "added vehicle: " << veh_name << " \n";
+    qDebug() << "new vehicle " << veh_name << " added with angle: " << T.angle;
 }
 void primary_win::new_obstacle(void)
+{
+    obstacle_inputs_form inputs_d;
+    inputs_d.setWindowTitle("new obstacle");
+    inputs_d.setModal(1);
+    if (inputs_d.exec() == QDialog::Accepted){
+        add_obstacle(inputs_d.attribs);
+    }
+}
+void primary_win::add_obstacle(const obstacle_attribs<GLdouble>& T)
 {
     QString obs_name{QString("obstacle_%1").arg(obstacle_counter++)};
     QTreeWidgetItem* obs = new QTreeWidgetItem();
@@ -174,16 +204,21 @@ void primary_win::new_obstacle(void)
     menus_popups[obs_name]=&primary_win::obstacle_menu;
     obstacles[obs_name] = obs;
 
-
-    qDebug() << "added obstacle: " << obs_name << " \n";
+    qDebug() << "new obstacle " << obs_name << " added with angle: " << T.angle;
 }
+
+
 void primary_win::delete_vehicle(const QString& _name)
 {
-    qDebug() << "delete vehicle: "<< _name <<" \n";
+    vehicle_type->removeChild(vehicles[_name]);
+    vehicles.erase(_name);
+    qDebug() << "deleted vehicle: "<< _name <<" \n";
 }
 void primary_win::delete_obstacle(const QString& _name)
 {
-    qDebug() << "delete obstacle: "<< _name<< " \n";
+    obstacle_type->removeChild(obstacles[_name]);
+    obstacles.erase(_name);
+    qDebug() << "deleted obstacle: "<< _name<< " \n";
 }
 void primary_win::edit_vehicle(const QString& _name)
 {

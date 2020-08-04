@@ -60,7 +60,7 @@
      </size>
     </property>
    </widget>
-   <widget class="QFrame" name="frame_4">
+   <widget class="QFrame" name="control_and_indicators_frame">
     <property name="geometry">
      <rect>
       <x>10</x>
@@ -93,7 +93,7 @@
     <property name="frameShadow">
      <enum>QFrame::Raised</enum>
     </property>
-    <widget class="QFrame" name="frame_3">
+    <widget class="QFrame" name="control_tools_frame">
      <property name="geometry">
       <rect>
        <x>11</x>
@@ -137,7 +137,7 @@
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout_3">
        <item>
-        <widget class="QGroupBox" name="groupBox_2">
+        <widget class="QGroupBox" name="steering_groupBox">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
            <horstretch>0</horstretch>
@@ -159,7 +159,7 @@
          <property name="title">
           <string>Steering</string>
          </property>
-         <widget class="QLabel" name="label_11">
+         <widget class="QLabel" name="max_left_turn_steering_lab">
           <property name="geometry">
            <rect>
             <x>10</x>
@@ -172,7 +172,7 @@
            <string>-25</string>
           </property>
          </widget>
-         <widget class="QLabel" name="label_12">
+         <widget class="QLabel" name="max_right_turn_steering_lab">
           <property name="geometry">
            <rect>
             <x>320</x>
@@ -242,7 +242,7 @@
         </spacer>
        </item>
        <item>
-        <widget class="QGroupBox" name="groupBox">
+        <widget class="QGroupBox" name="speed_groupBox">
          <property name="minimumSize">
           <size>
            <width>323</width>
@@ -258,7 +258,7 @@
          <property name="title">
           <string>Speed</string>
          </property>
-         <widget class="QLabel" name="label_13">
+         <widget class="QLabel" name="max_backward_speed_lab">
           <property name="geometry">
            <rect>
             <x>10</x>
@@ -271,7 +271,7 @@
            <string>-600</string>
           </property>
          </widget>
-         <widget class="QLabel" name="label_14">
+         <widget class="QLabel" name="max_forward_speed_lab">
           <property name="geometry">
            <rect>
             <x>220</x>
@@ -324,7 +324,7 @@
       </layout>
      </widget>
     </widget>
-    <widget class="QFrame" name="frame_2">
+    <widget class="QFrame" name="camera_indicators_frame">
      <property name="enabled">
       <bool>true</bool>
      </property>
@@ -376,7 +376,7 @@
        <bool>true</bool>
       </property>
      </widget>
-     <widget class="QLabel" name="label_17">
+     <widget class="QLabel" name="frames_per_secs_lab">
       <property name="geometry">
        <rect>
         <x>530</x>
@@ -389,7 +389,7 @@
        <string>F/S</string>
       </property>
      </widget>
-     <widget class="QLabel" name="label_5">
+     <widget class="QLabel" name="Camera_lab">
       <property name="geometry">
        <rect>
         <x>1</x>
@@ -412,13 +412,13 @@
        </font>
       </property>
       <property name="text">
-       <string>Camer:</string>
+       <string>Camera:</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
       </property>
      </widget>
-     <widget class="QLabel" name="label_6">
+     <widget class="QLabel" name="cam_posX_lab">
       <property name="geometry">
        <rect>
         <x>80</x>
@@ -444,7 +444,7 @@
        </rect>
       </property>
      </widget>
-     <widget class="QLabel" name="label_8">
+     <widget class="QLabel" name="cam_posZ_lab">
       <property name="geometry">
        <rect>
         <x>287</x>
@@ -460,7 +460,7 @@
        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
       </property>
      </widget>
-     <widget class="QLabel" name="label_7">
+     <widget class="QLabel" name="cam_posY_lab">
       <property name="geometry">
        <rect>
         <x>184</x>
@@ -517,7 +517,7 @@
        </rect>
       </property>
      </widget>
-     <widget class="QLabel" name="label_4">
+     <widget class="QLabel" name="view_lab">
       <property name="geometry">
        <rect>
         <x>1</x>
@@ -540,7 +540,7 @@
        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
       </property>
      </widget>
-     <widget class="QLabel" name="label_3">
+     <widget class="QLabel" name="viewX_lab">
       <property name="geometry">
        <rect>
         <x>80</x>
@@ -566,7 +566,7 @@
        </rect>
       </property>
      </widget>
-     <widget class="QLabel" name="label_2">
+     <widget class="QLabel" name="viewY_lab">
       <property name="geometry">
        <rect>
         <x>184</x>
@@ -582,7 +582,7 @@
        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
       </property>
      </widget>
-     <widget class="QLabel" name="label">
+     <widget class="QLabel" name="viewZ_lab">
       <property name="geometry">
        <rect>
         <x>287</x>
@@ -715,7 +715,7 @@
         <double>0.150000000000000</double>
        </property>
       </widget>
-      <widget class="QLabel" name="label_9">
+      <widget class="QLabel" name="rotation_speed_lab">
        <property name="geometry">
         <rect>
          <x>4</x>
@@ -734,7 +734,7 @@
         <string>Rotation Speed</string>
        </property>
       </widget>
-      <widget class="QLabel" name="label_10">
+      <widget class="QLabel" name="movment_spped_lab">
        <property name="geometry">
         <rect>
          <x>4</x>
@@ -785,7 +785,7 @@
        </property>
       </widget>
      </widget>
-     <widget class="QLabel" name="label_15">
+     <widget class="QLabel" name="field_view_lab">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -829,7 +829,7 @@
        <double>60.000000000000000</double>
       </property>
      </widget>
-     <widget class="QLabel" name="label_16">
+     <widget class="QLabel" name="fov_degrees_lab">
       <property name="geometry">
        <rect>
         <x>90</x>
@@ -845,10 +845,10 @@
        </font>
       </property>
       <property name="text">
-       <string>degree</string>
+       <string>degrees</string>
       </property>
      </widget>
-     <widget class="QLabel" name="label_perspective">
+     <widget class="QLabel" name="perspective_lab">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -867,7 +867,7 @@
        <string>Perspective</string>
       </property>
      </widget>
-     <widget class="QRadioButton" name="radioButton">
+     <widget class="QRadioButton" name="auto_perspective_radio">
       <property name="geometry">
        <rect>
         <x>90</x>
@@ -889,7 +889,7 @@
        <bool>true</bool>
       </property>
      </widget>
-     <widget class="QRadioButton" name="radioButton_2">
+     <widget class="QRadioButton" name="custom_perspective_radio">
       <property name="geometry">
        <rect>
         <x>170</x>
@@ -926,7 +926,7 @@
       <property name="frameShadow">
        <enum>QFrame::Raised</enum>
       </property>
-      <widget class="QLabel" name="label_near">
+      <widget class="QLabel" name="near_plane_lab">
        <property name="geometry">
         <rect>
          <x>10</x>
@@ -945,7 +945,7 @@
         <string>Near</string>
        </property>
       </widget>
-      <widget class="QLabel" name="label_far">
+      <widget class="QLabel" name="far_plane_lab">
        <property name="geometry">
         <rect>
          <x>135</x>
@@ -1113,7 +1113,7 @@
      <x>0</x>
      <y>0</y>
      <width>1440</width>
-     <height>20</height>
+     <height>22</height>
     </rect>
    </property>
   </widget>
