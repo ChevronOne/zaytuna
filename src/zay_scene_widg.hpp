@@ -104,6 +104,7 @@ class _scene_widg : public QGL_WIDGET_VERSION, protected USED_GL_VERSION // QOpe
     ptr_vector<zaytuna::scene_object*> lap_objects;
     ptr_vector<zaytuna::scene_object*> obstacle_objects;
     ptr_vector<zaytuna::scene_object*> environmental_objects;
+    default_settings<GLdouble> default_objects;
 //    ptr_vector<zaytuna::scene_object*> beings;
     unsigned int _Shaders[SHADERS_NUM];
     void checkError(GLuint, GLuint,
@@ -125,7 +126,9 @@ class _scene_widg : public QGL_WIDGET_VERSION, protected USED_GL_VERSION // QOpe
     void cleanUp();
     void draw_local(void);
     inline void render_scene(zaytuna::camera const*const);
-
+    void add_vehicle(const transform_attribs<GLdouble>&);
+    void delete_vehicle(const std::string&);
+    void update_current_vehicle(const std::string&);
     double elap_accumulated{0.0};
     double frame_rate{0};
     uint32_t frames_counter{0};
@@ -134,8 +137,9 @@ class _scene_widg : public QGL_WIDGET_VERSION, protected USED_GL_VERSION // QOpe
 
     camera mainCam ;
     camera* activeCam;
+    QGLFramebufferObjectFormat fboFormat;
 
-    vehicle_attribute* model;
+    vehicle_attribute* current_model{nullptr};
     bool coord_checked{true}, grid_checked{true};
 
     QTimer timer;

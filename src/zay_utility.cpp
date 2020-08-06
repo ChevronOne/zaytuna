@@ -49,19 +49,6 @@ glm::vec3 rCol(void)
     };
 }
 
-std::ostream& operator<<(std::ostream& out, const glm::vec3& vec)
-{
-    out.precision(std::numeric_limits<float>::max_digits10);
-    return out << std::fixed <<
-         " X: " << vec.x <<
-         ", Y: " << vec.y <<
-         ", Z: " << vec.z << "\n";
-
-}
-
-
-
-
 void _load_tex(QImage& buff,
                const QString& _dir,
                const char* _format,

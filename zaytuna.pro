@@ -81,36 +81,36 @@ QMAKE_CXXFLAGS += -g -Wall -std=c++1z -Wno-old-style-cast
 #QMAKE_CXXFLAGS += -O2 # -g -Wall -Werror
 
 SOURCES += \
-    zay_utility.cpp \
-    zay_cam.cpp \
-    zay_item.cpp \
-    zay_shape_maker.inl \
-    zay_scene_widg.cpp \
-    zaytuna.cpp \
-    zay_model_vehicle.cpp \
-    zay_primary_win.cpp \
-    zay_item_inputs_form.cpp \
-    zay_obstacle_inputs_form.cpp
+    src/zay_utility.cpp \
+    src/zay_cam.cpp \
+    src/zay_item.cpp \
+    src/zay_shape_maker.inl \
+    src/zay_scene_widg.cpp \
+    src/zaytuna.cpp \
+    src/zay_model_vehicle.cpp \
+    src/zay_primary_win.cpp \
+    src/zay_item_inputs_form.cpp \
+    src/zay_obstacle_inputs_form.cpp
 
 HEADERS += \
-    zay_utility.hpp \
-    zay_clock.hpp \
-    zay_headers.hpp \
-    zay_item.hpp \
-    zay_shape_data.hpp \
-    zay_shape_maker.hpp \
-    zay_vertex.hpp \
-    zay_scene_widg.hpp \
-    zay_model_vehicle.hpp \
-    zay_cam.hpp \
-    zay_primary_win.hpp \
-    zay_item_inputs_form.hpp \
-    zay_obstacle_inputs_form.hpp
+    src/zay_utility.hpp \
+    src/zay_clock.hpp \
+    src/zay_headers.hpp \
+    src/zay_item.hpp \
+    src/zay_shape_data.hpp \
+    src/zay_shape_maker.hpp \
+    src/zay_vertex.hpp \
+    src/zay_scene_widg.hpp \
+    src/zay_model_vehicle.hpp \
+    src/zay_cam.hpp \
+    src/zay_primary_win.hpp \
+    src/zay_item_inputs_form.hpp \
+    src/zay_obstacle_inputs_form.hpp
 
 FORMS += \
-    zay_primary_win.ui \
-    zay_item_inputs_form.ui \
-    zay_obstacle_inputs_form.ui
+    src/zay_primary_win.ui \
+    src/zay_item_inputs_form.ui \
+    src/zay_obstacle_inputs_form.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

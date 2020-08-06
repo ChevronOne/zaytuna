@@ -93,6 +93,9 @@ _scene_widg::_scene_widg(QGLFormat _format, QWidget* parent):
 //    elap_accumulated = 0;
 
 
+    qDebug() << "constractor\n";
+
+
 
 }
 
@@ -125,7 +128,7 @@ void _scene_widg::cleanUp()
 
 void _scene_widg::initializeGL()
 {
-
+    qDebug() << "initializeGL\n";
     initializeOpenGLFunctions();
     glClearColor(0.86f, 0.86f, 0.86f, 1.0f);
     glEnable(GL_DEPTH_TEST);
@@ -215,7 +218,7 @@ void _scene_widg::paintGL()
     }
 
     for(uint32_t i{0}; i<model_vehicles->vehicles.size(); ++i){
-        model_vehicles->vehicles[i]->update_attribs();
+        model_vehicles->vehicles[i].update_attribs();
     }
 //    for(const auto& _obj:model_vehicles->vehicles)
 //        _obj->update_attribs();
@@ -230,15 +233,15 @@ void _scene_widg::paintGL()
 
 
     for(uint32_t i{0}; i<model_vehicles->vehicles.size(); ++i){
-        model_vehicles->vehicles[i]->localView_buffer->bind();
+        model_vehicles->vehicles[i].localView_buffer->bind();
 //        if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 //            std::cerr << "not complete!\n";
-        render_scene(&(model_vehicles->vehicles[i]->frontCam));
+        render_scene(&(model_vehicles->vehicles[i].frontCam));
 
 //        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 //        glReadBuffer(GL_COLOR_ATTACHMENT0);
 //        glReadPixels(0, 0, 800, 500, GL_RGB,  GL_UNSIGNED_BYTE, model_vehicles->vehicles.front()->raw_img.data() );
-        model_vehicles->vehicles[i]->local_cam_img = model_vehicles->vehicles[i]->localView_buffer->toImage();
+        model_vehicles->vehicles[i].local_cam_img = model_vehicles->vehicles[i].localView_buffer->toImage();
     }
 
 
@@ -263,7 +266,7 @@ void _scene_widg::paintGL()
 ////        model_vehicles->vehicles[1]->pubFront_img();
 
         for(uint32_t i{0}; i<model_vehicles->vehicles.size(); ++i)
-            model_vehicles->vehicles[i]->pubFront_img();
+            model_vehicles->vehicles[i].pubFront_img();
 
 //        std::cout << "\n--------------------\n";// << std::endl;
 ////        for(uint32_t i{80000}; i<80030; ++i)
@@ -292,10 +295,11 @@ void _scene_widg::paintGL()
 
 void _scene_widg::resizeGL(int W, int H)
 {
+    qDebug() << "resizeGL\n";
     glViewport(0, 0, W, H);
     mainCam.updateProjection(W, H);
     for(uint32_t i{0}; i<model_vehicles->vehicles.size(); ++i){
-        model_vehicles->vehicles[i]->frontCam.updateProjection(W, H);
+        model_vehicles->vehicles[i].frontCam.updateProjection(W, H);
     }
 //    model->frontCam.updateProjection(W, H);
 //    projectionMat = activeCam->projectionMat;
@@ -308,7 +312,7 @@ void _scene_widg::updateProjection()
 
     mainCam.updateProjection(width(), height());
     for(uint32_t i{0}; i<model_vehicles->vehicles.size(); ++i){
-        model_vehicles->vehicles[i]->frontCam.updateProjection(width(), height());
+        model_vehicles->vehicles[i].frontCam.updateProjection(width(), height());
     }
 }
 
@@ -635,6 +639,7 @@ unsigned int _scene_widg::getProgram() const
 
 void _scene_widg::send_data()
 {
+    qDebug() << "send_data\n";
     basic_objects = {
         new coord_sys(this,
                       programs[0],
@@ -742,25 +747,35 @@ void _scene_widg::send_data()
     };
     //---------------------------------------------------------------------
 
-    QGLFramebufferObjectFormat fboFormat;
+//    QGLFramebufferObjectFormat fboFormat;
     fboFormat.setSamples(8);
     fboFormat.setAttachment(QGLFramebufferObject::CombinedDepthStencil);
 
 
     model_vehicles = new model_vehicle(this,
            programs[3],
-           "model_vehicle1",
            "./primitives/zaytuna_model",
            "tex/zaytuna-fragments.png",
-           new QGLFramebufferObject(this->width(), this->height(), fboFormat),
-           GL_TRIANGLES
-           ,glm::rotate(glm::radians(180.0), glm::dvec3(0.0, 1.0, 0.0)),
-           glm::translate(glm::dvec3(6.0, 0.0, -1.25))   );
+           GL_TRIANGLES );
 
-    model_vehicles->add_vehicle("model_vehicle2",
-                                new QGLFramebufferObject(this->width(), this->height(), fboFormat),
-                                glm::rotate(glm::radians(-45.0), glm::dvec3(0.0, 1.0, 0.0)),
-                                glm::translate(glm::dvec3(-3.0, 0.0, -2.5)));
+    for(uint32_t i{0}; i<default_objects.vehicles.size(); ++i)
+        model_vehicles->add_vehicle(default_objects.vehicles[i].name,
+                                    new QGLFramebufferObject(this->width(),
+                                                             this->height(), fboFormat),
+                                    default_objects.vehicles[i].rotationMat(),
+                                    default_objects.vehicles[i].translationMat());
+
+    update_current_vehicle("any_vehicle");
+
+//    model_vehicles->add_vehicle("model_vehicle1",
+//                              new QGLFramebufferObject(this->width(), this->height(), fboFormat)
+//                              ,glm::rotate(glm::radians(180.0), glm::dvec3(0.0, 1.0, 0.0)),
+//                              glm::translate(glm::dvec3(6.0, 0.0, -1.25)) );
+
+//    model_vehicles->add_vehicle("model_vehicle2",
+//                                new QGLFramebufferObject(this->width(), this->height(), fboFormat),
+//                                glm::rotate(glm::radians(-45.0), glm::dvec3(0.0, 1.0, 0.0)),
+//                                glm::translate(glm::dvec3(-3.0, 0.0, -2.5)));
 
 
 //    model_vehicles->add_vehicle("model_vehicle3",
@@ -808,9 +823,31 @@ void _scene_widg::send_data()
 
 
 
-    model = model_vehicles->vehicles[0]; // .front());
+//    model = &model_vehicles->vehicles[0]; // .front());
 
 }
+void _scene_widg::update_current_vehicle(const std::string& _name)
+{
+    auto it = model_vehicles->find(_name);
+    if(it == model_vehicles->vehicles.end())
+        if(model_vehicles->vehicles.size() != 0)
+            current_model = &model_vehicles->vehicles[0];
+        else current_model = nullptr;
+    else current_model = &(*it);
+//    model = model_vehicles->find(_name);
+}
+
+void _scene_widg::add_vehicle(const transform_attribs<GLdouble>& attribs)
+{
+    model_vehicles->add_vehicle(attribs.name,
+                                new QGLFramebufferObject(this->width(), this->height(), fboFormat),
+                                attribs.rotationMat(),
+                                attribs.translationMat());
+//                              glm::rotate(glm::radians(attribs.angle),
+//                                          attribs.rotation_vec),
+//                              glm::translate(attribs.translation_vec));
+}
+
 
 void _scene_widg::load_tex(QImage& buff, const QString& _dir,
                           const char* _format, bool hMir, bool vMir)

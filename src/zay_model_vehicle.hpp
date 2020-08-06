@@ -60,7 +60,7 @@ class vehicle_attribute
                     std::chrono::nanoseconds> timer_t;
 
 
-    std::string name{"uninitialized object name"};
+    std::string name{"uninitialized_object_name"};
     QGLFramebufferObject* localView_buffer{nullptr};
 
     double elapsed_t;

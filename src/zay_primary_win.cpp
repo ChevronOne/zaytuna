@@ -39,9 +39,6 @@
 #include "ui_zay_primary_win.h"
 #include <QString>
 
-//#include "zay_headers.hpp"
-
-
 namespace zaytuna {
 
 
@@ -51,8 +48,6 @@ double GLOBAL_STEERING_WHEEL{0.00000001};
 
 uint32_t vehicle_counter{1};
 uint32_t obstacle_counter{1};
-//QString vehicle_name{"vehicle"};
-//QString obstacle_name{"obstacle"};
 
 primary_win::primary_win(QWidget *parent) :
     QMainWindow(parent),
@@ -91,8 +86,10 @@ primary_win::primary_win(QWidget *parent) :
     scene_objects->headerItem()->setText(0, "Scene Objects");
 
     scene_objects->setContextMenuPolicy(Qt::CustomContextMenu);
-    connect(scene_objects, &QTreeWidget::customContextMenuRequested, this, &primary_win::menus);
+    connect(scene_objects, &QTreeWidget::customContextMenuRequested,
+            this, &primary_win::menus);
 
+//    scene_objects->se
 
     vehicle_type = new QTreeWidgetItem(scene_objects);
     vehicle_type->setText(0, "Vehicles");
@@ -107,20 +104,7 @@ primary_win::primary_win(QWidget *parent) :
     menus_popups["Obstacles"]=&primary_win::obstacle_type_menu;
 
 
-    add_vehicle({180.0,
-                {0.0, 1.0, 0.0},
-                {6.0, 0.0, -1.25}});
 
-    add_obstacle(obstacle_attribs<GLdouble>
-                    (Obstacle_Type::WALL_2,
-                    45.0,
-                    {0.0, 1.0, 0.0},
-                    {4.0, 0.0, -3.0}));
-    add_obstacle(obstacle_attribs<GLdouble>
-                    (Obstacle_Type::WALL_1,
-                    0.0,
-                    {0.0, 1.0, 0.0},
-                    {0.0, 0.0, 0.0}));
 
 
 
@@ -162,6 +146,41 @@ primary_win::primary_win(QWidget *parent) :
 //    setFocusPolicy()
 //    this->setFocusPolicy(Qt::TabFocus);
 
+//    _scene_widget->initializeGL();
+
+//    qDebug() << "adding vehicles\n";
+
+
+
+    add_vehicle({std::string(),
+                 180.0,
+                 {0.0, 1.0, 0.0},
+                 {6.0, 0.0, -1.25}},1);
+
+    add_vehicle({std::string(),
+                 -45.0,
+                 {0.0, 1.0, 0.0},
+                 {-3.0, 0.0, -2.5}},1);
+
+//    if(vehicles.size() == 0)
+//        _scene_widget->update_current_vehicle("undefined vehicle name");
+//    else _scene_widget->update_current_vehicle( vehicles.begin()->first.toStdString() );
+
+//    qDebug() << "vehicle num primaryWin: " << vehicles.size() << "\n";
+//    qDebug() << "vehicle num sceneWidge: " << _scene_widget->model_vehicles->vehicles.size() << "\n";
+
+    add_obstacle(obstacle_attribs<GLdouble>
+                    (Obstacle_Type::WALL_2,
+                     std::string(),
+                     45.0,
+                     {0.0, 1.0, 0.0},
+                     {4.0, 0.0, -3.0}),1);
+    add_obstacle(obstacle_attribs<GLdouble>
+                    (Obstacle_Type::WALL_1,
+                     std::string(),
+                     0.0,
+                     {0.0, 1.0, 0.0},
+                     {0.0, 0.0, 0.0}),1);
 
 }
 void primary_win::new_vehicle(void)
@@ -171,13 +190,19 @@ void primary_win::new_vehicle(void)
     inputs_d.setModal(1);
 
     if (inputs_d.exec() == QDialog::Accepted){
-        add_vehicle(inputs_d.transform);
+        add_vehicle(inputs_d.transform,0);
     }
 
 }
-void primary_win::add_vehicle(const transform_attribs<GLdouble>& T)
+void primary_win::add_vehicle(transform_attribs<GLdouble> T, bool is_default)
 {
     QString veh_name{QString("vehicle_%1").arg(vehicle_counter++)};
+    T.name = veh_name.toStdString();
+    std::cout<< "angle: " << T.angle <<"\nrot: " << T.rotation_vec << "\ntran: " << T.translation_vec;
+    if(is_default)
+        _scene_widget->default_objects.vehicles.emplace_back(T);
+    else
+        _scene_widget->add_vehicle(T);
     QTreeWidgetItem* veh = new QTreeWidgetItem();
     veh->setText(0, veh_name);
     vehicle_type->addChild(veh);
@@ -192,12 +217,17 @@ void primary_win::new_obstacle(void)
     inputs_d.setWindowTitle("new obstacle");
     inputs_d.setModal(1);
     if (inputs_d.exec() == QDialog::Accepted){
-        add_obstacle(inputs_d.attribs);
+        add_obstacle(inputs_d.attribs,0);
     }
 }
-void primary_win::add_obstacle(const obstacle_attribs<GLdouble>& T)
+void primary_win::add_obstacle(obstacle_attribs<GLdouble> T, bool is_default)
 {
     QString obs_name{QString("obstacle_%1").arg(obstacle_counter++)};
+    T.name = obs_name.toStdString();
+//    if(is_default)
+//        _scene_widget->default_objects.obstacles.emplace_back(T);
+//    else
+//    _scene_widget->add_obstacle(T);
     QTreeWidgetItem* obs = new QTreeWidgetItem();
     obs->setText(0, obs_name);
     obstacle_type->addChild(obs);
@@ -207,7 +237,13 @@ void primary_win::add_obstacle(const obstacle_attribs<GLdouble>& T)
     qDebug() << "new obstacle " << obs_name << " added with angle: " << T.angle;
 }
 
+void primary_win::front_cam_to_screen(const QString& _name)
+{
+    _scene_widget->update_current_vehicle(_name.toStdString());
+    ui->radioButton_Local->setChecked(1);
+    this->on_radioButton_Local_clicked();
 
+}
 void primary_win::delete_vehicle(const QString& _name)
 {
     vehicle_type->removeChild(vehicles[_name]);
@@ -247,6 +283,11 @@ void primary_win::vehicle_type_menu(const QPoint& pos)
 void primary_win::vehicle_menu(const QPoint& pos)
 {
     qDebug() << pos << "a vehicle call \n";
+    QAction *moveToScreen_act = new QAction(QIcon(), tr("&front cam"), this);
+    moveToScreen_act->setStatusTip(tr("move front cam to screen"));
+    connect(moveToScreen_act, &QAction::triggered, this,
+            [=]{front_cam_to_screen(scene_objects->itemAt(pos)->text(0));} );
+
     QAction *editItem_act = new QAction(QIcon(), tr("&edit"), this);
     editItem_act->setStatusTip(tr("edit selected vehicle"));
     connect(editItem_act, &QAction::triggered, this,
@@ -259,6 +300,7 @@ void primary_win::vehicle_menu(const QPoint& pos)
 
 
     QMenu menu(this);
+    menu.addAction(moveToScreen_act);
     menu.addAction(editItem_act);
     menu.addAction(delItem_act);
 
@@ -378,7 +420,6 @@ void primary_win::on_coord_check_clicked(bool checked)
 
 void primary_win::on_cam_movement_speed_valueChanged(double arg1)
 {
-//    _scene_widget->mainCam.MOVEMENT_SPEED = arg1;
     _scene_widget->mainCam.MOVEMENT_SPEED = arg1;
 }
 
@@ -393,21 +434,9 @@ void primary_win::on_speedV_valueChanged(int value)
 {
     ui->speedDis->setText(QString::number(value));
     GLOBAL_MOVEMENT_SPEED = static_cast<double>(-value);
-//    _scene_widget->model->MOVEMENT_SPEED = static_cast<double>(-value);
+//    _scene_widget->current_model->MOVEMENT_SPEED = static_cast<double>(-value);
 }
 
-
-void primary_win::on_radioButton_clicked()
-{
-    ui->frame_perspective->setDisabled(1);
-    _scene_widget->activeCam->auto_perspective = 1;
-}
-
-void primary_win::on_radioButton_2_clicked()
-{
-    ui->frame_perspective->setEnabled(1);
-    _scene_widget->activeCam->auto_perspective = 0;
-}
 
 void primary_win::on_SpinBox_Near_valueChanged(double arg1)
 {
@@ -436,7 +465,9 @@ void primary_win::on_radioButton_Global_clicked()
 
 void primary_win::on_radioButton_Local_clicked()
 {
-    _scene_widget->activeCam = &_scene_widget->model->frontCam;
+    if(_scene_widget->current_model == nullptr)
+        return;
+    _scene_widget->activeCam = &_scene_widget->current_model->frontCam;
     ui->camTransformation->setEnabled(0);
     _scene_widget->updateProjection();
 }
@@ -447,13 +478,25 @@ void primary_win::on_steeringV_valueChanged(int value)
 
         if(value == 0){
             GLOBAL_STEERING_WHEEL = 0.00000001;  // 0.001f;
-//            _scene_widget->model->STEERING_WHEEL = 0.00000001;  // 0.001f;
+//            _scene_widget->current_model->STEERING_WHEEL = 0.00000001;  // 0.001f;
         }else{
             GLOBAL_STEERING_WHEEL = (static_cast<double>(value)*M_PI) /180.0;
-//            _scene_widget->model->STEERING_WHEEL = (static_cast<double>(value)*M_PI) /180.0;
+//            _scene_widget->current_model->STEERING_WHEEL = (static_cast<double>(value)*M_PI) /180.0;
         }
 }
 
 } // namespace  zaytuna
 
 
+
+void zaytuna::primary_win::on_auto_perspective_radio_clicked()
+{
+    ui->frame_perspective->setDisabled(1);
+    _scene_widget->activeCam->auto_perspective = 1;
+}
+
+void zaytuna::primary_win::on_custom_perspective_radio_clicked()
+{
+    ui->frame_perspective->setEnabled(1);
+    _scene_widget->activeCam->auto_perspective = 0;
+}

@@ -526,20 +526,32 @@ GLsizeiptr skybox_obj::buffer_size() const
            + primitives.indBufSize();
 }
 
-//----------------------------------------------------
+//======================================================================================================
+//======================================================================================================
+
+//zaytuna::model_vehicle::model_vehicle(USED_GL_VERSION * const _widg,
+//                                    const GLuint programID,
+//                                    const std::string& _name,
+//                                    const std::string& _dir,
+//                                    const std::string& _tex,
+//                                    QGLFramebufferObject *const FBO_,
+//                                    const GLenum _MODE,
+//                                    const glm::dmat4 _rotation,
+//                                    const glm::dmat4 _translation):
+
+//    scene_object(_widg, programID,
+//                 _rotation, _translation ),
+//    prims_dir{_dir.c_str()}, tex_dir{_tex.c_str()}, PRIMITIVES_TYPE{_MODE}
+
+//zaytuna::model_vehicle::model_vehicle()
 
 zaytuna::model_vehicle::model_vehicle(USED_GL_VERSION * const _widg,
                                     const GLuint programID,
-                                    const std::string& _name,
                                     const std::string& _dir,
                                     const std::string& _tex,
-                                    QGLFramebufferObject *const FBO_,
-                                    const GLenum _MODE,
-                                    const glm::dmat4 _rotation,
-                                    const glm::dmat4 _translation):
+                                    const GLenum _MODE):
 
-    scene_object(_widg, programID,
-                 _rotation, _translation ),
+    scene_object(_widg, programID),
     prims_dir{_dir.c_str()}, tex_dir{_tex.c_str()}, PRIMITIVES_TYPE{_MODE}
 {
 
@@ -557,16 +569,16 @@ zaytuna::model_vehicle::model_vehicle(USED_GL_VERSION * const _widg,
             (prims_dir.toStdString()+"-lidar");
 
 
-    vehicles = {
-        new vehicle_attribute(_widg, _name, FBO_,_rotation, _translation)
-//        ,new vehicle_attribute("model_vehicle2",
-//        glm::rotate(glm::radians(-45.0), glm::dvec3(0.0, 1.0, 0.0)),
-//        glm::translate(glm::dvec3(-3.0, 0.0, -2.5)))
-    };
+//    vehicles = {
+//        new vehicle_attribute(_widg, _name, FBO_,_rotation, _translation)
+////        ,new vehicle_attribute("model_vehicle2",
+////        glm::rotate(glm::radians(-45.0), glm::dvec3(0.0, 1.0, 0.0)),
+////        glm::translate(glm::dvec3(-3.0, 0.0, -2.5)))
+//    };
 
 }
 
-void model_vehicle::add_vehicle(const char* _name,
+void model_vehicle::add_vehicle(const std::string& _name,
                                 QGLFramebufferObject *const FBO_,
                                 const glm::dmat4 _rotation,
                                 const glm::dmat4 _translation){
@@ -798,6 +810,9 @@ GLsizeiptr model_vehicle::buffer_size() const
 
 void model_vehicle::render_obj(zaytuna::camera const*const activeCam)
 {
+    if(vehicles.size() == 0)
+        return;
+
     _widg->glUseProgram(_programID);
     _widg->glBindTexture(GL_TEXTURE_2D, _texID);
 
@@ -808,9 +823,9 @@ void model_vehicle::render_obj(zaytuna::camera const*const activeCam)
     _widg->glBindVertexArray(_VAO_ID);
     for(i=0; i<vehicles.size(); ++i){
         modeltransformMat = activeCam->transformationMat
-                * vehicles[i]->transformationMats[0];
+                * vehicles[i].transformationMats[0];
         inverse_transpose_transformMat =
-                glm::inverse(glm::transpose(vehicles[i]->transformationMats[0]));
+                glm::inverse(glm::transpose(vehicles[i].transformationMats[0]));
 
         _widg->glUniformMatrix4fv(transformMatLocation, 1,
                                   GL_FALSE, glm::value_ptr(modeltransformMat));
@@ -828,9 +843,9 @@ void model_vehicle::render_obj(zaytuna::camera const*const activeCam)
     _widg->glBindVertexArray(fronttiresVAO_ID);
     for(i=0; i<vehicles.size(); ++i){
         modeltransformMat = activeCam->transformationMat
-                            * vehicles[i]->transformationMats[1];
+                            * vehicles[i].transformationMats[1];
         inverse_transpose_transformMat =
-                glm::inverse(glm::transpose(vehicles[i]->transformationMats[1]));
+                glm::inverse(glm::transpose(vehicles[i].transformationMats[1]));
         _widg->glUniformMatrix4fv(transformMatLocation, 1,
                                   GL_FALSE, &modeltransformMat[0][0]);
         _widg->glUniformMatrix4fv(inverse_transpose_transformMatLocation,
@@ -841,9 +856,9 @@ void model_vehicle::render_obj(zaytuna::camera const*const activeCam)
                               reinterpret_cast<void*>(fronttires_indOffset));
 
         modeltransformMat = activeCam->transformationMat
-                            * vehicles[i]->transformationMats[2];
+                            * vehicles[i].transformationMats[2];
         inverse_transpose_transformMat
-                = glm::inverse(glm::transpose(vehicles[i]->transformationMats[2]));
+                = glm::inverse(glm::transpose(vehicles[i].transformationMats[2]));
         _widg->glUniformMatrix4fv(transformMatLocation, 1,
                                   GL_FALSE, &modeltransformMat[0][0]);
         _widg->glUniformMatrix4fv(inverse_transpose_transformMatLocation,
@@ -860,9 +875,9 @@ void model_vehicle::render_obj(zaytuna::camera const*const activeCam)
     _widg->glBindVertexArray(backtiresVAO_ID);
     for(i=0; i<vehicles.size(); ++i){
         modeltransformMat = activeCam->transformationMat
-                            * vehicles[i]->transformationMats[3];
+                            * vehicles[i].transformationMats[3];
         inverse_transpose_transformMat
-                = glm::inverse(glm::transpose(vehicles[i]->transformationMats[3]));
+                = glm::inverse(glm::transpose(vehicles[i].transformationMats[3]));
         _widg->glUniformMatrix4fv(transformMatLocation, 1,
                                   GL_FALSE, &modeltransformMat[0][0]);
         _widg->glUniformMatrix4fv(inverse_transpose_transformMatLocation,
@@ -877,9 +892,9 @@ void model_vehicle::render_obj(zaytuna::camera const*const activeCam)
     _widg->glBindVertexArray(lidarVAO_ID);
     for(i=0; i<vehicles.size(); ++i){
         modeltransformMat = activeCam->transformationMat
-                            * vehicles[i]->transformationMats[4];
+                            * vehicles[i].transformationMats[4];
         inverse_transpose_transformMat =
-                glm::inverse(glm::transpose(vehicles[i]->transformationMats[4]));
+                glm::inverse(glm::transpose(vehicles[i].transformationMats[4]));
         _widg->glUniformMatrix4fv(transformMatLocation, 1,
                                   GL_FALSE, &modeltransformMat[0][0]);
         _widg->glUniformMatrix4fv(inverse_transpose_transformMatLocation,
@@ -890,6 +905,22 @@ void model_vehicle::render_obj(zaytuna::camera const*const activeCam)
                               reinterpret_cast<void*>(lidar_indOffset));
     }
 
+}
+
+boost::ptr_vector<vehicle_attribute>::iterator
+model_vehicle::find(const std::string& _name)
+{
+//    vehicle_attribute* veh{nullptr};
+    boost::ptr_vector<vehicle_attribute>::iterator it;
+    for(it = vehicles.begin(); it!=vehicles.end(); ++it)
+        if( (*it).name == _name)
+            return it;
+//            veh = &vehicles[i];
+//    if(veh == nullptr && vehicles.size() != 0)
+//        veh = &vehicles.front();
+//    return veh;
+//    vehicles.e
+    return it;
 }
 
 

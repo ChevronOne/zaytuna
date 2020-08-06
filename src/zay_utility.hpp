@@ -55,7 +55,7 @@ public:
 };
 
 template<class T>
-class ptr_vector<T *> : public std::vector<T *>
+class ptr_vector<T*> : public std::vector<T*>
 {
 public:
     ptr_vector&
@@ -75,6 +75,7 @@ enum class Obstacle_Type { CARTON_BOX, WALL_1, WALL_2 };
 template<class T>
 struct transform_attribs
 {
+    std::string name{"uninitialized_item_name"};
     T angle{static_cast<T>(0.0)};
     glm::tvec3<T> rotation_vec
         {static_cast<T>(0.0),
@@ -85,12 +86,22 @@ struct transform_attribs
          static_cast<T>(0.0),
          static_cast<T>(0.0)};
     transform_attribs() = default;
-    transform_attribs(T angle,
+    transform_attribs(const std::string& name,
+                      T angle,
                       glm::tvec3<T> r_vec,
                       glm::tvec3<T> t_vec):
+        name{name},
         angle{angle},
         rotation_vec{r_vec},
         translation_vec{t_vec}{}
+
+    glm::tmat4x4<T> rotationMat() const {
+        return glm::rotate(glm::radians(angle),
+                           rotation_vec); }
+
+    glm::tmat4x4<T> translationMat() const {
+        return glm::translate(translation_vec); }
+
 };
 
 template<class T>
@@ -99,11 +110,18 @@ struct obstacle_attribs : public transform_attribs<T>
     Obstacle_Type type{Obstacle_Type::WALL_2};
     obstacle_attribs() = default;
     obstacle_attribs(Obstacle_Type type,
+                     const std::string& name,
                      T angle,
                      glm::tvec3<T> r_vec,
                      glm::tvec3<T> t_vec):
-        transform_attribs<T>(angle, r_vec, t_vec),
+        transform_attribs<T>(name, angle, r_vec, t_vec),
         type{type}{}
+};
+
+template<class T>
+struct default_settings{
+    std::vector<transform_attribs<T>> vehicles;
+    std::vector<obstacle_attribs<T>> obstacles;
 };
 
 class basic_program
@@ -149,12 +167,20 @@ public:
         inverse_transpose_transformMatLocation{itt_matLocation}{}
     virtual ~animated_program() override = default;
 
-
 };
 
 glm::vec3 rCol(void);
 
-std::ostream& operator<<(std::ostream&, const glm::vec3&);
+template<class T>
+std::ostream& operator<<(std::ostream&out, const glm::tvec3<T>&vec){
+    unsigned def_per = out.precision();
+    out.precision(std::numeric_limits<T>::max_digits10);
+    return out << std::fixed <<
+         " X: " << vec.x <<
+         ", Y: " << vec.y <<
+         ", Z: " << vec.z << "\n" << std::flush;
+    out.precision(def_per);
+}
 
 void _load_tex(QImage&, const QString&, const char*, bool, bool);
 

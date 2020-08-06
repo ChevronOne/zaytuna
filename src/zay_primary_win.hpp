@@ -58,10 +58,6 @@ class primary_win;
 namespace zaytuna {
 
 
-//// for debugging
-//extern double GLOBAL_MOVEMENT_SPEED;
-//extern double GLOBAL_STEERING_WHEEL;
-
 class primary_win : public QMainWindow
 {
     Q_OBJECT
@@ -77,54 +73,39 @@ public:
     void obstacle_menu(const QPoint&);
 
 
-
-//    void update_displys(void);
-
-
 protected:
 //    void mouseMoveEvent(QMouseEvent*);
 //    void keyPressEvent(QKeyEvent*);
     virtual void closeEvent(QCloseEvent*);
 
 private slots:
-
     void on_grid_check_clicked(bool checked);
-
     void on_coord_check_clicked(bool checked);
-
     void update_displys(void);
-
     void on_cam_movement_speed_valueChanged(double arg1);
-
     void on_cam_rotation_speed_valueChanged(double arg1);
-
     void on_speedV_valueChanged(int value);
-
-    void on_radioButton_clicked();
-
-    void on_radioButton_2_clicked();
-
     void on_SpinBox_Near_valueChanged(double arg1);
-
     void on_SpinBox_Far_valueChanged(double arg1);
-
     void on_SpinBox_FieldOfView_valueChanged(double arg1);
-
     void on_radioButton_Global_clicked();
-
     void on_radioButton_Local_clicked();
-
     void on_steeringV_valueChanged(int value);
 
     void menus(const QPoint&);
     void new_vehicle(void);
-    void add_vehicle(const transform_attribs<GLdouble>&);
+    void add_vehicle(transform_attribs<GLdouble>,bool);
     void new_obstacle(void);
-    void add_obstacle(const obstacle_attribs<GLdouble>&);
+    void add_obstacle(obstacle_attribs<GLdouble>,bool);
+    void front_cam_to_screen(const QString&);
     void delete_vehicle(const QString&);
     void edit_vehicle(const QString&);
     void delete_obstacle(const QString&);
     void edit_obstacle(const QString&);
+
+    void on_auto_perspective_radio_clicked();
+
+    void on_custom_perspective_radio_clicked();
 
 private:
     Ui::primary_win *ui{nullptr};
@@ -134,8 +115,6 @@ private:
     std::map<QString, void(primary_win::*)(const QPoint&)> menus_popups;
     QTreeWidgetItem *vehicle_type{nullptr}, *obstacle_type{nullptr};
     std::map<QString, QTreeWidgetItem*> vehicles, obstacles;
-
-    //-----------------------
 
 
 
