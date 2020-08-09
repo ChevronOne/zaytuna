@@ -529,28 +529,11 @@ GLsizeiptr skybox_obj::buffer_size() const
 //======================================================================================================
 //======================================================================================================
 
-//zaytuna::model_vehicle::model_vehicle(USED_GL_VERSION * const _widg,
-//                                    const GLuint programID,
-//                                    const std::string& _name,
-//                                    const std::string& _dir,
-//                                    const std::string& _tex,
-//                                    QGLFramebufferObject *const FBO_,
-//                                    const GLenum _MODE,
-//                                    const glm::dmat4 _rotation,
-//                                    const glm::dmat4 _translation):
-
-//    scene_object(_widg, programID,
-//                 _rotation, _translation ),
-//    prims_dir{_dir.c_str()}, tex_dir{_tex.c_str()}, PRIMITIVES_TYPE{_MODE}
-
-//zaytuna::model_vehicle::model_vehicle()
-
 zaytuna::model_vehicle::model_vehicle(USED_GL_VERSION * const _widg,
                                     const GLuint programID,
                                     const std::string& _dir,
                                     const std::string& _tex,
                                     const GLenum _MODE):
-
     scene_object(_widg, programID),
     prims_dir{_dir.c_str()}, tex_dir{_tex.c_str()}, PRIMITIVES_TYPE{_MODE}
 {
@@ -568,14 +551,6 @@ zaytuna::model_vehicle::model_vehicle(USED_GL_VERSION * const _widg,
             <zaytuna::vertexL1_16>::extractExternal
             (prims_dir.toStdString()+"-lidar");
 
-
-//    vehicles = {
-//        new vehicle_attribute(_widg, _name, FBO_,_rotation, _translation)
-////        ,new vehicle_attribute("model_vehicle2",
-////        glm::rotate(glm::radians(-45.0), glm::dvec3(0.0, 1.0, 0.0)),
-////        glm::translate(glm::dvec3(-3.0, 0.0, -2.5)))
-//    };
-
 }
 
 void model_vehicle::add_vehicle(const std::string& _name,
@@ -587,8 +562,7 @@ void model_vehicle::add_vehicle(const std::string& _name,
                                              _translation));
 }
 
-model_vehicle::~model_vehicle()
-{
+model_vehicle::~model_vehicle(){
     clean_up();
     _widg->glDeleteVertexArrays(1, &_VAO_ID);
     _widg->glDeleteVertexArrays(1, &fronttiresVAO_ID);
@@ -599,14 +573,11 @@ model_vehicle::~model_vehicle()
 
 }
 
-void model_vehicle::clean_up()
-{
+void model_vehicle::clean_up(){
     model_primitives.cleanUP();
     fronttires_primitives.cleanUP();
     backtires_primitives.cleanUP();
     lidar_primitives.cleanUP();
-
-
 }
 
 
@@ -614,7 +585,6 @@ void model_vehicle::transmit_data(GLintptr& _offset,
                                const GLuint& theBufferID,
                                GLuint& off_set)
 {
-
     // model
     _widg->glBufferSubData(GL_ARRAY_BUFFER, _offset,
                            model_primitives.verBufSize(),
@@ -770,9 +740,7 @@ void model_vehicle::transmit_data(GLintptr& _offset,
         inverse_transpose_transformMatLocation =
                 _widg->glGetUniformLocation(_programID, "it_transformMat");
 
-
     clean_up();
-
 
     QImage tex_buffer;
     _widg->glGenTextures(1, &_texID);
@@ -910,16 +878,10 @@ void model_vehicle::render_obj(zaytuna::camera const*const activeCam)
 boost::ptr_vector<vehicle_attribute>::iterator
 model_vehicle::find(const std::string& _name)
 {
-//    vehicle_attribute* veh{nullptr};
     boost::ptr_vector<vehicle_attribute>::iterator it;
     for(it = vehicles.begin(); it!=vehicles.end(); ++it)
         if( (*it).name == _name)
             return it;
-//            veh = &vehicles[i];
-//    if(veh == nullptr && vehicles.size() != 0)
-//        veh = &vehicles.front();
-//    return veh;
-//    vehicles.e
     return it;
 }
 
@@ -991,6 +953,9 @@ void model_vehicle::render_vectors_state(vehicle_attribute* vehicle, camera *act
     _widg->glFlush();
 
 }
+
+//====================================================================
+//====================================================================
 
 
 

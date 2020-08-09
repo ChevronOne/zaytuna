@@ -94,7 +94,6 @@ SOURCES += \
 
 HEADERS += \
     src/zay_utility.hpp \
-    src/zay_clock.hpp \
     src/zay_headers.hpp \
     src/zay_item.hpp \
     src/zay_shape_data.hpp \

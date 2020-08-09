@@ -114,7 +114,10 @@ _scene_widg::~_scene_widg()
 //    if(local_viewFBO1!=nullptr)
 //        delete local_viewFBO1;
 
-    delete model_vehicles;
+    if(model_vehicles != nullptr)
+        delete model_vehicles;
+    if(obstacle_objects != nullptr)
+        delete obstacle_objects;
 
 }
 
@@ -186,6 +189,7 @@ void _scene_widg::render_scene(camera const*const current_cam)
     for(i=0; i<environmental_objects.size(); ++i){
         environmental_objects[i]->render_obj(current_cam);
     }
+    obstacle_objects->render_obj(current_cam);
 
 //    glDepthMask(false);
     model_vehicles->render_obj(current_cam);
@@ -312,7 +316,8 @@ void _scene_widg::updateProjection()
 
     mainCam.updateProjection(width(), height());
     for(uint32_t i{0}; i<model_vehicles->vehicles.size(); ++i){
-        model_vehicles->vehicles[i].frontCam.updateProjection(width(), height());
+        model_vehicles->vehicles[i].frontCam.updateProjection
+                (width(), height());
     }
 }
 
@@ -336,8 +341,10 @@ void _scene_widg::mouseMoveEvent(QMouseEvent *ev)
         else{
             sX = static_cast<double>(ev->x());
             sY = static_cast<double>(ev->y());
-            glX =  (sX/ (static_cast<double>(this->width())/2.0) ) -1;
-            glY =  -((sY/ (static_cast<double>(this->height())/2.0) ) -1);
+            glX =  (sX/ (static_cast<double>
+                         (this->width())/2.0) ) -1;
+            glY =  -((sY/ (static_cast<double>
+                           (this->height())/2.0) ) -1);
             mainCam.mouse_update(glm::vec2(ev->x(),ev->y()));
         }
     }
@@ -461,13 +468,15 @@ void _scene_widg::animate()
 }
 
 
-std::string _scene_widg::getShader(const std::string& file_dir)
+std::string _scene_widg::getShader
+        (const std::string& file_dir)
 {
     fStatus = FileStatus::FAILED;
     std::ifstream _stream(file_dir.c_str(), std::ios::in);
     if (!_stream)
     {
-        std::cerr << "file could not be opened: " << file_dir << std::endl;
+        std::cerr << "file could not be opened: "
+                  << file_dir << std::endl;
         exit(EXIT_FAILURE);
     }
     else
@@ -482,10 +491,11 @@ std::string _scene_widg::getShader(const std::string& file_dir)
 
 }
 
-void _scene_widg::checkError(GLuint Object,
-                             GLuint ObjectParameter,
-                             VarType ObjectType,
-                             const std::string& _attachment)
+void _scene_widg::checkError
+        (GLuint Object,
+         GLuint ObjectParameter,
+         VarType ObjectType,
+         const std::string& _attachment)
 {
     // GL error handling
     int _status{0};
@@ -511,7 +521,8 @@ void _scene_widg::checkError(GLuint Object,
             glGetShaderInfoLog(Object, len, nullptr, errorMessage);
         }
 
-        std::cout << _attachment << ": " << errorMessage << std::endl;
+        std::cout << _attachment << ": "
+                  << errorMessage << std::endl;
 
         delete[] errorMessage;
     }
@@ -725,108 +736,96 @@ void _scene_widg::send_data()
 //                        ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
 //                        glm::translate(glm::dvec3(0.0, 0.0, 0.0))
         )
-        ,new external_obj(this,
-                         programs[1],
-                         "wall1",
-                         "./primitives/wall_1",
-                         "tex/wall_exemplar1.jpg",
-                         GL_QUADS
-                         ,glm::rotate(glm::radians(25.0), glm::dvec3(0.0, 1.0, 0.0)),
-                         glm::translate(glm::dvec3(2.0, 0.0, -1.0))
-        )
-        ,new external_obj(this,
-                         programs[1],
-                         "wall2",
-                         "./primitives/wall_2",
-                         "tex/wall_exemplar2.jpg",
-                         GL_QUADS
-                         ,glm::rotate(glm::radians(45.0), glm::dvec3(0.0, 1.0, 0.0)),
-                         glm::translate(glm::dvec3(4.0, 0.0, -3.0))
-
-        )
     };
+    //---------------------------------------------------------
+    obstacle_objects =
+            new obstacle_pack<GLdouble>(this,
+                programs[3],
+                Obstacle_Type::CARTON_BOX,
+                "./primitives/carton_box",
+                "tex/carton_box.jpg",
+                GL_QUADS);
+    obstacle_objects->add_category
+            (Obstacle_Type::WALL_1,
+             "./primitives/wall_1",
+             "tex/wall_exemplar1.jpg");
+    obstacle_objects->add_category
+            (Obstacle_Type::WALL_2,
+             "./primitives/wall_2",
+             "tex/wall_exemplar2.jpg");
     //---------------------------------------------------------------------
 
 //    QGLFramebufferObjectFormat fboFormat;
     fboFormat.setSamples(8);
-    fboFormat.setAttachment(QGLFramebufferObject::CombinedDepthStencil);
-
-
+    fboFormat.setAttachment
+            (QGLFramebufferObject::CombinedDepthStencil);
     model_vehicles = new model_vehicle(this,
            programs[3],
            "./primitives/zaytuna_model",
            "tex/zaytuna-fragments.png",
            GL_TRIANGLES );
 
-    for(uint32_t i{0}; i<default_objects.vehicles.size(); ++i)
-        model_vehicles->add_vehicle(default_objects.vehicles[i].name,
-                                    new QGLFramebufferObject(this->width(),
-                                                             this->height(), fboFormat),
-                                    default_objects.vehicles[i].rotationMat(),
-                                    default_objects.vehicles[i].translationMat());
-
-    update_current_vehicle("any_vehicle");
-
-//    model_vehicles->add_vehicle("model_vehicle1",
-//                              new QGLFramebufferObject(this->width(), this->height(), fboFormat)
-//                              ,glm::rotate(glm::radians(180.0), glm::dvec3(0.0, 1.0, 0.0)),
-//                              glm::translate(glm::dvec3(6.0, 0.0, -1.25)) );
-
-//    model_vehicles->add_vehicle("model_vehicle2",
-//                                new QGLFramebufferObject(this->width(), this->height(), fboFormat),
-//                                glm::rotate(glm::radians(-45.0), glm::dvec3(0.0, 1.0, 0.0)),
-//                                glm::translate(glm::dvec3(-3.0, 0.0, -2.5)));
-
-
-//    model_vehicles->add_vehicle("model_vehicle3",
-//                                new QGLFramebufferObject(this->width(), this->height(), fboFormat),
-//                                glm::rotate(glm::radians(90.0), glm::dvec3(0.0, 1.0, 0.0)),
-//                                glm::translate(glm::dvec3(0.0, 0.0, 5.0)));
-
-//    model_vehicles->add_vehicle("model_vehicle4",
-//                                new QGLFramebufferObject(this->width(), this->height(), fboFormat),
-//                                glm::rotate(glm::radians(-90.0), glm::dvec3(0.0, 1.0, 0.0)),
-//                                glm::translate(glm::dvec3(0.0, 0.0, -5.0)));
-
 
     //------------------------------------------------------------------
 
 
-//    std::cout << "num of objects: " << beings.size() << "\n";
     GLsizeiptr BUF_SIZE{0};
     for(const auto& _obj:basic_objects)
         BUF_SIZE+=_obj->buffer_size();
     BUF_SIZE+=model_vehicles->buffer_size();
+    BUF_SIZE+=obstacle_objects->buffer_size();
     for(const auto& _obj:lap_objects)
         BUF_SIZE+=_obj->buffer_size();
-//    for(const auto& _obj:obstacle_objects)
-//        BUF_SIZE+=_obj->buffer_size();
     for(const auto& _obj:environmental_objects)
         BUF_SIZE+=_obj->buffer_size();
 
     glGenBuffers(1, &theBufferID);
     glBindBuffer(GL_ARRAY_BUFFER, theBufferID);
-    glBufferData(GL_ARRAY_BUFFER, BUF_SIZE, nullptr, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER,
+                 BUF_SIZE, nullptr,
+                 GL_STATIC_DRAW);
 
     GLintptr current_offset{0};
     GLuint previous_offset{0};
     for(auto& _obj:basic_objects)
-        _obj->transmit_data(current_offset, theBufferID, previous_offset);
-    model_vehicles->transmit_data(current_offset, theBufferID, previous_offset);
+        _obj->transmit_data(current_offset,
+                            theBufferID,
+                            previous_offset);
+    model_vehicles->transmit_data(current_offset,
+                                  theBufferID,
+                                  previous_offset);
+    obstacle_objects->transmit_data(current_offset,
+                                    theBufferID,
+                                    previous_offset);
     for(auto& _obj:lap_objects)
-        _obj->transmit_data(current_offset, theBufferID, previous_offset);
-//    for(auto& _obj:obstacle_objects)
-//        _obj->carry_data(current_offset, theBufferID, previous_offset);
+        _obj->transmit_data(current_offset,
+                            theBufferID, previous_offset);
     for(auto& _obj:environmental_objects)
-        _obj->transmit_data(current_offset, theBufferID, previous_offset);
+        _obj->transmit_data(current_offset,
+                            theBufferID,
+                            previous_offset);
 
 
-
-
-//    model = &model_vehicles->vehicles[0]; // .front());
-
+    add_default_obj();
 }
-void _scene_widg::update_current_vehicle(const std::string& _name)
+
+void _scene_widg::add_default_obj(){
+    for(uint32_t i{0}; i<default_objects.vehicles.size(); ++i)
+        model_vehicles->add_vehicle
+                (default_objects.vehicles[i].name,
+                 new QGLFramebufferObject(this->width(),
+                                          this->height(), fboFormat),
+                 default_objects.vehicles[i].rotationMat(),
+                 default_objects.vehicles[i].translationMat());
+
+    update_current_vehicle("any_vehicle");
+    std::cout << "num of obstacles: " << default_objects.obstacles.size() << std::endl;
+    for(uint32_t i{0}; i<default_objects.obstacles.size(); ++i)
+        add_obstacle(default_objects.obstacles[i]);
+}
+
+void _scene_widg::update_current_vehicle
+    (const std::string& _name)
 {
     auto it = model_vehicles->find(_name);
     if(it == model_vehicles->vehicles.end())
@@ -834,36 +833,51 @@ void _scene_widg::update_current_vehicle(const std::string& _name)
             current_model = &model_vehicles->vehicles[0];
         else current_model = nullptr;
     else current_model = &(*it);
-//    model = model_vehicles->find(_name);
 }
 
-void _scene_widg::add_vehicle(const transform_attribs<GLdouble>& attribs)
+void _scene_widg::add_vehicle
+    (const transform_attribs<GLdouble>& attribs)
 {
     model_vehicles->add_vehicle(attribs.name,
-                                new QGLFramebufferObject(this->width(), this->height(), fboFormat),
-                                attribs.rotationMat(),
-                                attribs.translationMat());
-//                              glm::rotate(glm::radians(attribs.angle),
-//                                          attribs.rotation_vec),
-//                              glm::translate(attribs.translation_vec));
+        new QGLFramebufferObject(this->width(),
+            this->height(), fboFormat),
+        attribs.rotationMat(),
+        attribs.translationMat());
 }
 
-
-void _scene_widg::load_tex(QImage& buff, const QString& _dir,
-                          const char* _format, bool hMir, bool vMir)
-{
-    if(!(buff.load(_dir, _format))){
-        std::cout << "image couldn't be loaded <" << _dir.toStdString() << ">!\n";
-        exit(EXIT_FAILURE);
-    }
-
-    buff = QGLWidget::convertToGLFormat(buff.mirrored(hMir, vMir));
-    if(buff.isNull()){
-        std::cout << "error occurred while converting the image <" <<_dir.toStdString() <<">!\n";
-        exit(EXIT_FAILURE);
-    }
+void _scene_widg::delete_vehicle
+    (const std::string& _name){
+    auto it = model_vehicles->find(_name);
+    model_vehicles->vehicles.erase(it);
 }
 
+zaytuna::vehicle_attribute*
+_scene_widg::getOtherVeh(const std::string& _name){
+    zaytuna::vehicle_attribute* other{nullptr};
+    for(uint32_t i{0}; i<model_vehicles->vehicles.size(); ++i){
+        if(model_vehicles->vehicles[i].name != _name)
+            return &model_vehicles->vehicles[i];
+    }
+    return other;
+}
+void _scene_widg::add_obstacle
+    (const obstacle_attribs<GLdouble>& attribs){
+    obstacle_objects->categories[attribs.type]->instances.push_back
+            (obstacle_instance<GLdouble>
+             (attribs.name, attribs.transformMat()) );
+}
+void _scene_widg::delete_obstacle
+    (const std::string& _name){
+
+}
+void _scene_widg::edit_vehicle
+    (const transform_attribs<GLdouble>& attribs){
+
+}
+void _scene_widg::edit_obstacle
+    (const obstacle_attribs<GLdouble>& attribs){
+
+}
 
 
 } // namespace  zaytuna

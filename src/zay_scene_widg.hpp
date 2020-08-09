@@ -64,7 +64,6 @@
 #include "zay_shape_data.hpp"
 #include "zay_model_vehicle.hpp"
 #include "zay_item.hpp"
-#include "zay_clock.hpp"
 
 
 //#include <opencv2/opencv.hpp>
@@ -100,19 +99,17 @@ class _scene_widg : public QGL_WIDGET_VERSION, protected USED_GL_VERSION // QOpe
 
 
     ptr_vector<zaytuna::scene_object*> basic_objects;
-    zaytuna::model_vehicle* model_vehicles;
+    zaytuna::model_vehicle* model_vehicles{nullptr};
+    zaytuna::obstacle_pack<GLdouble>* obstacle_objects{nullptr};
     ptr_vector<zaytuna::scene_object*> lap_objects;
-    ptr_vector<zaytuna::scene_object*> obstacle_objects;
     ptr_vector<zaytuna::scene_object*> environmental_objects;
     default_settings<GLdouble> default_objects;
-//    ptr_vector<zaytuna::scene_object*> beings;
     unsigned int _Shaders[SHADERS_NUM];
     void checkError(GLuint, GLuint,
                     VarType, const std::string&);
     unsigned int compileShader(const std::string&, GLenum);
     void updat_cam(void);
-    inline void load_tex(QImage&, const QString&,
-                         const char*, bool, bool);
+    void add_default_obj(void);
 
     void initShader(const std::string&, GLuint&,
                     const std::size_t&);
@@ -127,8 +124,13 @@ class _scene_widg : public QGL_WIDGET_VERSION, protected USED_GL_VERSION // QOpe
     void draw_local(void);
     inline void render_scene(zaytuna::camera const*const);
     void add_vehicle(const transform_attribs<GLdouble>&);
+    void add_obstacle(const obstacle_attribs<GLdouble>&);
     void delete_vehicle(const std::string&);
+    void delete_obstacle(const std::string&);
+    void edit_vehicle(const transform_attribs<GLdouble>&);
+    void edit_obstacle(const obstacle_attribs<GLdouble>&);
     void update_current_vehicle(const std::string&);
+    zaytuna::vehicle_attribute* getOtherVeh(const std::string&);
     double elap_accumulated{0.0};
     double frame_rate{0};
     uint32_t frames_counter{0};
@@ -170,33 +172,22 @@ protected:
 public:
     explicit _scene_widg(QGLFormat, QWidget* parent = nullptr);
 //    explicit _scene_widg(QWidget* parent = nullptr);
-
-
 //    std::vector<GLfloat> depth{std::vector<GLfloat>( this->width() * this->height(), 0.f )};
 
-
-
-
-
     virtual ~_scene_widg() override;
-
-
     static double sX, sY; //, sZ;
     static double delta_sX, delta_sY;//, delta_sZ;
     static double glX, glY; //, glZ;
-
-
 
 public slots:
         void animate();
 
 
-
 };
 
+
+
 } //namespace zaytuna
-
-
 
 
 #endif // ZAY_SCENE_WIDG_HPP

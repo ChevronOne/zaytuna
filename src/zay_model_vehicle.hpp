@@ -47,6 +47,7 @@ namespace zaytuna {
 
 class model_vehicle;
 class _scene_widg;
+class primary_win;
 
 
 class vehicle_attribute
@@ -68,6 +69,7 @@ class vehicle_attribute
 
     friend class model_vehicle;
     friend class _scene_widg;
+    friend class primary_win;
 
 
 public:

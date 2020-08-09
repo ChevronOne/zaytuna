@@ -98,10 +98,11 @@ struct transform_attribs
     glm::tmat4x4<T> rotationMat() const {
         return glm::rotate(glm::radians(angle),
                            rotation_vec); }
-
     glm::tmat4x4<T> translationMat() const {
         return glm::translate(translation_vec); }
-
+    glm::tmat4x4<T> transformMat() const{
+        return translationMat()*rotationMat();
+    }
 };
 
 template<class T>

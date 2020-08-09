@@ -50,7 +50,6 @@
 #include "zay_obstacle_inputs_form.hpp"
 
 
-
 namespace Ui {
 class primary_win;
 }
@@ -65,8 +64,6 @@ class primary_win : public QMainWindow
 public:
     explicit primary_win(QWidget *parent = nullptr);
     virtual ~primary_win();
-
-
     void vehicle_type_menu(const QPoint&);
     void vehicle_menu(const QPoint&);
     void obstacle_type_menu(const QPoint&);
@@ -102,9 +99,7 @@ private slots:
     void edit_vehicle(const QString&);
     void delete_obstacle(const QString&);
     void edit_obstacle(const QString&);
-
     void on_auto_perspective_radio_clicked();
-
     void on_custom_perspective_radio_clicked();
 
 private:
@@ -115,8 +110,6 @@ private:
     std::map<QString, void(primary_win::*)(const QPoint&)> menus_popups;
     QTreeWidgetItem *vehicle_type{nullptr}, *obstacle_type{nullptr};
     std::map<QString, QTreeWidgetItem*> vehicles, obstacles;
-
-
 
 };
 

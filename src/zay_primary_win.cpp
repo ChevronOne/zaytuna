@@ -162,25 +162,27 @@ primary_win::primary_win(QWidget *parent) :
                  {0.0, 1.0, 0.0},
                  {-3.0, 0.0, -2.5}},1);
 
-//    if(vehicles.size() == 0)
-//        _scene_widget->update_current_vehicle("undefined vehicle name");
-//    else _scene_widget->update_current_vehicle( vehicles.begin()->first.toStdString() );
-
 //    qDebug() << "vehicle num primaryWin: " << vehicles.size() << "\n";
 //    qDebug() << "vehicle num sceneWidge: " << _scene_widget->model_vehicles->vehicles.size() << "\n";
 
     add_obstacle(obstacle_attribs<GLdouble>
-                    (Obstacle_Type::WALL_2,
-                     std::string(),
-                     45.0,
-                     {0.0, 1.0, 0.0},
-                     {4.0, 0.0, -3.0}),1);
-    add_obstacle(obstacle_attribs<GLdouble>
-                    (Obstacle_Type::WALL_1,
+                    (Obstacle_Type::CARTON_BOX,
                      std::string(),
                      0.0,
                      {0.0, 1.0, 0.0},
                      {0.0, 0.0, 0.0}),1);
+    add_obstacle(obstacle_attribs<GLdouble>
+                    (Obstacle_Type::WALL_1,
+                     std::string(),
+                     10.0,
+                     {0.0, 1.0, 0.0},
+                     {2.0, 0.0, -1.0}),1);
+    add_obstacle(obstacle_attribs<GLdouble>
+                    (Obstacle_Type::WALL_2,
+                     std::string(),
+                     15.0,
+                     {0.0, 1.0, 0.0},
+                     {4.0, 0.0, -3.0}),1);
 
 }
 void primary_win::new_vehicle(void)
@@ -194,7 +196,9 @@ void primary_win::new_vehicle(void)
     }
 
 }
-void primary_win::add_vehicle(transform_attribs<GLdouble> T, bool is_default)
+void primary_win::add_vehicle
+    (transform_attribs<GLdouble> T,
+     bool is_default)
 {
     QString veh_name{QString("vehicle_%1").arg(vehicle_counter++)};
     T.name = veh_name.toStdString();
@@ -220,14 +224,16 @@ void primary_win::new_obstacle(void)
         add_obstacle(inputs_d.attribs,0);
     }
 }
-void primary_win::add_obstacle(obstacle_attribs<GLdouble> T, bool is_default)
+void primary_win::add_obstacle
+    (obstacle_attribs<GLdouble> T,
+     bool is_default)
 {
     QString obs_name{QString("obstacle_%1").arg(obstacle_counter++)};
     T.name = obs_name.toStdString();
-//    if(is_default)
-//        _scene_widget->default_objects.obstacles.emplace_back(T);
-//    else
-//    _scene_widget->add_obstacle(T);
+    if(is_default)
+        _scene_widget->default_objects.obstacles.emplace_back(T);
+    else
+        _scene_widget->add_obstacle(T);
     QTreeWidgetItem* obs = new QTreeWidgetItem();
     obs->setText(0, obs_name);
     obstacle_type->addChild(obs);
@@ -237,37 +243,47 @@ void primary_win::add_obstacle(obstacle_attribs<GLdouble> T, bool is_default)
     qDebug() << "new obstacle " << obs_name << " added with angle: " << T.angle;
 }
 
-void primary_win::front_cam_to_screen(const QString& _name)
-{
+void primary_win::front_cam_to_screen(const QString& _name){
     _scene_widget->update_current_vehicle(_name.toStdString());
     ui->radioButton_Local->setChecked(1);
     this->on_radioButton_Local_clicked();
 
 }
-void primary_win::delete_vehicle(const QString& _name)
-{
-    vehicle_type->removeChild(vehicles[_name]);
-    vehicles.erase(_name);
-    qDebug() << "deleted vehicle: "<< _name <<" \n";
+void primary_win::delete_vehicle(const QString& _name){
+
+    if(QMessageBox::question(this,
+          "delete vehicle",
+          "delete vehicle '"+_name+"'?",
+          QMessageBox::Ok|QMessageBox::Cancel) == QMessageBox::Ok){
+        if(_scene_widget->current_model != nullptr)
+            if(_scene_widget->current_model->name == _name.toStdString()){
+                _scene_widget->current_model
+                        = _scene_widget->getOtherVeh
+                        (_name.toStdString());
+                if(ui->radioButton_Local->isChecked()){
+                    ui->radioButton_Global->setChecked(1);
+                    this->on_radioButton_Global_clicked();
+                }
+            }
+        _scene_widget->delete_vehicle(_name.toStdString());
+        vehicle_type->removeChild(vehicles[_name]);
+        vehicles.erase(_name);
+        qDebug() << "deleted vehicle: "<< _name <<" \n";
+    }
 }
-void primary_win::delete_obstacle(const QString& _name)
-{
+void primary_win::delete_obstacle(const QString& _name){
     obstacle_type->removeChild(obstacles[_name]);
     obstacles.erase(_name);
     qDebug() << "deleted obstacle: "<< _name<< " \n";
 }
-void primary_win::edit_vehicle(const QString& _name)
-{
+void primary_win::edit_vehicle(const QString& _name){
     qDebug() << "edit vehicle: "<< _name <<" \n";
 }
-void primary_win::edit_obstacle(const QString& _name)
-{
+void primary_win::edit_obstacle(const QString& _name){
     qDebug() << "edit obstacle: "<< _name<< " \n";
 }
 
-void primary_win::vehicle_type_menu(const QPoint& pos)
-{
-
+void primary_win::vehicle_type_menu(const QPoint& pos){
     qDebug() << pos << ", vehicle type call \n";
     QAction *addItem_act = new QAction(QIcon(), tr("&New Vehicle"), this);
     addItem_act->setStatusTip(tr("add new vehicle"));
@@ -406,29 +422,23 @@ void primary_win::update_displys()
 //}
 
 
-void primary_win::on_grid_check_clicked(bool checked)
-{
+void primary_win::on_grid_check_clicked(bool checked){
     _scene_widget->grid_checked = checked;
     _scene_widget->repaint();
 }
 
-void primary_win::on_coord_check_clicked(bool checked)
-{
+void primary_win::on_coord_check_clicked(bool checked){
     _scene_widget->coord_checked = checked;
     _scene_widget->repaint();
 }
 
-void primary_win::on_cam_movement_speed_valueChanged(double arg1)
-{
+void primary_win::on_cam_movement_speed_valueChanged(double arg1){
     _scene_widget->mainCam.MOVEMENT_SPEED = arg1;
 }
 
-void primary_win::on_cam_rotation_speed_valueChanged(double arg1)
-{
+void primary_win::on_cam_rotation_speed_valueChanged(double arg1){
     _scene_widget->mainCam.ROTATION_SPEED = arg1;
 }
-
-
 
 void primary_win::on_speedV_valueChanged(int value)
 {
@@ -437,27 +447,22 @@ void primary_win::on_speedV_valueChanged(int value)
 //    _scene_widget->current_model->MOVEMENT_SPEED = static_cast<double>(-value);
 }
 
-
-void primary_win::on_SpinBox_Near_valueChanged(double arg1)
-{
+void primary_win::on_SpinBox_Near_valueChanged(double arg1){
     _scene_widget->activeCam->NEAR_PLANE = arg1;
     _scene_widget->updateProjection();
 }
 
-void primary_win::on_SpinBox_Far_valueChanged(double arg1)
-{
+void primary_win::on_SpinBox_Far_valueChanged(double arg1){
     _scene_widget->activeCam->FAR_PLANE = arg1;
     _scene_widget->updateProjection();
 }
 
-void primary_win::on_SpinBox_FieldOfView_valueChanged(double arg1)
-{
+void primary_win::on_SpinBox_FieldOfView_valueChanged(double arg1){
     _scene_widget->activeCam->FIELD_OF_VIEW = arg1;
     _scene_widget->updateProjection();
 }
 
-void primary_win::on_radioButton_Global_clicked()
-{
+void primary_win::on_radioButton_Global_clicked(){
     _scene_widget->activeCam = &_scene_widget->mainCam;
     ui->camTransformation->setEnabled(1);
     _scene_widget->updateProjection();
