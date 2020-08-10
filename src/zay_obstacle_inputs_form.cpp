@@ -17,7 +17,7 @@ void obstacle_inputs_form::on_decision_tools_accepted()
 {
     if(ui->carton_box_radio->isChecked())
         this->attribs.type = Obstacle_Type::CARTON_BOX;
-    else if(ui->wall1_radio->isCheckable())
+    else if(ui->wall1_radio->isChecked())
         this->attribs.type = Obstacle_Type::WALL_1;
     else this->attribs.type = Obstacle_Type::WALL_2;
     this->attribs.angle = ui->angle->value();

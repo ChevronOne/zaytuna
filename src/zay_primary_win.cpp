@@ -253,7 +253,7 @@ void primary_win::delete_vehicle(const QString& _name){
 
     if(QMessageBox::question(this,
           "delete vehicle",
-          "delete vehicle '"+_name+"'?",
+          "delete vehicle '"+_name+"' ?",
           QMessageBox::Ok|QMessageBox::Cancel) == QMessageBox::Ok){
         if(_scene_widget->current_model != nullptr)
             if(_scene_widget->current_model->name == _name.toStdString()){
@@ -272,9 +272,16 @@ void primary_win::delete_vehicle(const QString& _name){
     }
 }
 void primary_win::delete_obstacle(const QString& _name){
-    obstacle_type->removeChild(obstacles[_name]);
-    obstacles.erase(_name);
-    qDebug() << "deleted obstacle: "<< _name<< " \n";
+    if(QMessageBox::question(this,
+          "delete obstacle",
+          "delete obstacle '"+_name+"' ?",
+          QMessageBox::Ok|QMessageBox::Cancel) == QMessageBox::Ok){
+        _scene_widget->delete_obstacle(_name.toStdString());
+        obstacle_type->removeChild(obstacles[_name]);
+        obstacles.erase(_name);
+        qDebug() << "deleted obstacle: "<< _name<< " \n";
+    }
+
 }
 void primary_win::edit_vehicle(const QString& _name){
     qDebug() << "edit vehicle: "<< _name <<" \n";

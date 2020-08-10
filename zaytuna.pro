@@ -71,11 +71,11 @@ TEMPLATE = app
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-CONFIG += c++17
+CONFIG += c++14
 
 # --std=c++1z
 
-QMAKE_CXXFLAGS += -g -Wall -std=c++1z -Wno-old-style-cast
+QMAKE_CXXFLAGS += -g -std=c++14 -Wall -Wno-old-style-cast
 #QMAKE_CXXFLAGS += -g -Wall -std=c++1z -Werror -Wno-old-style-cast
 #QMAKE_CXXFLAGS += -g -Wall -Werror
 #QMAKE_CXXFLAGS += -O2 # -g -Wall -Werror

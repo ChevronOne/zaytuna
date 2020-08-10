@@ -865,10 +865,11 @@ void _scene_widg::add_obstacle
     obstacle_objects->categories[attribs.type]->instances.push_back
             (obstacle_instance<GLdouble>
              (attribs.name, attribs.transformMat()) );
+    obstacle_objects->category[attribs.name] = attribs.type;
 }
 void _scene_widg::delete_obstacle
     (const std::string& _name){
-
+    obstacle_objects->delete_obstacle(_name);
 }
 void _scene_widg::edit_vehicle
     (const transform_attribs<GLdouble>& attribs){

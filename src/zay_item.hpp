@@ -477,8 +477,32 @@ struct obstacle_pack : public scene_object {
     static GLint transformMatLocation;
     static GLint inverse_transpose_transformMatLocation;
     std::map<Obstacle_Type, obstacle_wrapper<T>*> categories;
+    std::map<std::string, Obstacle_Type> category;
+
+    // this used only to get a linear iteration, otherwise 'categories' does the same!
     ptr_vector<obstacle_wrapper<T>*> obstacle_categories;
 
+    class std::vector<obstacle_instance<T>>::iterator
+            find(const std::string& _name){
+        auto cat{&(categories[category[_name]]->instances)};
+        auto begin{cat->begin()}, end{cat->end()};
+        for(;begin!=end;++begin){
+            if(begin->name == _name)
+                return begin;
+        }
+        return begin;
+    }
+
+    void delete_obstacle(const std::string& _name){
+#if __cplusplus > 201703L
+        std::cout <<"has cpp20\n" << std::endl;
+        std::erase_if(categories[category[_name]]->instances,
+             [=](obstacle_instance<T> instance) { return instance.name == _name; });
+#else
+        std::cout << "do not have cpp20\n" << std::endl;
+        categories[category[_name]]->instances.erase(find(_name));
+#endif
+    }
     obstacle_pack(USED_GL_VERSION * const _widg,
                   const GLuint programID,
                   Obstacle_Type type,
@@ -495,9 +519,7 @@ struct obstacle_pack : public scene_object {
             inverse_transpose_transformMatLocation =
                     _widg->glGetUniformLocation(_programID, "it_transformMat");}
     virtual ~obstacle_pack() override{}
-    void add_category(
-//            USED_GL_VERSION * const _widg,
-                      Obstacle_Type type,
+    void add_category(Obstacle_Type type,
                       std::string prims_dir,
                       std::string tex_dir){
         obstacle_categories.push_back
@@ -512,25 +534,31 @@ struct obstacle_pack : public scene_object {
     }
 
     virtual void render_obj(zaytuna::camera const*const activeCam) override{
-        uint32_t i{0},j{0};
+        uint32_t category{0}, instance{0};
         this->_widg->glUseProgram(_programID);
 
-        for(i=0; i<obstacle_categories.size(); ++i){
-            _widg->glBindTexture(GL_TEXTURE_2D, obstacle_categories[i]->_texID);
-            _widg->glBindVertexArray(obstacle_categories[i]->_VAO_ID);
-            for(j=0; j<obstacle_categories[i]->instances.size(); ++j){
+        for(;category<obstacle_categories.size(); ++category){
+            _widg->glBindTexture(GL_TEXTURE_2D, obstacle_categories[category]->_texID);
+            _widg->glBindVertexArray(obstacle_categories[category]->_VAO_ID);
+            for(instance=0;
+                instance<obstacle_categories[category]->instances.size();
+                ++instance){
                 transformMat = activeCam->transformationMat *
-                        obstacle_categories[i]->instances[j].transformMat;
+                        obstacle_categories[category]->instances[instance].transformMat;
 
-                _widg->glUniformMatrix4fv(transformMatLocation, 1,
-                                          GL_FALSE, glm::value_ptr(transformMat));
-                _widg->glUniformMatrix4fv(inverse_transpose_transformMatLocation,
-                                          1, GL_FALSE,
-                                          glm::value_ptr
-                    (obstacle_categories[i]->instances[j].inverse_transpose_transformMat));
-                _widg->glDrawElements(PRIMITIVES_TYPE, obstacle_categories[i]->num_indices,
-                                      GL_UNSIGNED_INT,
-                                      reinterpret_cast<void*>(obstacle_categories[i]->inds_offset));
+                _widg->glUniformMatrix4fv
+                        (transformMatLocation, 1,
+                         GL_FALSE, glm::value_ptr(transformMat));
+                _widg->glUniformMatrix4fv
+                        (inverse_transpose_transformMatLocation,
+                         1, GL_FALSE, glm::value_ptr
+                    (obstacle_categories[category]->instances
+                     [instance].inverse_transpose_transformMat));
+                _widg->glDrawElements
+                        (PRIMITIVES_TYPE, obstacle_categories[category]->num_indices,
+                         GL_UNSIGNED_INT,
+                         reinterpret_cast<void*>
+                         (obstacle_categories[category]->inds_offset));
             }
         }
     }
