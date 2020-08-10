@@ -130,6 +130,7 @@ class _scene_widg : public QGL_WIDGET_VERSION, protected USED_GL_VERSION // QOpe
     void edit_vehicle(const transform_attribs<GLdouble>&);
     void edit_obstacle(const obstacle_attribs<GLdouble>&);
     void update_current_vehicle(const std::string&);
+    obstacle_attribs<GLdouble> get_obstacle(const std::string&);
     zaytuna::vehicle_attribute* getOtherVeh(const std::string&);
     double elap_accumulated{0.0};
     double frame_rate{0};

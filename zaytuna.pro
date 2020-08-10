@@ -75,7 +75,7 @@ CONFIG += c++14
 
 # --std=c++1z
 
-QMAKE_CXXFLAGS += -g -std=c++14 -Wall -Wno-old-style-cast
+QMAKE_CXXFLAGS += -std=c++14 -Wall -Wno-old-style-cast -O2
 #QMAKE_CXXFLAGS += -g -Wall -std=c++1z -Werror -Wno-old-style-cast
 #QMAKE_CXXFLAGS += -g -Wall -Werror
 #QMAKE_CXXFLAGS += -O2 # -g -Wall -Werror

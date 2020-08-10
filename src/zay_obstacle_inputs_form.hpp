@@ -16,6 +16,8 @@ class obstacle_inputs_form : public QDialog
 friend class primary_win;
 public:
     explicit obstacle_inputs_form(QWidget *parent = 0);
+    explicit obstacle_inputs_form(obstacle_attribs<GLdouble>,
+                                  QWidget *parent = 0);
     ~obstacle_inputs_form();
 
 private slots:

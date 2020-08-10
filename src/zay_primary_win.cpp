@@ -224,24 +224,40 @@ void primary_win::new_obstacle(void)
         add_obstacle(inputs_d.attribs,0);
     }
 }
+void primary_win::edit_obstacle(const QString& _name){
+    qDebug() << "edit obstacle: "<< _name<< " \n";
+    obstacle_attribs<GLdouble> attribs
+            = _scene_widget->get_obstacle(_name.toStdString());
+    obstacle_inputs_form inputs_d(attribs);
+    inputs_d.setWindowTitle("edit obstacle");
+    inputs_d.setModal(1);
+    if (inputs_d.exec() == QDialog::Accepted)
+        if(inputs_d.attribs.type == attribs.type)
+            _scene_widget->edit_obstacle(inputs_d.attribs);
+        else{
+            _scene_widget->delete_obstacle(_name.toStdString());
+            _scene_widget->add_obstacle(inputs_d.attribs);
+        }
+}
 void primary_win::add_obstacle
-    (obstacle_attribs<GLdouble> T,
+    (obstacle_attribs<GLdouble> attribs,
      bool is_default)
 {
     QString obs_name{QString("obstacle_%1").arg(obstacle_counter++)};
-    T.name = obs_name.toStdString();
+    attribs.name = obs_name.toStdString();
     if(is_default)
-        _scene_widget->default_objects.obstacles.emplace_back(T);
+        _scene_widget->default_objects.obstacles.emplace_back(attribs);
     else
-        _scene_widget->add_obstacle(T);
+        _scene_widget->add_obstacle(attribs);
     QTreeWidgetItem* obs = new QTreeWidgetItem();
     obs->setText(0, obs_name);
     obstacle_type->addChild(obs);
     menus_popups[obs_name]=&primary_win::obstacle_menu;
     obstacles[obs_name] = obs;
 
-    qDebug() << "new obstacle " << obs_name << " added with angle: " << T.angle;
+    qDebug() << "new obstacle " << obs_name << " added with angle: " << attribs.angle;
 }
+
 
 void primary_win::front_cam_to_screen(const QString& _name){
     _scene_widget->update_current_vehicle(_name.toStdString());
@@ -286,9 +302,7 @@ void primary_win::delete_obstacle(const QString& _name){
 void primary_win::edit_vehicle(const QString& _name){
     qDebug() << "edit vehicle: "<< _name <<" \n";
 }
-void primary_win::edit_obstacle(const QString& _name){
-    qDebug() << "edit obstacle: "<< _name<< " \n";
-}
+
 
 void primary_win::vehicle_type_menu(const QPoint& pos){
     qDebug() << pos << ", vehicle type call \n";

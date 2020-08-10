@@ -342,22 +342,21 @@ public:
 
 template<class T>
 struct obstacle_instance{
-    std::string name;
+//    std::string name;
+    obstacle_attribs<T> attribs;
     glm::tmat4x4<T> transformMat{
         glm::translate(glm::dvec3(0.0, 0.0, 0.0))
     };
     glm::mat4 inverse_transpose_transformMat{
         glm::translate(glm::dvec3(0.0, 0.0, 0.0))
     };
-    obstacle_instance(const std::string& name,
-                      const glm::tmat4x4<T>& transformMat):
-            name{name}{
-        edit(transformMat);
-//        inverse_transpose_transformMat = glm::inverse(glm::transpose(transformMat));
-    }
-    void edit(const glm::tmat4x4<T>& transformMat){
-        this->transformMat = transformMat;
-        inverse_transpose_transformMat = glm::inverse(glm::transpose(transformMat));
+    obstacle_instance
+        (const obstacle_attribs<T>& attribs){
+            edit(attribs);}
+    void edit(const obstacle_attribs<T>& attribs){
+        this->attribs = attribs;
+        this->transformMat = attribs.transformMat();
+        inverse_transpose_transformMat = glm::inverse(glm::transpose(this->transformMat));
     }
 };
 
@@ -479,7 +478,7 @@ struct obstacle_pack : public scene_object {
     std::map<Obstacle_Type, obstacle_wrapper<T>*> categories;
     std::map<std::string, Obstacle_Type> category;
 
-    // this used only to get a linear iteration, otherwise 'categories' does the same!
+    /* this used only to get a linear iteration, otherwise 'categories' does the same! */
     ptr_vector<obstacle_wrapper<T>*> obstacle_categories;
 
     class std::vector<obstacle_instance<T>>::iterator
@@ -487,17 +486,24 @@ struct obstacle_pack : public scene_object {
         auto cat{&(categories[category[_name]]->instances)};
         auto begin{cat->begin()}, end{cat->end()};
         for(;begin!=end;++begin){
-            if(begin->name == _name)
+            if(begin->attribs.name == _name)
                 return begin;
         }
+        qDebug() << "OBSTACLE NOT FOUND: "<< _name.c_str() << " !!!!!!!!!!\n";
+        exit(EXIT_FAILURE);
         return begin;
+    }
+
+    obstacle_attribs<T> get_attribs(const std::string _name){
+        return find(_name)->attribs;
     }
 
     void delete_obstacle(const std::string& _name){
 #if __cplusplus > 201703L
         std::cout <<"has cpp20\n" << std::endl;
         std::erase_if(categories[category[_name]]->instances,
-             [=](obstacle_instance<T> instance) { return instance.name == _name; });
+            [=](obstacle_instance<T> instance)
+            {return instance.attribs.name == _name; });
 #else
         std::cout << "do not have cpp20\n" << std::endl;
         categories[category[_name]]->instances.erase(find(_name));

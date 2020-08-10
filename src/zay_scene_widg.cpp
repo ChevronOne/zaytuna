@@ -805,7 +805,6 @@ void _scene_widg::send_data()
                             theBufferID,
                             previous_offset);
 
-
     add_default_obj();
 }
 
@@ -854,22 +853,25 @@ void _scene_widg::delete_vehicle
 zaytuna::vehicle_attribute*
 _scene_widg::getOtherVeh(const std::string& _name){
     zaytuna::vehicle_attribute* other{nullptr};
-    for(uint32_t i{0}; i<model_vehicles->vehicles.size(); ++i){
+    for(uint32_t i{0}; i<model_vehicles->vehicles.size(); ++i)
         if(model_vehicles->vehicles[i].name != _name)
             return &model_vehicles->vehicles[i];
-    }
     return other;
 }
 void _scene_widg::add_obstacle
     (const obstacle_attribs<GLdouble>& attribs){
-    obstacle_objects->categories[attribs.type]->instances.push_back
-            (obstacle_instance<GLdouble>
-             (attribs.name, attribs.transformMat()) );
+    obstacle_objects->categories
+            [attribs.type]->instances.push_back(attribs);
     obstacle_objects->category[attribs.name] = attribs.type;
 }
 void _scene_widg::delete_obstacle
     (const std::string& _name){
     obstacle_objects->delete_obstacle(_name);
+    obstacle_objects->category.erase(_name);
+}
+obstacle_attribs<GLdouble>
+_scene_widg::get_obstacle(const std::string& _name){
+    return obstacle_objects->get_attribs(_name);
 }
 void _scene_widg::edit_vehicle
     (const transform_attribs<GLdouble>& attribs){
@@ -877,7 +879,8 @@ void _scene_widg::edit_vehicle
 }
 void _scene_widg::edit_obstacle
     (const obstacle_attribs<GLdouble>& attribs){
-
+    auto it = obstacle_objects->find(attribs.name);
+    it->edit(attribs);
 }
 
 

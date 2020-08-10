@@ -8,6 +8,30 @@ obstacle_inputs_form::obstacle_inputs_form(QWidget *parent) :
     ui->setupUi(this);
 }
 
+obstacle_inputs_form::obstacle_inputs_form(obstacle_attribs<GLdouble> attribs,
+                                           QWidget *parent) :
+    QDialog(parent),
+    ui(new Ui::obstacle_inputs_form)
+{
+    ui->setupUi(this);
+    ui->angle->setValue(attribs.angle);
+    ui->T_X->setValue(attribs.translation_vec.x);
+    ui->T_Z->setValue(attribs.translation_vec.z);
+    this->attribs.name = attribs.name;
+    switch (attribs.type) {
+    case Obstacle_Type::CARTON_BOX:
+        ui->carton_box_radio->setChecked(1);
+        break;
+    case Obstacle_Type::WALL_1:
+        ui->wall1_radio->setChecked(1);
+        break;
+    default:
+        ui->wall2_radio->setChecked(1);
+        break;
+    }
+}
+
+
 obstacle_inputs_form::~obstacle_inputs_form()
 {
     delete ui;

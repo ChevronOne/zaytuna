@@ -68,6 +68,8 @@
 //#include <QSurfaceFormat>
 #include <QGLFramebufferObject>
 
+#include <QDebug>
+
 #if __has_include(<experimental/filesystem>)
 
 #include <experimental/filesystem>
