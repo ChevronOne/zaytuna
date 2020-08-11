@@ -553,13 +553,12 @@ zaytuna::model_vehicle::model_vehicle(USED_GL_VERSION * const _widg,
 
 }
 
-void model_vehicle::add_vehicle(const std::string& _name,
-                                QGLFramebufferObject *const FBO_,
-                                const glm::dmat4 _rotation,
-                                const glm::dmat4 _translation){
-    vehicles.push_back(new vehicle_attribute(_widg, _name, FBO_,
-                                             _rotation,
-                                             _translation));
+void model_vehicle::add_vehicle
+        (QGLFramebufferObject *const FBO_,
+         const transform_attribs<GLdouble> attribs){
+    vehicles.push_back
+            (new vehicle_attribute(_widg, FBO_,
+                                   attribs));
 }
 
 model_vehicle::~model_vehicle(){
@@ -880,8 +879,10 @@ model_vehicle::find(const std::string& _name)
 {
     boost::ptr_vector<vehicle_attribute>::iterator it;
     for(it = vehicles.begin(); it!=vehicles.end(); ++it)
-        if( (*it).name == _name)
+        if( (*it).attribs.name == _name)
             return it;
+    qDebug() << "VEHICLE NOT FOUND: "<< _name.c_str() << " !!!!!!!!!!\n";
+//    exit(EXIT_FAILURE);
     return it;
 }
 

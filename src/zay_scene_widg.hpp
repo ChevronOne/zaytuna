@@ -85,8 +85,6 @@ enum class FileStatus { UNDEFINED, LOADED, FAILED };
 enum class VarType { PROGRAM, SHADER };
 class primary_win;
 
-
-
 //class _scene_widg : public QOpenGLWidget,
 //                    protected USED_GL_VERSION // QOpenGLExtraFunctions
 class _scene_widg : public QGL_WIDGET_VERSION, protected USED_GL_VERSION // QOpenGLExtraFunctions
@@ -97,9 +95,9 @@ class _scene_widg : public QGL_WIDGET_VERSION, protected USED_GL_VERSION // QOpe
     FileStatus fStatus;
     GLuint programs[PROGRAMS_NUM];
 
-
     ptr_vector<zaytuna::scene_object*> basic_objects;
     zaytuna::model_vehicle* model_vehicles{nullptr};
+    vehicle_attribute* current_model{nullptr};
     zaytuna::obstacle_pack<GLdouble>* obstacle_objects{nullptr};
     ptr_vector<zaytuna::scene_object*> lap_objects;
     ptr_vector<zaytuna::scene_object*> environmental_objects;
@@ -115,11 +113,8 @@ class _scene_widg : public QGL_WIDGET_VERSION, protected USED_GL_VERSION // QOpe
                     const std::size_t&);
     void makeUnderUse(GLuint&);
     void detachProgram(void);
-    unsigned int getProgram(void) const;
-
     void send_data(void);
     void updateProjection(void);
-
     void cleanUp();
     void draw_local(void);
     inline void render_scene(zaytuna::camera const*const);
@@ -137,38 +132,25 @@ class _scene_widg : public QGL_WIDGET_VERSION, protected USED_GL_VERSION // QOpe
     uint32_t frames_counter{0};
     std::chrono::time_point<std::chrono::_V2::system_clock,
                     std::chrono::nanoseconds> start_t;
-
     camera mainCam ;
-    camera* activeCam;
+    camera* activeCam{nullptr};
     QGLFramebufferObjectFormat fboFormat;
-
-    vehicle_attribute* current_model{nullptr};
     bool coord_checked{true}, grid_checked{true};
-
     QTimer timer;
-
     bool k_forward, k_backward,
          k_left, k_right,
          k_up, k_back;
-
     GLuint theBufferID;
-//    QImage img;
-
-
     friend class zaytuna::primary_win;
 
 protected:
-
     virtual void initializeGL() override;
     virtual void paintGL() override;
     virtual void resizeGL(int,int) override;
-
-
     virtual void mouseMoveEvent(QMouseEvent*) override;
     virtual void keyPressEvent(QKeyEvent*) override;
     virtual void wheelEvent(QWheelEvent*) override;
     virtual void keyReleaseEvent(QKeyEvent *event) override;
-
 
 public:
     explicit _scene_widg(QGLFormat, QWidget* parent = nullptr);

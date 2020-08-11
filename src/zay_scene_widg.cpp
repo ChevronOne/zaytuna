@@ -84,7 +84,7 @@ _scene_widg::_scene_widg(QGLFormat _format, QWidget* parent):
     activeCam = &mainCam;
 
     connect(&timer, SIGNAL(timeout()), this, SLOT(animate()));
-    timer.start(0);
+//    timer.start(0);
 
     makeCurrent();
     setMouseTracking(true);
@@ -161,6 +161,8 @@ void _scene_widg::initializeGL()
 
     qDebug() << "GL version: " << reinterpret_cast<const char*>(glGetString(GL_VERSION)) << "\n";
 
+    timer.start(0);
+
 }
 
 
@@ -175,28 +177,20 @@ void _scene_widg::render_scene(camera const*const current_cam)
     if(grid_checked)
         basic_objects[1]->render_obj(current_cam);
 
-    uint32_t i;
-    for(i=0; i<lap_objects.size(); ++i){
+    uint32_t i{0};
+    for( ; i<lap_objects.size(); ++i)
         lap_objects[i]->render_obj(current_cam);
-    }
 
-//    for(i=0; i<obstacle_objects.size(); ++i){
-//        obstacle_objects[i]->render_obj(current_cam);
-//    }
-//    for(const auto& _obj:obstacle_objects)
-//        _obj->render_obj(current_cam);
-
-    for(i=0; i<environmental_objects.size(); ++i){
+    for(i=0; i<environmental_objects.size(); ++i)
         environmental_objects[i]->render_obj(current_cam);
-    }
+
     obstacle_objects->render_obj(current_cam);
 
 //    glDepthMask(false);
     model_vehicles->render_obj(current_cam);
 //    glDepthMask(true);
 
-//    glFlush();
-//    glFinish();
+
 }
 
 
@@ -312,12 +306,12 @@ void _scene_widg::resizeGL(int W, int H)
 
 void _scene_widg::updateProjection()
 {
-//    activeCam->updateProjection(width(), height());
+//    activeCam->updateProjection(WIDTH, HEIGHT);
 
-    mainCam.updateProjection(width(), height());
+    mainCam.updateProjection(WIDTH, HEIGHT);
     for(uint32_t i{0}; i<model_vehicles->vehicles.size(); ++i){
         model_vehicles->vehicles[i].frontCam.updateProjection
-                (width(), height());
+                (WIDTH, HEIGHT);
     }
 }
 
@@ -561,10 +555,10 @@ _scene_widg::compileShader(const std::string& _shaders,
 
 
 void _scene_widg::initShader(const std::string& file_Dir,
-                             GLuint& programLinker,
+                             GLuint& program_object,
                              const std::size_t& attrib_location)
 {
-    programLinker = glCreateProgram();
+    program_object = glCreateProgram();
     // load vertex shader
     std::string _program{ getShader(file_Dir + ".vsh") };
     if (fStatus == FileStatus::LOADED)
@@ -585,24 +579,24 @@ void _scene_widg::initShader(const std::string& file_Dir,
                     // attach the both vertex and
                     // fragment shaders to one program
                     for (size_t _ind = 0; _ind != SHADERS_NUM; ++_ind)
-                        glAttachShader(programLinker, _Shaders[_ind]);
+                        glAttachShader(program_object, _Shaders[_ind]);
 
                     if(attrib_location == 0){
-                        glBindAttribLocation(programLinker, 0, "vertPos");
-                        glBindAttribLocation(programLinker, 1, "vertColor");
-                        glBindAttribLocation(programLinker, 2, "vertNorm");
+                        glBindAttribLocation(program_object, 0, "vertPos");
+                        glBindAttribLocation(program_object, 1, "vertColor");
+                        glBindAttribLocation(program_object, 2, "vertNorm");
                     }else if(attrib_location == 1){
-                        glBindAttribLocation(programLinker, 0, "vertPos");
-                        glBindAttribLocation(programLinker, 1, "vertNorm");
-                        glBindAttribLocation(programLinker, 2, "texCoor");
+                        glBindAttribLocation(program_object, 0, "vertPos");
+                        glBindAttribLocation(program_object, 1, "vertNorm");
+                        glBindAttribLocation(program_object, 2, "texCoor");
                     }else if(attrib_location == 2){
-                        glBindAttribLocation(programLinker, 0, "vertPos");
-//                        glBindAttribLocation(programLinker, 1, "vertNorm");
-//                        glBindAttribLocation(programLinker, 2, "texCoor");
+                        glBindAttribLocation(program_object, 0, "vertPos");
+//                        glBindAttribLocation(program_object, 1, "vertNorm");
+//                        glBindAttribLocation(program_object, 2, "texCoor");
                     }else if(attrib_location == 3){
-                        glBindAttribLocation(programLinker, 0, "vertPos");
-                        glBindAttribLocation(programLinker, 1, "vertNorm");
-                        glBindAttribLocation(programLinker, 2, "texCoor");
+                        glBindAttribLocation(program_object, 0, "vertPos");
+                        glBindAttribLocation(program_object, 1, "vertNorm");
+                        glBindAttribLocation(program_object, 2, "texCoor");
 
                     }else{
                         std::cout << "program "
@@ -611,15 +605,15 @@ void _scene_widg::initShader(const std::string& file_Dir,
                         exit(EXIT_FAILURE);
                     }
 
-                    glLinkProgram(programLinker);
+                    glLinkProgram(program_object);
 
                     // check for linker errors
-                    checkError(programLinker,
+                    checkError(program_object,
                                GL_LINK_STATUS,
                                VarType::PROGRAM,
                                "Shaders Linking Error: ");
-                    glValidateProgram(programLinker);
-                    checkError(programLinker,
+                    glValidateProgram(program_object);
+                    checkError(program_object,
                                GL_VALIDATE_STATUS,
                                VarType::PROGRAM,
                                "Program Validation Error: ");
@@ -641,11 +635,6 @@ void _scene_widg::detachProgram()
 {
     // calling this with '0' argument removes the program
     glUseProgram(0);
-}
-
-unsigned int _scene_widg::getProgram() const
-{
-    return programs[0];
 }
 
 void _scene_widg::send_data()
@@ -671,7 +660,7 @@ void _scene_widg::send_data()
 //                      glm::translate(glm::dvec3(0.0, 0.0, 0.0))
         )
     };
-    //-----------------------------------------------
+    //---------------------------
     environmental_objects = {
         new external_obj(this,
                          programs[1],
@@ -698,7 +687,7 @@ void _scene_widg::send_data()
 //                       glm::translate(glm::dvec3(0.0, 0.0, 0.0))
         )
     };
-    //--------------------------------------------------------------------
+    //---------------------------------
     lap_objects = {
         new external_obj(this,
                          programs[1],
@@ -737,7 +726,7 @@ void _scene_widg::send_data()
 //                        glm::translate(glm::dvec3(0.0, 0.0, 0.0))
         )
     };
-    //---------------------------------------------------------
+    //------------------------------
     obstacle_objects =
             new obstacle_pack<GLdouble>(this,
                 programs[3],
@@ -746,17 +735,16 @@ void _scene_widg::send_data()
                 "tex/carton_box.jpg",
                 GL_QUADS);
     obstacle_objects->add_category
-            (Obstacle_Type::WALL_1,
-             "./primitives/wall_1",
-             "tex/wall_exemplar1.jpg");
+            (Obstacle_Type::BRICK_WALL,
+             "./primitives/brick_wall",
+             "tex/brick_wall.jpg");
     obstacle_objects->add_category
-            (Obstacle_Type::WALL_2,
-             "./primitives/wall_2",
-             "tex/wall_exemplar2.jpg");
-    //---------------------------------------------------------------------
+            (Obstacle_Type::STONE_WALL,
+             "./primitives/stone_wall",
+             "tex/stone_wall_1.jpg");
+    //------------------------------
 
-//    QGLFramebufferObjectFormat fboFormat;
-    fboFormat.setSamples(8);
+    fboFormat.setSamples(NUM_SAMPLES_PER_PIXEL);
     fboFormat.setAttachment
             (QGLFramebufferObject::CombinedDepthStencil);
     model_vehicles = new model_vehicle(this,
@@ -766,18 +754,19 @@ void _scene_widg::send_data()
            GL_TRIANGLES );
 
 
-    //------------------------------------------------------------------
+    //-------------------------------
 
 
     GLsizeiptr BUF_SIZE{0};
     for(const auto& _obj:basic_objects)
         BUF_SIZE+=_obj->buffer_size();
-    BUF_SIZE+=model_vehicles->buffer_size();
-    BUF_SIZE+=obstacle_objects->buffer_size();
     for(const auto& _obj:lap_objects)
         BUF_SIZE+=_obj->buffer_size();
     for(const auto& _obj:environmental_objects)
         BUF_SIZE+=_obj->buffer_size();
+
+    BUF_SIZE+=obstacle_objects->buffer_size();
+    BUF_SIZE+=model_vehicles->buffer_size();
 
     glGenBuffers(1, &theBufferID);
     glBindBuffer(GL_ARRAY_BUFFER, theBufferID);
@@ -791,41 +780,37 @@ void _scene_widg::send_data()
         _obj->transmit_data(current_offset,
                             theBufferID,
                             previous_offset);
-    model_vehicles->transmit_data(current_offset,
-                                  theBufferID,
-                                  previous_offset);
-    obstacle_objects->transmit_data(current_offset,
-                                    theBufferID,
-                                    previous_offset);
     for(auto& _obj:lap_objects)
         _obj->transmit_data(current_offset,
-                            theBufferID, previous_offset);
+                            theBufferID,
+                            previous_offset);
     for(auto& _obj:environmental_objects)
         _obj->transmit_data(current_offset,
                             theBufferID,
                             previous_offset);
 
+    obstacle_objects->transmit_data(current_offset,
+                                    theBufferID,
+                                    previous_offset);
+    model_vehicles->transmit_data(current_offset,
+                                  theBufferID,
+                                  previous_offset);
+
     add_default_obj();
 }
-
 void _scene_widg::add_default_obj(){
     for(uint32_t i{0}; i<default_objects.vehicles.size(); ++i)
         model_vehicles->add_vehicle
-                (default_objects.vehicles[i].name,
-                 new QGLFramebufferObject(this->width(),
-                                          this->height(), fboFormat),
-                 default_objects.vehicles[i].rotationMat(),
-                 default_objects.vehicles[i].translationMat());
+                (new QGLFramebufferObject(WIDTH,
+                                          HEIGHT, fboFormat),
+                 default_objects.vehicles[i]);
 
     update_current_vehicle("any_vehicle");
-    std::cout << "num of obstacles: " << default_objects.obstacles.size() << std::endl;
     for(uint32_t i{0}; i<default_objects.obstacles.size(); ++i)
         add_obstacle(default_objects.obstacles[i]);
 }
-
 void _scene_widg::update_current_vehicle
-    (const std::string& _name)
-{
+    (const std::string& _name){
     auto it = model_vehicles->find(_name);
     if(it == model_vehicles->vehicles.end())
         if(model_vehicles->vehicles.size() != 0)
@@ -833,15 +818,13 @@ void _scene_widg::update_current_vehicle
         else current_model = nullptr;
     else current_model = &(*it);
 }
-
 void _scene_widg::add_vehicle
     (const transform_attribs<GLdouble>& attribs)
 {
-    model_vehicles->add_vehicle(attribs.name,
-        new QGLFramebufferObject(this->width(),
-            this->height(), fboFormat),
-        attribs.rotationMat(),
-        attribs.translationMat());
+    model_vehicles->add_vehicle
+        (new QGLFramebufferObject(WIDTH,
+             HEIGHT, fboFormat),
+        attribs);
 }
 
 void _scene_widg::delete_vehicle
@@ -849,12 +832,11 @@ void _scene_widg::delete_vehicle
     auto it = model_vehicles->find(_name);
     model_vehicles->vehicles.erase(it);
 }
-
 zaytuna::vehicle_attribute*
 _scene_widg::getOtherVeh(const std::string& _name){
     zaytuna::vehicle_attribute* other{nullptr};
     for(uint32_t i{0}; i<model_vehicles->vehicles.size(); ++i)
-        if(model_vehicles->vehicles[i].name != _name)
+        if(model_vehicles->vehicles[i].attribs.name != _name)
             return &model_vehicles->vehicles[i];
     return other;
 }

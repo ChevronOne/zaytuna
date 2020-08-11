@@ -55,13 +55,12 @@ primary_win::primary_win(QWidget *parent) :
 {
     ui->setupUi(this);
     QGLFormat _format;
-    _format.setSamples(8);
+    _format.setSamples(NUM_SAMPLES_PER_PIXEL);
 
     _scene_widget = new _scene_widg(_format, this);
 
 
-    //-------------------------------------------------
-//    Place_Tracker = new QWidget(centralWidget);
+    //---------------------------
     _scene_widget->setObjectName(QStringLiteral("Place_Tracker"));
     _scene_widget->setEnabled(true);
     _scene_widget->setGeometry(QRect(630, 25, WIDTH, HEIGHT));
@@ -74,10 +73,7 @@ primary_win::primary_win(QWidget *parent) :
     _scene_widget->setMaximumSize(QSize(WIDTH, HEIGHT));
 
 
-
-
-
-    // -------------------------------------------------
+    // ----------------------------
     scene_objects = new QTreeWidget(ui->edit_frame);
     scene_objects->setGeometry(QRect(300, 10, 150, 250));
     scene_objects->setColumnCount(1);
@@ -88,8 +84,6 @@ primary_win::primary_win(QWidget *parent) :
     scene_objects->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(scene_objects, &QTreeWidget::customContextMenuRequested,
             this, &primary_win::menus);
-
-//    scene_objects->se
 
     vehicle_type = new QTreeWidgetItem(scene_objects);
     vehicle_type->setText(0, "Vehicles");
@@ -105,12 +99,7 @@ primary_win::primary_win(QWidget *parent) :
 
 
 
-
-
-
-
-
-    //--------------------------------------------------
+    //--------------------------------
     ui->lcdCamViewX->display(_scene_widget->mainCam.view_direction.x);
     ui->lcdCamViewY->display(_scene_widget->mainCam.view_direction.y);
     ui->lcdCamViewZ->display(_scene_widget->mainCam.view_direction.z);
@@ -157,10 +146,10 @@ primary_win::primary_win(QWidget *parent) :
                  {0.0, 1.0, 0.0},
                  {6.0, 0.0, -1.25}},1);
 
-    add_vehicle({std::string(),
-                 -45.0,
-                 {0.0, 1.0, 0.0},
-                 {-3.0, 0.0, -2.5}},1);
+//    add_vehicle({std::string(),
+//                 -45.0,
+//                 {0.0, 1.0, 0.0},
+//                 {-3.0, 0.0, -2.5}},1);
 
 //    qDebug() << "vehicle num primaryWin: " << vehicles.size() << "\n";
 //    qDebug() << "vehicle num sceneWidge: " << _scene_widget->model_vehicles->vehicles.size() << "\n";
@@ -172,13 +161,13 @@ primary_win::primary_win(QWidget *parent) :
                      {0.0, 1.0, 0.0},
                      {0.0, 0.0, 0.0}),1);
     add_obstacle(obstacle_attribs<GLdouble>
-                    (Obstacle_Type::WALL_1,
+                    (Obstacle_Type::BRICK_WALL,
                      std::string(),
                      10.0,
                      {0.0, 1.0, 0.0},
                      {2.0, 0.0, -1.0}),1);
     add_obstacle(obstacle_attribs<GLdouble>
-                    (Obstacle_Type::WALL_2,
+                    (Obstacle_Type::STONE_WALL,
                      std::string(),
                      15.0,
                      {0.0, 1.0, 0.0},
@@ -191,29 +180,38 @@ void primary_win::new_vehicle(void)
     inputs_d.setWindowTitle("new vehicle");
     inputs_d.setModal(1);
 
-    if (inputs_d.exec() == QDialog::Accepted){
-        add_vehicle(inputs_d.transform,0);
-    }
-
+    if (inputs_d.exec() == QDialog::Accepted)
+        add_vehicle(inputs_d.attribs,0);
 }
 void primary_win::add_vehicle
-    (transform_attribs<GLdouble> T,
+    (transform_attribs<GLdouble> attribs,
      bool is_default)
 {
     QString veh_name{QString("vehicle_%1").arg(vehicle_counter++)};
-    T.name = veh_name.toStdString();
-    std::cout<< "angle: " << T.angle <<"\nrot: " << T.rotation_vec << "\ntran: " << T.translation_vec;
+    attribs.name = veh_name.toStdString();
+//    std::cout<< "angle: " << T.angle <<"\nrot: " << T.rotation_vec << "\ntran: " << T.translation_vec;
     if(is_default)
-        _scene_widget->default_objects.vehicles.emplace_back(T);
+        _scene_widget->default_objects.vehicles.emplace_back(attribs);
     else
-        _scene_widget->add_vehicle(T);
+        _scene_widget->add_vehicle(attribs);
     QTreeWidgetItem* veh = new QTreeWidgetItem();
     veh->setText(0, veh_name);
     vehicle_type->addChild(veh);
     menus_popups[veh_name]=&primary_win::vehicle_menu;
     vehicles[veh_name] = veh;
+    qDebug() << "new vehicle " << veh_name << " added with angle: " << attribs.angle;
+}
+void primary_win::edit_vehicle(const QString& _name){
+    auto veh{_scene_widget->model_vehicles->find
+                (_name.toStdString())};
+    item_inputs_form inputs_d(veh->current_state());
+    inputs_d.setWindowTitle("edit vehicle");
+    inputs_d.setModal(1);
 
-    qDebug() << "new vehicle " << veh_name << " added with angle: " << T.angle;
+    if (inputs_d.exec() == QDialog::Accepted)
+        veh->update_positional_attributes(inputs_d.attribs);
+//        _scene_widget->edit_vehicle(inputs_d.attribs);
+    qDebug() << "edit vehicle: "<< _name <<" \n";
 }
 void primary_win::new_obstacle(void)
 {
@@ -224,6 +222,7 @@ void primary_win::new_obstacle(void)
         add_obstacle(inputs_d.attribs,0);
     }
 }
+
 void primary_win::edit_obstacle(const QString& _name){
     qDebug() << "edit obstacle: "<< _name<< " \n";
     obstacle_attribs<GLdouble> attribs
@@ -272,7 +271,7 @@ void primary_win::delete_vehicle(const QString& _name){
           "delete vehicle '"+_name+"' ?",
           QMessageBox::Ok|QMessageBox::Cancel) == QMessageBox::Ok){
         if(_scene_widget->current_model != nullptr)
-            if(_scene_widget->current_model->name == _name.toStdString()){
+            if(_scene_widget->current_model->attribs.name == _name.toStdString()){
                 _scene_widget->current_model
                         = _scene_widget->getOtherVeh
                         (_name.toStdString());
@@ -297,12 +296,7 @@ void primary_win::delete_obstacle(const QString& _name){
         obstacles.erase(_name);
         qDebug() << "deleted obstacle: "<< _name<< " \n";
     }
-
 }
-void primary_win::edit_vehicle(const QString& _name){
-    qDebug() << "edit vehicle: "<< _name <<" \n";
-}
-
 
 void primary_win::vehicle_type_menu(const QPoint& pos){
     qDebug() << pos << ", vehicle type call \n";

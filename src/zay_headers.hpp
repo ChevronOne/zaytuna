@@ -132,12 +132,12 @@ typedef QGLWidget QGL_WIDGET_VERSION;
 #define NUM_SEC_FRAME_RATE 1.0 // number of seconds to display frame rate
 #define WIDTH 800
 #define HEIGHT 500
+#define NUM_SAMPLES_PER_PIXEL 8
 
 
 
 //--------------------------
 
-//#define GLM_FORCE_SINGLE_ONLY
 #include <glm/vec3.hpp>
 #include "glm/glm.hpp"
 #include <glm/gtc/matrix_transform.hpp>
@@ -145,6 +145,7 @@ typedef QGLWidget QGL_WIDGET_VERSION;
 #include <glm/gtc/type_ptr.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/transform.hpp>
+#include <glm/gtx/vector_angle.hpp>
 
 
 

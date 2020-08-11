@@ -301,7 +301,8 @@ class model_vehicle : public scene_object
 //    ptr_vector<vehicle_attribute*> vehicles;
     boost::ptr_vector<vehicle_attribute> vehicles;
 
-    boost::ptr_vector<vehicle_attribute>::iterator find(const std::string&);
+    boost::ptr_vector<vehicle_attribute>::iterator
+    find(const std::string&);
 
 
     virtual void clean_up(void) override;
@@ -324,10 +325,8 @@ public:
                             GLuint&) override;
     virtual void render_obj(zaytuna::camera const*const) override;
     virtual GLsizeiptr buffer_size(void) const override;
-    void add_vehicle(const std::string&,
-                     QGLFramebufferObject *const,
-                     const glm::dmat4 _rotaion = glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0)),
-                     const glm::dmat4 _translation =glm::translate(glm::dvec3(0.0, 0.0, 0.0)));
+    void add_vehicle(QGLFramebufferObject *const,
+                     const transform_attribs<GLdouble>);
     void delete_vehicle(void*);
 
 

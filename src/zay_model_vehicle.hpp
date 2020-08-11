@@ -54,14 +54,15 @@ class vehicle_attribute
 {
 //    Q_OBJECT
     USED_GL_VERSION* _widg{nullptr};
-    QImage local_cam_img;
-    std::vector<GLubyte> raw_img{std::vector<GLubyte>( WIDTH * HEIGHT * 3, 0 )};
+    QImage local_cam_img;//{QImage(WIDTH, HEIGHT, QImage::Format_RGB888)};
+//    std::vector<GLubyte> raw_img{std::vector<GLubyte>( WIDTH * HEIGHT * 3, 0 )};
 
     std::chrono::time_point<std::chrono::_V2::system_clock,
                     std::chrono::nanoseconds> timer_t;
 
 
-    std::string name{"uninitialized_object_name"};
+//    std::string name{"uninitialized_object_name"};
+    transform_attribs<GLdouble> attribs;
     QGLFramebufferObject* localView_buffer{nullptr};
 
     double elapsed_t;
@@ -74,15 +75,13 @@ class vehicle_attribute
 
 public:
     vehicle_attribute() = default;
-    explicit vehicle_attribute(USED_GL_VERSION*,
-                 const std::string&,
-                 QGLFramebufferObject *const,
-                 const glm::dmat4 _rotaion = glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0)),
-                 const glm::dmat4 _translation = glm::translate(glm::dvec3(0.0, 0.0, 0.0)));
+    explicit vehicle_attribute
+            (USED_GL_VERSION*,
+             QGLFramebufferObject *const,
+             const transform_attribs<GLdouble>);
     ~vehicle_attribute();
 
     void actuate();
-
 
     glm::dvec3 vehic_direction;
     const glm::dvec3 up_direction{0.0, 1.0, 0.0};
@@ -114,10 +113,11 @@ public:
     void update_rotation_att();
     void update_steerin(void);
     void update_cent(void);
-    void update_positional_attributes(const glm::dmat4&, const glm::dmat4&);
+    void update_positional_attributes(const transform_attribs<GLdouble>);
 
     void pubFront_img(void);
     void captureBuffer(void);
+    transform_attribs<GLdouble> current_state(void);
 
 
     glm::dmat4 transformationMats[5]; // /model vehicle/, /right front tire/, /left front tire/, /back tires/, /lidar/

@@ -21,13 +21,15 @@ class item_inputs_form : public QDialog
     friend class primary_win;
 public:
     explicit item_inputs_form(QWidget *parent = 0);
+    explicit item_inputs_form(transform_attribs<GLdouble>,
+                              QWidget *parent = 0);
     ~item_inputs_form();
 
 private slots:
     void on_decision_tools_accepted();
 
 private:
-    transform_attribs<GLdouble> transform;
+    transform_attribs<GLdouble> attribs;
     Ui::item_inputs_form *ui;
 };
 

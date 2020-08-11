@@ -372,7 +372,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>Wall   0.35x0.5x0.2</string>
+     <string>Brick Wall   0.35x0.5x0.2</string>
     </property>
    </widget>
    <widget class="QRadioButton" name="wall2_radio">
@@ -385,7 +385,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>Wall   1.5x0.6x0.2</string>
+     <string>Stone Wall   1.5x0.6x0.2</string>
     </property>
     <property name="checked">
      <bool>true</bool>

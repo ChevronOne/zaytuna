@@ -22,7 +22,7 @@ obstacle_inputs_form::obstacle_inputs_form(obstacle_attribs<GLdouble> attribs,
     case Obstacle_Type::CARTON_BOX:
         ui->carton_box_radio->setChecked(1);
         break;
-    case Obstacle_Type::WALL_1:
+    case Obstacle_Type::BRICK_WALL:
         ui->wall1_radio->setChecked(1);
         break;
     default:
@@ -42,8 +42,8 @@ void obstacle_inputs_form::on_decision_tools_accepted()
     if(ui->carton_box_radio->isChecked())
         this->attribs.type = Obstacle_Type::CARTON_BOX;
     else if(ui->wall1_radio->isChecked())
-        this->attribs.type = Obstacle_Type::WALL_1;
-    else this->attribs.type = Obstacle_Type::WALL_2;
+        this->attribs.type = Obstacle_Type::BRICK_WALL;
+    else this->attribs.type = Obstacle_Type::STONE_WALL;
     this->attribs.angle = ui->angle->value();
     this->attribs.translation_vec.x = ui->T_X->value();
     this->attribs.translation_vec.z = ui->T_Z->value();

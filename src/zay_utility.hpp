@@ -70,7 +70,7 @@ public:
             delete *it;
     }
 };
-enum class Obstacle_Type { CARTON_BOX, WALL_1, WALL_2 };
+enum class Obstacle_Type { CARTON_BOX, BRICK_WALL, STONE_WALL };
 
 template<class T>
 struct transform_attribs
@@ -101,14 +101,14 @@ struct transform_attribs
     glm::tmat4x4<T> translationMat() const {
         return glm::translate(translation_vec); }
     glm::tmat4x4<T> transformMat() const{
-        return translationMat()*rotationMat();
+        return this->translationMat()*this->rotationMat();
     }
 };
 
 template<class T>
 struct obstacle_attribs : public transform_attribs<T>
 {
-    Obstacle_Type type{Obstacle_Type::WALL_2};
+    Obstacle_Type type{Obstacle_Type::STONE_WALL};
     obstacle_attribs() = default;
     obstacle_attribs(Obstacle_Type type,
                      const std::string& name,
