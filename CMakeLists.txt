@@ -5,9 +5,9 @@ project(zaytuna)
 set(CMAKE_BUILD_TYPE Release)
 
 set(CMAKE_CXX_FLAGS_RELEASE "-O2")
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 14)
 # set_property(TARGET zaytuna PROPERTY CXX_STANDARD 20)
-add_compile_options(-lstdc++fs -O2 -Wall -Wextra -pedantic -Werror)
+add_compile_options(-O2 -Wall)
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)

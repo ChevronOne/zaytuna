@@ -112,7 +112,7 @@ class _scene_widg : public QGL_WIDGET_VERSION, protected USED_GL_VERSION // QOpe
     double front_cam_freq{FRONT_CAM_FREQUENCY}; // Hz
     double imgs_sec{1.0/FRONT_CAM_FREQUENCY};
     uint32_t frames_counter{0};
-    std::chrono::time_point<std::chrono::_V2::system_clock,
+    std::chrono::time_point<std::chrono::high_resolution_clock,
                     std::chrono::nanoseconds> start_t;
     camera mainCam ;
     camera* activeCam{nullptr};

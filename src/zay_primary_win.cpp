@@ -71,7 +71,7 @@ primary_win::primary_win(QWidget *parent) :
 
     ///////////////////////////////////////
     scene_objects = new QTreeWidget(ui->edit_frame);
-    scene_objects->setGeometry(QRect(300, 10, 150, 250));
+    scene_objects->setGeometry(QRect(350, 10, 230, 330));
     scene_objects->setColumnCount(1);
     scene_objects->setObjectName(QStringLiteral("objects"));
     scene_objects->setEnabled(true);

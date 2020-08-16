@@ -73,8 +73,10 @@ shape_data<vertexL1_16> obj_parser::extractExternal
     (const std::string& _dir){
 
     std::ifstream f_stream(_dir, std::ios::in);
-    if( !f_stream.is_open())
-        throw std::runtime_error("could not open file <"+_dir+">\n");
+    if( !f_stream.is_open()){
+        std::cerr << "could not open file <" << _dir << ">\n";
+        exit(EXIT_FAILURE);
+    }
     
     boost::spirit::istream_iterator _head(f_stream >> std::noskipws), _tail;
     OBJ primitives;

@@ -37,8 +37,6 @@
 
 
 
-
-
 #include "zay_scene_widg.hpp"
 #include "zay_primary_win.hpp"
 
@@ -104,14 +102,13 @@ void _scene_widg::initializeGL()
         initShader(ros::package::getPath("zaytuna")+"/Shaders/source"+std::to_string(i), programs[i], i);
 
     send_data();
-
-    std::cout << "Zaytuna Simulator " <<(int)ZAYTUNA_VERSION << "." << (int)ZAYTUNA_MINOR_VERSION << ", "
+    std::cout << "  Zaytuna Simulator " <<(int)ZAYTUNA_VERSION << "." << (int)ZAYTUNA_MINOR_VERSION << ", "
               << "running with following system specifications:\n" << std::flush;
              
-    std::cout << "  Vendor: " << reinterpret_cast<const char*>(glGetString(GL_VENDOR)) << "\n"
-              << "  Renderer: " << reinterpret_cast<const char*>(glGetString(GL_RENDERER)) << "\n"
-              << "  OpenGL Version: " << reinterpret_cast<const char*>(glGetString(GL_VERSION)) << "\n"
-              << "  GL Shading Language Version: " << reinterpret_cast<const char*>(glGetString(GL_SHADING_LANGUAGE_VERSION)) << "\n" << std::flush;
+    ROS_INFO_STREAM("Vendor: " << reinterpret_cast<const char*>(glGetString(GL_VENDOR)));
+    ROS_INFO_STREAM("Renderer: " << reinterpret_cast<const char*>(glGetString(GL_RENDERER)));
+    ROS_INFO_STREAM("OpenGL Version: " << reinterpret_cast<const char*>(glGetString(GL_VERSION)));
+    ROS_INFO_STREAM("GL Shading Language Version: " << reinterpret_cast<const char*>(glGetString(GL_SHADING_LANGUAGE_VERSION)));
 
     timer.start(0);
     start_t = std::chrono::high_resolution_clock::now();
@@ -122,7 +119,16 @@ void _scene_widg::render_local_scene(camera const*const current_cam)
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    /*
+    uint32_t i{0};
+	for(; i<environmental_objects.size(); ++i)
+        environmental_objects[i]->render_obj(current_cam);
+    for(i=0; i<lap_objects.size(); ++i)
+        lap_objects[i]->render_obj(current_cam);
+
+    obstacle_objects->render_obj(current_cam);
+    
+	
+	/*
      * disable 'grid' and 'coordinates' from vehicles cam
      *
     */
@@ -133,15 +139,6 @@ void _scene_widg::render_local_scene(camera const*const current_cam)
 //    if(grid_checked)
 //        basic_objects[1]->render_obj(current_cam);
 
-
-    uint32_t i{0};
-    for( ; i<lap_objects.size(); ++i)
-        lap_objects[i]->render_obj(current_cam);
-
-    for(i=0; i<environmental_objects.size(); ++i)
-        environmental_objects[i]->render_obj(current_cam);
-
-    obstacle_objects->render_obj(current_cam);
 
     model_vehicles->render_obj(current_cam);
 }
@@ -207,20 +204,18 @@ void _scene_widg::render_main_scene(camera const*const current_cam)
 {
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    uint32_t i{0};
+	for(; i<environmental_objects.size(); ++i)
+        environmental_objects[i]->render_obj(current_cam);
+    for(i=0; i<lap_objects.size(); ++i)
+        lap_objects[i]->render_obj(current_cam);
+
+    obstacle_objects->render_obj(current_cam);
     if(coord_checked)
         basic_objects[0]->render_obj(current_cam);
     if(grid_checked)
         basic_objects[1]->render_obj(current_cam);
-
-    uint32_t i{0};
-    for( ; i<lap_objects.size(); ++i)
-        lap_objects[i]->render_obj(current_cam);
-
-    for(i=0; i<environmental_objects.size(); ++i)
-        environmental_objects[i]->render_obj(current_cam);
-
-    obstacle_objects->render_obj(current_cam);
-
     model_vehicles->render_obj(current_cam);
 }
 

@@ -66,14 +66,6 @@
 
 #include <QDebug>
 
-#if __has_include(<filesystem>)
-#include <filesystem>
-namespace fs = std::filesystem;
-#else
-#include <experimental/filesystem>
-namespace fs = std::experimental::filesystem::v1;
-#endif
-
 #include "ros/ros.h"
 #include "geometry_msgs/Vector3.h"
 #include "nav_msgs/Odometry.h"
@@ -83,7 +75,9 @@ namespace fs = std::experimental::filesystem::v1;
 #include "std_msgs/Float64.h"
 #include "sensor_msgs/Image.h"
 #include "ros/package.h"
+#include "ros/console.h"
 
+#define BOOST_PYTHON_STATIC_LIB
 #define BOOST_MAJOR_VERSION BOOST_VERSION / 0x186A0 
 #define BOOST_MINOR_VERSION BOOST_VERSION / 0x64 % 0x3E8
 #define BOOST_PATCH_LEVEL BOOST_VERSION % 0x64
@@ -99,8 +93,9 @@ typedef QGLWidget QGL_WIDGET_VERSION;
 #endif
 
 
-
+#ifndef _USE_MATH_DEFINES
 #define _USE_MATH_DEFINES
+#endif
 #include <math.h>
 #ifndef M_PI
 # define M_E		2.7182818284590452354	/* e */
@@ -149,16 +144,16 @@ typedef QGLWidget QGL_WIDGET_VERSION;
 
 
 ////--------GLM---------------
-#include <glm/vec3.hpp>
+#include "glm/vec3.hpp"
 #include "glm/glm.hpp"
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/constants.hpp>
-#include <glm/gtc/type_ptr.hpp>
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtc/constants.hpp"
+#include "glm/gtc/type_ptr.hpp"
 #define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/transform.hpp>
-#include <glm/gtx/vector_angle.hpp>
+#include "glm/gtx/transform.hpp"
+#include "glm/gtx/vector_angle.hpp"
 
-#include <glm/gtc/quaternion.hpp>
+#include "glm/gtc/quaternion.hpp"
 
 
 

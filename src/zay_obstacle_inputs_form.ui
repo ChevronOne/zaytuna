@@ -58,7 +58,7 @@
       <rect>
        <x>10</x>
        <y>27</y>
-       <width>161</width>
+       <width>201</width>
        <height>31</height>
       </rect>
      </property>
@@ -69,9 +69,9 @@
     <widget class="QDoubleSpinBox" name="angle">
      <property name="geometry">
       <rect>
-       <x>175</x>
+       <x>210</x>
        <y>30</y>
-       <width>71</width>
+       <width>81</width>
        <height>26</height>
       </rect>
      </property>
@@ -85,9 +85,9 @@
     <widget class="QLabel" name="degrees_lab">
      <property name="geometry">
       <rect>
-       <x>255</x>
+       <x>300</x>
        <y>27</y>
-       <width>71</width>
+       <width>91</width>
        <height>31</height>
       </rect>
      </property>
@@ -100,7 +100,7 @@
       <rect>
        <x>10</x>
        <y>60</y>
-       <width>161</width>
+       <width>201</width>
        <height>31</height>
       </rect>
      </property>
@@ -324,7 +324,7 @@
       <rect>
        <x>10</x>
        <y>30</y>
-       <width>181</width>
+       <width>271</width>
        <height>31</height>
       </rect>
      </property>
@@ -339,7 +339,7 @@
     <rect>
      <x>10</x>
      <y>20</y>
-     <width>311</width>
+     <width>411</width>
      <height>161</height>
     </rect>
    </property>
@@ -351,7 +351,7 @@
      <rect>
       <x>20</x>
       <y>30</y>
-      <width>251</width>
+      <width>371</width>
       <height>31</height>
      </rect>
     </property>
@@ -367,7 +367,7 @@
      <rect>
       <x>20</x>
       <y>70</y>
-      <width>251</width>
+      <width>371</width>
       <height>31</height>
      </rect>
     </property>
@@ -380,7 +380,7 @@
      <rect>
       <x>20</x>
       <y>110</y>
-      <width>251</width>
+      <width>371</width>
       <height>31</height>
      </rect>
     </property>

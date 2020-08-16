@@ -71,7 +71,7 @@ class vehicle_attributes
     sensor_msgs::Image_<std::allocator<void>> local_cam_msg;
     QImage local_cam_img{QImage(WIDTH, HEIGHT, QImage::Format_RGB888)};
 
-    std::chrono::time_point<std::chrono::_V2::system_clock,
+    std::chrono::time_point<std::chrono::high_resolution_clock,
                     std::chrono::nanoseconds> timer_t;
     
     USED_GL_VERSION* _widg{nullptr};
