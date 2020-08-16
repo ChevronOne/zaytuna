@@ -217,10 +217,6 @@ struct vertexL1_F {
     glm::vec3 normal; // x y z
 };
 
-struct details{
-    uint32_t _begin, _strid, _size;
-};
-
 
 } // namespace
 

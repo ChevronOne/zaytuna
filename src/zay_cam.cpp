@@ -121,7 +121,7 @@ void camera::mouse_update(const glm::dvec2& new_mouse_position)
                                             * view_direction;
     mouse_position = new_mouse_position;
 }
-glm::dvec2 camera::get_moutse_position(){
+glm::dvec2 camera::get_mouse_position(){
     return mouse_position;
 }
 

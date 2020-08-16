@@ -76,7 +76,7 @@ protected:
 private slots:
     void on_grid_check_clicked(bool);
     void on_coord_check_clicked(bool);
-    void update_displys(void);
+    void update_displays(void);
     void on_cam_movement_speed_valueChanged(double);
     void on_cam_rotation_speed_valueChanged(double);
     void on_speedV_valueChanged(int);

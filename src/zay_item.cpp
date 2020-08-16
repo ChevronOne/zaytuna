@@ -193,7 +193,7 @@ GLsizeiptr external_obj::buffer_size() const{
 zaytuna::coord_sys::coord_sys(USED_GL_VERSION * const _widg,
                               const GLuint programID,
                               const std::string& _name,
-                              const GLfloat axes_lenght,
+                              const GLfloat axes_length,
                               const GLfloat line_width,
                               const glm::dmat4 _rotation,
                               const glm::dmat4 _translation):
@@ -201,7 +201,7 @@ zaytuna::coord_sys::coord_sys(USED_GL_VERSION * const _widg,
                      _rotation, _translation ),
         name{_name}, LINE_WIDTH{line_width}
 {
-    primitives = shape_maker<zaytuna::vertexL1_12>::makeCoord(axes_lenght);
+    primitives = shape_maker<zaytuna::vertexL1_12>::makeCoord(axes_length);
 
 }
 
@@ -290,7 +290,7 @@ zaytuna::grid_plane::grid_plane(USED_GL_VERSION * const _widg,
                               const std::string& _name,
                               const GLfloat length,
                               const GLfloat width,
-                              const GLfloat tessellatio,
+                              const GLfloat tessellation,
                               const GLfloat line_width,
                               const glm::dmat4 _rotation,
                               const glm::dmat4 _translation):
@@ -300,7 +300,7 @@ zaytuna::grid_plane::grid_plane(USED_GL_VERSION * const _widg,
 {
     primitives =
             shape_maker<zaytuna::vertexL1_12>::makeGrid(length,
-                                                        width, tessellatio);
+                                                        width, tessellation);
 }
 
 grid_plane::~grid_plane(){

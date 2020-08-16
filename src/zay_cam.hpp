@@ -53,7 +53,7 @@ public:
     void updateProjection(const double&, const double&);
     void updateWorld_to_viewMat();
     void mouse_update(const glm::dvec2&);
-    glm::dvec2 get_moutse_position();
+    glm::dvec2 get_mouse_position();
     void move_forward(void);
     void move_backward(void);
     void move_up(void);

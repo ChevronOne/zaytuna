@@ -125,11 +125,7 @@ void _scene_widg::render_local_scene(camera const*const current_cam)
     /*
      * disable 'grid' and 'coordinates' from vehicles cam
      *
-     * if they needed to be added again, then
-     * they should be removed from 'render_main_scene()' first
-     *
-     *
-     */
+    */
 
 //    if(coord_checked)
 //        basic_objects[0]->render_obj(current_cam);
@@ -156,7 +152,7 @@ void _scene_widg::paintGL()
    ros::spinOnce();
 
     if(activeCam == &mainCam){
-        updat_cam();
+        update_cam();
         if(activeCam->auto_perspective ){
             if(activeCam->camera_position.y < 1.0)
                 activeCam->NEAR_PLANE = 0.01;
@@ -275,7 +271,7 @@ void _scene_widg::mouseMoveEvent(QMouseEvent *ev){
     }
 }
 
-void _scene_widg::updat_cam(){
+void _scene_widg::update_cam(){
     if(k_forward)
         mainCam.move_forward();
     else if(k_backward)

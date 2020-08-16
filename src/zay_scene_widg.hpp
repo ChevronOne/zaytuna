@@ -86,7 +86,7 @@ class _scene_widg : public QGL_WIDGET_VERSION, protected USED_GL_VERSION // QOpe
     void checkError(GLuint, GLuint,
                     VarType, const std::string&);
     unsigned int compileShader(const std::string&, GLenum);
-    void updat_cam(void);
+    void update_cam(void);
     void add_default_obj(void);
 
     void initShader(const std::string&, GLuint&,

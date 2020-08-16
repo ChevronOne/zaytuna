@@ -54,7 +54,7 @@ public:
     makeSphere(GLfloat PERS = 0.1f,
                GLfloat RAD = 1,
                glm::vec3 CENT = glm::vec3(0.0f, 0.0f, 0.0f));
-    static shape_data<VERT> makePyramide();
+    static shape_data<VERT> makePyramid();
 
     static shape_data<VERT> makeCube(void);
     static shape_data<VERT> makeCubemap(void);

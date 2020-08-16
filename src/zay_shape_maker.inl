@@ -233,9 +233,9 @@ shape_maker<VERT>::makeSphere(GLfloat PERS,
 }
 
 template <typename VERT>
-shape_data<VERT> shape_maker<VERT>::makePyramide()
+shape_data<VERT> shape_maker<VERT>::makePyramid()
 {
-    shape_data<VERT> pyramide;
+    shape_data<VERT> pyramid;
     VERT verts[] = {
         glm::vec3(+0.0f, +1.0f, +0.0f), // 0
         glm::vec3(+0.0f, +0.5f, +0.2f), // color
@@ -278,14 +278,14 @@ shape_data<VERT> shape_maker<VERT>::makePyramide()
         4, 5, 7, 5, 6, 7, // bottom
     };
 
-    pyramide.verNum = NUM_OF(verts);
-    pyramide.verts = new VERT[pyramide.verNum];
-    memcpy(pyramide.verts, verts, sizeof(verts));
-    pyramide.indNum = NUM_OF(indices);
-    pyramide.indices = new unsigned int[pyramide.indNum];
-    memcpy(pyramide.indices, indices, sizeof(indices));
+    pyramid.verNum = NUM_OF(verts);
+    pyramid.verts = new VERT[pyramid.verNum];
+    memcpy(pyramid.verts, verts, sizeof(verts));
+    pyramid.indNum = NUM_OF(indices);
+    pyramid.indices = new unsigned int[pyramid.indNum];
+    memcpy(pyramid.indices, indices, sizeof(indices));
 
-    return pyramide;
+    return pyramid;
 }
 
 

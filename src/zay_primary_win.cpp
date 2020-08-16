@@ -107,7 +107,7 @@ primary_win::primary_win(QWidget *parent) :
     ui->speedDis->setText(QString::number(0));
     ui->steeringDis->setText(QString::number(0));
 
-    connect(&timer, SIGNAL(timeout()), this, SLOT(update_displys()));
+    connect(&timer, SIGNAL(timeout()), this, SLOT(update_displays()));
     timer.start(1000);
 
     ////-------default--objects--------
@@ -221,9 +221,9 @@ void primary_win::front_cam_to_screen(const QString& _name){
 }
 void primary_win::delete_vehicle(const QString& _name){
     if(QMessageBox::question(this,
-          "delete vehicle",
-          "delete vehicle '"+_name+"' ?",
-          QMessageBox::Ok|QMessageBox::Cancel) == QMessageBox::Ok){
+                "delete vehicle",
+                "delete vehicle '"+_name+"' ?",
+                QMessageBox::Ok|QMessageBox::Cancel) == QMessageBox::Ok){
         if(_scene_widget->current_model != nullptr)
             if(_scene_widget->current_model->attribs.name == _name.toStdString()){
                 _scene_widget->current_model
@@ -241,9 +241,9 @@ void primary_win::delete_vehicle(const QString& _name){
 }
 void primary_win::delete_obstacle(const QString& _name){
     if(QMessageBox::question(this,
-          "delete obstacle",
-          "delete obstacle '"+_name+"' ?",
-          QMessageBox::Ok|QMessageBox::Cancel) == QMessageBox::Ok){
+            "delete obstacle",
+            "delete obstacle '"+_name+"' ?",
+            QMessageBox::Ok|QMessageBox::Cancel) == QMessageBox::Ok){
         _scene_widget->delete_obstacle(_name.toStdString());
         obstacle_type->removeChild(obstacles[_name]);
         obstacles.erase(_name);
@@ -327,7 +327,7 @@ void primary_win::closeEvent(QCloseEvent *event){
      std::cout << "exited normally\n" << "close ptr: " << event << "\n";
 }
 
-void primary_win::update_displys()
+void primary_win::update_displays()
 {
 
     ui->lcdCamViewX->display(_scene_widget->activeCam->view_direction.x);
