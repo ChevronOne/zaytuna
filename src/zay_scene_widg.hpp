@@ -97,12 +97,12 @@ class _scene_widg : public QGL_WIDGET_VERSION, protected USED_GL_VERSION // QOpe
     void updateProjection(void);
     void cleanUp();
     void draw_local(void);
-    inline void render_scene(zaytuna::camera const*const);
+    inline void render_main_scene(zaytuna::camera const*const);
+    inline void render_local_scene(zaytuna::camera const*const);
     void add_vehicle(const transform_attribs<GLdouble>&);
     void add_obstacle(const obstacle_attribs<GLdouble>&);
     void delete_vehicle(const std::string&);
     void delete_obstacle(const std::string&);
-    void edit_vehicle(const transform_attribs<GLdouble>&);
     void edit_obstacle(const obstacle_attribs<GLdouble>&);
     void update_current_vehicle(const std::string&);
     obstacle_attribs<GLdouble> get_obstacle(const std::string&);

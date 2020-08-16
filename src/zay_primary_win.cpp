@@ -187,13 +187,14 @@ void primary_win::edit_obstacle(const QString& _name){
     obstacle_inputs_form inputs_d(attribs);
     inputs_d.setWindowTitle("edit obstacle");
     inputs_d.setModal(1);
-    if (inputs_d.exec() == QDialog::Accepted)
+    if (inputs_d.exec() == QDialog::Accepted){
         if(inputs_d.attribs.type == attribs.type)
             _scene_widget->edit_obstacle(inputs_d.attribs);
         else{
             _scene_widget->delete_obstacle(_name.toStdString());
             _scene_widget->add_obstacle(inputs_d.attribs);
         }
+    }
 }
 void primary_win::add_obstacle
     (obstacle_attribs<GLdouble> attribs,
@@ -323,7 +324,7 @@ primary_win::~primary_win()
 }
 
 void primary_win::closeEvent(QCloseEvent *event){
-    // std::cout << "exited normally\n" << "close ptr: " << event << "\n";
+     std::cout << "exited normally\n" << "close ptr: " << event << "\n";
 }
 
 void primary_win::update_displys()

@@ -118,16 +118,25 @@ void _scene_widg::initializeGL()
 }
 
 
-void _scene_widg::render_scene(camera const*const current_cam)
+void _scene_widg::render_local_scene(camera const*const current_cam)
 {
-
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    if(coord_checked)
-        basic_objects[0]->render_obj(current_cam);
+    /*
+     * disable 'grid' and 'coordinates' from vehicles cam
+     *
+     * if they needed to be added again, then
+     * they should be removed from 'render_main_scene()' first
+     *
+     *
+     */
 
-    if(grid_checked)
-        basic_objects[1]->render_obj(current_cam);
+//    if(coord_checked)
+//        basic_objects[0]->render_obj(current_cam);
+
+//    if(grid_checked)
+//        basic_objects[1]->render_obj(current_cam);
+
 
     uint32_t i{0};
     for( ; i<lap_objects.size(); ++i)
@@ -164,14 +173,11 @@ void _scene_widg::paintGL()
         }
     }
 
-    for(uint32_t i{0}; i<model_vehicles->vehicles.size(); ++i){
+    for(uint32_t i{0}; i<model_vehicles->vehicles.size(); ++i)
         model_vehicles->vehicles[i].update_attribs();
-    }
-
     if(activeCam==&mainCam)
         mainCam.updateWorld_to_viewMat();
-
-    render_scene(activeCam);
+    render_main_scene(activeCam);
 
     // frame's rate
     elapsed = std::chrono::duration<double,
@@ -181,31 +187,45 @@ void _scene_widg::paintGL()
 
     elap_accumulated += elapsed;
     cam_freq_accumulated += elapsed;
+    ++frames_counter;
+
+    if(elap_accumulated>=NUM_SEC_FRAME_RATE) {
+//        std::cout << DebugGLerr(glGetError()) << "\n";
+        frame_rate = 1.0/(elap_accumulated/frames_counter);
+        elap_accumulated = frames_counter = 0;
+    }
 
     if(cam_freq_accumulated>=imgs_sec){
         for(uint32_t i{0}; i<model_vehicles->vehicles.size(); ++i){
             model_vehicles->vehicles[i].localView_buffer->bind();
-            render_scene(&(model_vehicles->vehicles[i].frontCam));
+            render_local_scene(&(model_vehicles->vehicles[i].frontCam));
             model_vehicles->vehicles[i].grab_buffer();
-            // model_vehicles->vehicles[i].local_cam_img = model_vehicles->vehicles[i].localView_buffer->toImage();
         }
         glBindFramebuffer(GL_FRAMEBUFFER,  0);
         cam_freq_accumulated = 0.0;
     }
 
-    ++frames_counter;
-    if(elap_accumulated>=NUM_SEC_FRAME_RATE) {
-//        std::cout << DebugGLerr(glGetError()) << "\n";
-//        img = this->grabFrameBuffer();
+}
 
-        // for(uint32_t i{0}; i<model_vehicles->vehicles.size(); ++i)
-        //     model_vehicles->vehicles[i].captureBuffer();
-        //     // model_vehicles->vehicles[i].pubFront_img();
+void _scene_widg::render_main_scene(camera const*const current_cam)
+{
 
-        frame_rate = 1.0/(elap_accumulated/frames_counter);
-        elap_accumulated = frames_counter = 0;
-    }
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    if(coord_checked)
+        basic_objects[0]->render_obj(current_cam);
+    if(grid_checked)
+        basic_objects[1]->render_obj(current_cam);
 
+    uint32_t i{0};
+    for( ; i<lap_objects.size(); ++i)
+        lap_objects[i]->render_obj(current_cam);
+
+    for(i=0; i<environmental_objects.size(); ++i)
+        environmental_objects[i]->render_obj(current_cam);
+
+    obstacle_objects->render_obj(current_cam);
+
+    model_vehicles->render_obj(current_cam);
 }
 
 void _scene_widg::resizeGL(int W, int H)
@@ -759,10 +779,7 @@ obstacle_attribs<GLdouble>
 _scene_widg::get_obstacle(const std::string& _name){
     return obstacle_objects->get_attribs(_name);
 }
-void _scene_widg::edit_vehicle
-    (const transform_attribs<GLdouble>& attribs){
 
-}
 void _scene_widg::edit_obstacle
     (const obstacle_attribs<GLdouble>& attribs){
     auto it = obstacle_objects->find(attribs.name);

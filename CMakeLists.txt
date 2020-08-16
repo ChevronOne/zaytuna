@@ -4,12 +4,10 @@ project(zaytuna)
 
 set(CMAKE_BUILD_TYPE Release)
 
-# set(CMAKE_CXX_FLAGS "-Wall -Wextra")
-# set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O2")
 set(CMAKE_CXX_STANDARD 17)
 # set_property(TARGET zaytuna PROPERTY CXX_STANDARD 20)
-add_compile_options(-lstdc++fs -O2)
+add_compile_options(-lstdc++fs -O2 -Wall -Wextra -pedantic -Werror)
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
@@ -270,8 +268,8 @@ set(zaytuna_sources
   )
 
 #---------------------------------------------
-add_executable(zaytuna ${zaytuna_ui} ${zaytuna_headers} ${zaytuna_sources})
-target_link_libraries(zaytuna 
+add_executable(zay_simu ${zaytuna_ui} ${zaytuna_headers} ${zaytuna_sources})
+target_link_libraries(zay_simu 
     Qt5::Core
     Qt5::Gui
     Qt5::Widgets

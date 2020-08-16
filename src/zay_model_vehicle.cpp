@@ -74,14 +74,14 @@ zaytuna::vehicle_attributes::vehicle_attributes
     transformationMats[4] = lidar;
 
     gps_pub = node_handle.advertise<geometry_msgs::Vector3>
-            ("zaytuna/"+attribs.name+"/gps",10);
+            ("zaytuna/"+attribs.name+"/gps/localization",10);
     orientation_pub = node_handle.advertise<geometry_msgs::Vector3>
-            ("zaytuna/"+attribs.name+"/orientation",10);
+            ("zaytuna/"+attribs.name+"/compass/orientation",10);
     ticks_pub = node_handle.advertise<std_msgs::UInt32>
-            ("zaytuna/"+attribs.name+"/ticks",10);
+            ("zaytuna/"+attribs.name+"/sensors/ticks",10);
 
     cam_pub = node_handle.advertise<sensor_msgs::Image>
-            ("zaytuna/"+attribs.name+"/front_cam",0);
+            ("zaytuna/"+attribs.name+"/sensors/front_cam",0);
 
     speed_sub = node_handle.subscribe
             ("zaytuna/"+attribs.name+"/speed", 1,
