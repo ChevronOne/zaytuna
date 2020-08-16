@@ -1,10 +1,11 @@
 #include "zay_obstacle_inputs_form.hpp"
 #include "ui_zay_obstacle_inputs_form.h"
+
 namespace zaytuna {
+
 obstacle_inputs_form::obstacle_inputs_form(QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::obstacle_inputs_form)
-{
+        QDialog(parent),
+        ui(new Ui::obstacle_inputs_form){
     ui->setupUi(this);
 }
 
@@ -32,8 +33,7 @@ obstacle_inputs_form::obstacle_inputs_form(obstacle_attribs<GLdouble> attribs,
 }
 
 
-obstacle_inputs_form::~obstacle_inputs_form()
-{
+obstacle_inputs_form::~obstacle_inputs_form(){
     delete ui;
 }
 
@@ -49,4 +49,8 @@ void obstacle_inputs_form::on_decision_tools_accepted()
     this->attribs.translation_vec.z = ui->T_Z->value();
 }
 
-}
+} //  namespace zaytuna
+
+
+
+

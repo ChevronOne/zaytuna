@@ -38,40 +38,15 @@
 #include "zay_cam.hpp"
 
 
-
-
 namespace zaytuna {
 
-camera::camera() : FIELD_OF_VIEW{55.0}, NEAR_PLANE{0.01}, FAR_PLANE{400.0}, auto_perspective{1},
-
-
-
-//    view_direction(glm::dvec3(-0.75f , -0.28f , -0.61f)),
-//    up_direction(glm::dvec3(0.0f, 1.0f, 0.0f)),
-//  camera_position(glm::dvec3(56.87f , 22.3f, 45.55f))
-
-
-view_direction{glm::dvec3(-0.41f , -0.6f , -0.68f)},
-up_direction{glm::dvec3(0.0f, 1.0f, 0.0f)},
-camera_position{glm::dvec3(+8.55f , 3.26f, 3.5f)}
-
-
-//view_direction{glm::dvec3(0.0f , 0.0f , -1.0f)},
-//up_direction{glm::dvec3(0.0f, 1.0f, 0.0f)},
-//camera_position{glm::dvec3(+0.0f , 5.0f, 0.0f)}
-
-
-
-
-//view_direction(glm::dvec3(+1.0f , -0.26f , 0.0f)),
-//up_direction(glm::dvec3(0.0f, 1.0f, 0.0f)),
-//camera_position(glm::dvec3(+1.8f , 0.3f, -0.65f))
-{
-
+camera::camera() : FIELD_OF_VIEW{55.0}, NEAR_PLANE{0.01}, 
+            FAR_PLANE{400.0}, auto_perspective{1},
+            view_direction{glm::dvec3(-0.41f , -0.6f , -0.68f)},
+            up_direction{glm::dvec3(0.0f, 1.0f, 0.0f)},
+            camera_position{glm::dvec3(+8.55f , 3.26f, 3.5f)} {
     MOVEMENT_SPEED = 0.024;
     ROTATION_SPEED = 0.3;
-
-
 }
 
 glm::dmat4 camera::getWorld_to_view_Mat()
@@ -84,8 +59,8 @@ glm::dmat4 camera::getWorld_to_view_Mat()
 
 void camera::updateProjection(const double& w, const double& h)
 {
-    projectionMat = glm::perspective(glm::radians(FIELD_OF_VIEW),  // angle of field of view
-                                     w / h,                // aspect ratio
+    projectionMat = glm::perspective(glm::radians(FIELD_OF_VIEW),
+                                     w / h,
                                      NEAR_PLANE,
                                      FAR_PLANE);
     updateWorld_to_viewMat();
@@ -93,25 +68,25 @@ void camera::updateProjection(const double& w, const double& h)
 
 void camera::updateWorld_to_viewMat()
 {
-//    if(camera_position.y < 0.1)
-//        camera_position.y = 0.1;
-//    if(camera_position.y > 100.0)
-//        camera_position.y = 100.0;
+   if(camera_position.y < 0.1)
+       camera_position.y = 0.1;
+   if(camera_position.y > 100.0)
+       camera_position.y = 100.0;
 
 //    if(camera_position.y < 0.011)
 //        camera_position.y = 0.011;
 //    if(camera_position.y > 100.0)
 //        camera_position.y = 100.0;
 
-//    if(camera_position.x < -147.8)
-//        camera_position.x = -147.8;
-//    if(camera_position.x > 147.8)
-//        camera_position.x = 147.8;
+   if(camera_position.x < -147.8)
+       camera_position.x = -147.8;
+   if(camera_position.x > 147.8)
+       camera_position.x = 147.8;
 
-//    if(camera_position.z < -147.8)
-//        camera_position.z = -147.8;
-//    if(camera_position.z > 147.8)
-//        camera_position.z = 147.8;
+   if(camera_position.z < -147.8)
+       camera_position.z = -147.8;
+   if(camera_position.z > 147.8)
+       camera_position.z = 147.8;
 
     world_to_viewMat = glm::lookAt(
                 camera_position,
@@ -120,15 +95,11 @@ void camera::updateWorld_to_viewMat()
     transformationMat = projectionMat * world_to_viewMat;
 }
 
-glm::dmat4 camera::getProjection()
-{
+glm::dmat4 camera::getProjection(){
     return projectionMat;
-     // 500 far plane
 }
 
-camera::~camera()
-{
-}
+camera::~camera(){}
 
 void camera::mouse_update(const glm::dvec2& new_mouse_position)
 {
@@ -150,33 +121,31 @@ void camera::mouse_update(const glm::dvec2& new_mouse_position)
                                             * view_direction;
     mouse_position = new_mouse_position;
 }
-glm::dvec2 camera::get_moutse_position()
-{
+glm::dvec2 camera::get_moutse_position(){
     return mouse_position;
 }
 
-void camera::move_forward(void)
-{
+void camera::move_forward(void){
     camera_position += MOVEMENT_SPEED * view_direction;
-
 }
-void camera::move_backward(void)
-{
+
+void camera::move_backward(void){
     camera_position += -MOVEMENT_SPEED * view_direction;
 }
-void camera::move_up(void)
-{
+
+void camera::move_up(void){
     camera_position += MOVEMENT_SPEED * up_direction;
 }
-void camera::move_down(void)
-{
+
+void camera::move_down(void){
     camera_position += -MOVEMENT_SPEED * up_direction;
 }
-void camera::strafe_right(void)
-{
+
+void camera::strafe_right(void){
     glm::dvec3 strafe_direction = glm::cross(view_direction, up_direction);
     camera_position += MOVEMENT_SPEED * strafe_direction;
 }
+
 void camera::strafe_left(void)
 {
     glm::dvec3 strafe_direction = glm::cross(view_direction, up_direction);

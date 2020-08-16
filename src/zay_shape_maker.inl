@@ -34,10 +34,6 @@
 
 
 
-
-
-
-
 template <typename VERT>
 shape_data<VERT>
 shape_maker<VERT>::makeGrid(GLfloat length,
@@ -169,164 +165,6 @@ shape_data<VERT> shape_maker<VERT>::makeLap()
     return rectangle;
 }
 
-
-template <typename VERT>
-shape_data<VERT> shape_maker<VERT>::extractExternal(const std::string& _dir)
-{
-    shape_data<VERT> _object;
-
-    std::ifstream f_stream(_dir, std::ios::in);
-    if( !f_stream.is_open())
-        throw std::runtime_error("could not open file <"+_dir+">\n");
-
-
-    std::vector<float> pos, tex, norm;
-    std::vector<uint32_t> vert;
-    std::string record;
-    while (std::getline(f_stream, record))
-    {
-        if ( record.substr(0, 2) == "v ")
-            for(; record.substr(0, 2) == "v "; std::getline(f_stream, record) )
-                qi::parse(record.begin()+2, record.end(),
-                        *(qi::float_ >> ' '|'\0'), pos);
-
-        if ( record.substr(0, 3) == "vt ")
-            for(;  record.substr(0, 3) == "vt "; std::getline(f_stream, record))
-                qi::parse(record.begin()+3, record.end(),
-                        *(qi::float_ >> ' '|'\0'), tex);
-
-
-        if ( record.substr(0, 3)  == "vn ")
-            for(; record.substr(0, 3)  == "vn "; std::getline(f_stream, record))
-                qi::parse(record.begin()+3, record.end(),
-                        *(qi::float_ >> ' '|'\0'), norm);
-
-        if ( record.substr(0, 2)  == "f ")
-            for(;record.substr(0, 2)  == "f "; std::getline(f_stream, record))
-                qi::parse(record.begin()+2, record.end(),
-                        *(qi::uint_ % '/' >> ' '|'\0'), vert);
-    }
-    for(auto& ver:vert)
-        ver-=1;
-
-    _object.verNum = _object.indNum =  vert.size()/3;
-    _object.verts = new VERT[_object.verNum];
-    glm::vec3*  pos_arr{reinterpret_cast<glm::vec3*>( pos.data()) },
-               *norm_arr{reinterpret_cast<glm::vec3*>(norm.data()) };
-    glm::vec2*  tex_arr{reinterpret_cast<glm::vec2*>( tex.data()) };
-
-    for(uint32_t i{0}, j{0}; i<_object.verNum; ++i, j+=3 ){
-        _object.verts[i] = {pos_arr[vert[j]], norm_arr[vert[j+2]], tex_arr[vert[j+1]]};
-    }
-
-    _object.indices = new unsigned int[_object.indNum];
-    for(uint32_t i{0}; i<_object.indNum; ++i)
-        _object.indices[i] = i;
-
-
-    return _object;
-}
-
-
-
-//template <typename VERT>
-//shape_data<VERT> shape_maker<VERT>::extractExternal(const std::string& _dir)
-//{
-//    std::ifstream f_stream(_dir, std::ios::in);
-//    if( !f_stream.is_open()){
-//        std::cerr << "could not open file <" << _dir << ">\n";
-//        exit(EXIT_FAILURE);
-//    }
-//    std::vector<float> _positions;
-//    std::vector<float> _texcoords;
-//    std::vector<float> _normals;
-//    std::vector<uint32_t> _faces;
-
-//    auto pos_capture  = [&](auto& ctx){
-//        _positions.emplace_back(_attr(ctx));
-//    };
-//    auto tex_capture  = [&](auto& ctx){
-//        _texcoords.emplace_back(_attr(ctx));
-//    };
-//    auto norm_capture = [&](auto& ctx){
-//        _normals.emplace_back(_attr(ctx));
-//    };
-//    auto face_capture = [&](auto& ctx){
-//        _faces.emplace_back(_attr(ctx)-1);
-//    };
-
-
-//    auto pos_rule      = "v" >> x3::float_[pos_capture]
-//                             >> x3::float_[pos_capture]
-//                             >> x3::float_[pos_capture];
-//    auto tex_rule      = "vt" >> x3::float_[tex_capture]
-//                              >> x3::float_[tex_capture];
-//    auto norm_rule     = "vn" >> x3::float_[norm_capture]
-//                              >> x3::float_[norm_capture]
-//                              >> x3::float_[norm_capture];
-//    auto VERTEX_rule   = x3::uint_[face_capture] >> '/'
-//                         >> x3::uint_[face_capture] >> '/'
-//                         >> x3::uint_[face_capture];
-//    //    auto LINE_rule     = "f" >> x3::repeat(2)[VERTEX];
-//    //    auto TRIANGLE_rule = "f" >> x3::repeat(3)[VERTEX];
-//    //    auto QUAD_rule     = "f" >> x3::repeat(4)[VERTEX];
-
-//    // auto faces   = "f" >> VERTEX >> VERTEX >> VERTEX;
-//    // auto faces = "f" >> x3::repeat(3)[VERTEX];
-//    auto face_rule  = "f" >> +VERTEX_rule;
-
-
-//    auto skipper = x3::blank | '#'
-//                   >> *(x3::char_ - x3::eol)
-//                   >> (x3::eol|x3::eoi);
-
-//    auto __OBJ = x3::skip(skipper) [ *x3::eol >> *(
-//            +(pos_rule  >> (x3::eoi|+x3::eol)) >>
-//            *(tex_rule  >> (x3::eoi|+x3::eol)) >>
-//            *(norm_rule >> (x3::eoi|+x3::eol)) >>
-//            *(face_rule >> (x3::eoi|+x3::eol))
-//        )];
-
-
-//    boost::spirit::istream_iterator _f(f_stream
-//                                    >> std::noskipws), _l;
-//    shape_data<VERT> _object;
-
-//    if (x3::parse(_f, _l, __OBJ)) {
-
-//        _object.verNum = _object.indNum =  _faces.size()/3;
-//        _object.verts = new VERT[_object.verNum];
-//        glm::vec3*  pos_arr{reinterpret_cast<glm::vec3*>(_positions.data())},
-//                   *norm_arr{reinterpret_cast<glm::vec3*>(_normals.data())};
-//        glm::vec2*  tex_arr{reinterpret_cast<glm::vec2*>(_texcoords.data())};
-
-//        for(uint32_t i{0}, j{0}; i<_object.verNum; ++i, j+=3 )
-//            _object.verts[i] = {pos_arr[_faces[j]],
-//                                norm_arr[_faces[j+2]],
-//                                tex_arr[_faces[j+1]]
-//                               };
-
-//        _object.indices = new unsigned int[_object.indNum];
-//        for(uint32_t i{0}; i<_object.indNum; ++i)
-//            _object.indices[i] = i;
-
-//    } else{
-//        std::cerr << "failed to parse file <" << _dir << ">\n";
-//        exit(EXIT_FAILURE);
-//    }
-//    if (_f!=_l){
-//        std::cerr << "WARNING: file did not parsed properly <"
-//                  << _dir << ">\n";
-//        std::cout << "Unparsed: " << std::distance(_f,_l)
-//                  << " characters remained unparsed! object may not be rendered properly!\n";
-//    }
-
-//    return _object;
-//}
-
-
-
-
 template <typename VERT>
 shape_data<VERT>
 shape_maker<VERT>::makeSphere(GLfloat PERS,
@@ -349,7 +187,11 @@ shape_maker<VERT>::makeSphere(GLfloat PERS,
                                    * cosf(i)
                                    * RAD)
                                     + CENT;
-            v.color = rCol();
+            v.color = glm::vec3(
+                    rand() / static_cast<float>(RAND_MAX),
+                    rand() / static_cast<float>(RAND_MAX),
+                    rand() / static_cast<float>(RAND_MAX) );
+
             v.normal = v.position;
             ver.push_back(v);
             v.position = glm::vec3(cosf(j) * cosf(i + PERS)
@@ -358,7 +200,11 @@ shape_maker<VERT>::makeSphere(GLfloat PERS,
                                    * cosf(i + PERS)
                                    * RAD)
                                    + CENT;
-            v.color = rCol();
+            v.color = glm::vec3(
+                    rand() / static_cast<float>(RAND_MAX),
+                    rand() / static_cast<float>(RAND_MAX),
+                    rand() / static_cast<float>(RAND_MAX) );
+
             v.normal = v.position;
             ver.push_back(v);
         }

@@ -8,9 +8,6 @@ namespace Ui {
 class item_inputs_form;
 }
 
-
-
-
 namespace zaytuna {
 
 class primary_win;
@@ -36,3 +33,5 @@ private:
 } // namespace  zaytuna
 
 #endif // ZAY_ITEM_INPUTS_FORM_HPP
+
+

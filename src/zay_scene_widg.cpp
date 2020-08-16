@@ -45,93 +45,49 @@
 namespace zaytuna {
 
 
-/*
-
-        QGLFormat zat_format;
-        zat_format.setSamples(8);
-        SQwidget = new _scene_widg(zat_format, centralWidget);
-
-
-*/
-
-
-
-//static uint32_t total_tiks{0};
-//static double accum_dist{0.0};
-//static uint32_t f{0};
-
 double _scene_widg::sX, _scene_widg::sY; //, _scene_widg::sZ;
 double _scene_widg::delta_sX, _scene_widg::delta_sY;
 double _scene_widg::glX, _scene_widg::glY; //, _scene_widg::glZ;
-
-
-
 
 
 //_scene_widg::_scene_widg(QWidget* parent): QGL_WIDGET_VERSION(parent),
 _scene_widg::_scene_widg(QGLFormat _format, QWidget* parent):
     QGL_WIDGET_VERSION(_format, parent),
     fStatus{ FileStatus::UNDEFINED },
-    elap_accumulated{0.0}, frame_rate{0.0}, frames_counter{0},
+    elap_accumulated{0.0},cam_freq_accumulated{0.0}, elapsed{0.0},
+    frame_rate{0.0}, front_cam_freq{FRONT_CAM_FREQUENCY}, 
+    imgs_sec{1.0/FRONT_CAM_FREQUENCY}, frames_counter{0},
     k_forward{0}, k_backward{0}, k_left{0}, k_right{0}, k_up{0}, k_back{0}
 {
     //    QSurfaceFormat _format;
-    //    _format.setSamples(8);    // Set the number of samples used for multisampling
+    //    _format.setSamples(NUM_SAMPLES_PER_PIXEL); 
     //    setFormat(_format);
 
-
-
     activeCam = &mainCam;
-
     connect(&timer, SIGNAL(timeout()), this, SLOT(animate()));
-//    timer.start(0);
-
     makeCurrent();
     setMouseTracking(true);
     this->setFocusPolicy(Qt::StrongFocus);
-
-//    elap_accumulated = 0;
-
-
-    qDebug() << "constractor\n";
-
-
-
 }
 
-_scene_widg::~_scene_widg()
-{
-
+_scene_widg::~_scene_widg(){
     for(std::size_t i = 0; i<PROGRAMS_NUM; ++i)
         glDeleteProgram(programs[i]);
-
     glUseProgram(0);
-
     cleanUp();
-//    if(local_viewFBO!=nullptr)
-//        delete local_viewFBO;
-
-//    if(local_viewFBO1!=nullptr)
-//        delete local_viewFBO1;
-
     if(model_vehicles != nullptr)
         delete model_vehicles;
     if(obstacle_objects != nullptr)
         delete obstacle_objects;
-
 }
 
-void _scene_widg::cleanUp()
-{
-
+void _scene_widg::cleanUp(){
     glDeleteBuffers(1, &theBufferID);
     detachProgram();
 }
 
-
 void _scene_widg::initializeGL()
 {
-    qDebug() << "initializeGL\n";
     initializeOpenGLFunctions();
     glClearColor(0.86f, 0.86f, 0.86f, 1.0f);
     glEnable(GL_DEPTH_TEST);
@@ -145,24 +101,20 @@ void _scene_widg::initializeGL()
 
     glViewport(0, 0, this->width(), this->height());
     for(std::size_t i = 0; i<PROGRAMS_NUM; ++i)
-        initShader("./Shaders/source"+std::to_string(i), programs[i], i);
+        initShader(ros::package::getPath("zaytuna")+"/Shaders/source"+std::to_string(i), programs[i], i);
 
     send_data();
 
-
-//    QGLFramebufferObjectFormat fboFormat;
-//    fboFormat.setSamples(8);
-//    fboFormat.setAttachment(QGLFramebufferObject::CombinedDepthStencil);
-
-//    local_viewFBO = new QGLFramebufferObject(this->width(), this->height(), fboFormat);
-
-//    local_viewFBO1 = new QGLFramebufferObject(this->width(), this->height(), fboFormat);
-
-
-    qDebug() << "GL version: " << reinterpret_cast<const char*>(glGetString(GL_VERSION)) << "\n";
+    std::cout << "Zaytuna Simulator " <<(int)ZAYTUNA_VERSION << "." << (int)ZAYTUNA_MINOR_VERSION << ", "
+              << "running with following system specifications:\n" << std::flush;
+             
+    std::cout << "  Vendor: " << reinterpret_cast<const char*>(glGetString(GL_VENDOR)) << "\n"
+              << "  Renderer: " << reinterpret_cast<const char*>(glGetString(GL_RENDERER)) << "\n"
+              << "  OpenGL Version: " << reinterpret_cast<const char*>(glGetString(GL_VERSION)) << "\n"
+              << "  GL Shading Language Version: " << reinterpret_cast<const char*>(glGetString(GL_SHADING_LANGUAGE_VERSION)) << "\n" << std::flush;
 
     timer.start(0);
-
+    start_t = std::chrono::high_resolution_clock::now();
 }
 
 
@@ -186,16 +138,13 @@ void _scene_widg::render_scene(camera const*const current_cam)
 
     obstacle_objects->render_obj(current_cam);
 
-//    glDepthMask(false);
     model_vehicles->render_obj(current_cam);
-//    glDepthMask(true);
-
-
 }
 
 
 void _scene_widg::paintGL()
 {
+   ros::spinOnce();
 
     if(activeCam == &mainCam){
         updat_cam();
@@ -218,96 +167,59 @@ void _scene_widg::paintGL()
     for(uint32_t i{0}; i<model_vehicles->vehicles.size(); ++i){
         model_vehicles->vehicles[i].update_attribs();
     }
-//    for(const auto& _obj:model_vehicles->vehicles)
-//        _obj->update_attribs();
 
     if(activeCam==&mainCam)
         mainCam.updateWorld_to_viewMat();
 
-//    makeCurrent();
     render_scene(activeCam);
 
-//    glReadPixels(0, 0, 800, 500, GL_RGB,  GL_UNSIGNED_BYTE, model_vehicles->vehicles.front()->raw_img.data() );
-
-
-    for(uint32_t i{0}; i<model_vehicles->vehicles.size(); ++i){
-        model_vehicles->vehicles[i].localView_buffer->bind();
-//        if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-//            std::cerr << "not complete!\n";
-        render_scene(&(model_vehicles->vehicles[i].frontCam));
-
-//        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-//        glReadBuffer(GL_COLOR_ATTACHMENT0);
-//        glReadPixels(0, 0, 800, 500, GL_RGB,  GL_UNSIGNED_BYTE, model_vehicles->vehicles.front()->raw_img.data() );
-        model_vehicles->vehicles[i].local_cam_img = model_vehicles->vehicles[i].localView_buffer->toImage();
-    }
-
-
-//    model_vehicles->vehicles.back()->localView_buffer->bindDefault();
-    glBindFramebuffer(GL_FRAMEBUFFER,  0);
-
-
-
     // frame's rate
-    elap_accumulated += std::chrono::duration<double,
+    elapsed = std::chrono::duration<double,
               std::ratio< 1, 1>>(std::chrono::high_resolution_clock::now()
                                  - start_t).count();
+    start_t = std::chrono::high_resolution_clock::now();
+
+    elap_accumulated += elapsed;
+    cam_freq_accumulated += elapsed;
+
+    if(cam_freq_accumulated>=imgs_sec){
+        for(uint32_t i{0}; i<model_vehicles->vehicles.size(); ++i){
+            model_vehicles->vehicles[i].localView_buffer->bind();
+            render_scene(&(model_vehicles->vehicles[i].frontCam));
+            model_vehicles->vehicles[i].grab_buffer();
+            // model_vehicles->vehicles[i].local_cam_img = model_vehicles->vehicles[i].localView_buffer->toImage();
+        }
+        glBindFramebuffer(GL_FRAMEBUFFER,  0);
+        cam_freq_accumulated = 0.0;
+    }
+
     ++frames_counter;
     if(elap_accumulated>=NUM_SEC_FRAME_RATE) {
-
 //        std::cout << DebugGLerr(glGetError()) << "\n";
-
-
 //        img = this->grabFrameBuffer();
 
+        // for(uint32_t i{0}; i<model_vehicles->vehicles.size(); ++i)
+        //     model_vehicles->vehicles[i].captureBuffer();
+        //     // model_vehicles->vehicles[i].pubFront_img();
 
-////        model_vehicles->vehicles[1]->pubFront_img();
-
-        for(uint32_t i{0}; i<model_vehicles->vehicles.size(); ++i)
-            model_vehicles->vehicles[i].pubFront_img();
-
-//        std::cout << "\n--------------------\n";// << std::endl;
-////        for(uint32_t i{80000}; i<80030; ++i)
-//        for(uint32_t i{0}; i<30; ++i)
-//            std::cout << (int)model_vehicles->vehicles.front()->raw_img[i] << ", ";
-//        std::cout<< std::flush;
-//        for(const auto& col:model_vehicles->vehicles.front()->raw_img)
-//            std::cout
-
-///
-//        std::cout << "\n--------------------\n";// << std::endl;
-//        std::cout << "frame freq counter: "<< 1.0/(elap_accumulated/frames_counter) << " f/s " << std::flush;
         frame_rate = 1.0/(elap_accumulated/frames_counter);
-//        // std::cout.precision(15);
-//        // std::cout << model->traveled_dist << " meters \n";
-//        // std::cout << glm::distance(model->bit, model->old_bit) << " meters \n";
         elap_accumulated = frames_counter = 0;
-//        std::cout << "Pos: " << model->back_ideal_tire;
-//        std::cout << "Direc: " << model->vehic_direction;
-//        std::cout << "Ticks-Counter: " << model->ticks_counter <<"\n";
     }
-    // std::cout << "Ticks-Counter: " << model->ticks_counter <<"\n";
-    start_t = std::chrono::high_resolution_clock::now();
 
 }
 
 void _scene_widg::resizeGL(int W, int H)
 {
-    qDebug() << "resizeGL\n";
     glViewport(0, 0, W, H);
     mainCam.updateProjection(W, H);
     for(uint32_t i{0}; i<model_vehicles->vehicles.size(); ++i){
         model_vehicles->vehicles[i].frontCam.updateProjection(W, H);
     }
-//    model->frontCam.updateProjection(W, H);
-//    projectionMat = activeCam->projectionMat;
     repaint();
 }
 
 void _scene_widg::updateProjection()
 {
-//    activeCam->updateProjection(WIDTH, HEIGHT);
-
     mainCam.updateProjection(WIDTH, HEIGHT);
     for(uint32_t i{0}; i<model_vehicles->vehicles.size(); ++i){
         model_vehicles->vehicles[i].frontCam.updateProjection
@@ -315,8 +227,7 @@ void _scene_widg::updateProjection()
     }
 }
 
-void _scene_widg::mouseMoveEvent(QMouseEvent *ev)
-{
+void _scene_widg::mouseMoveEvent(QMouseEvent *ev){
     if(activeCam == &mainCam){
         if(ev->buttons()){
             delta_sX = sX - ev->pos().x();
@@ -344,9 +255,7 @@ void _scene_widg::mouseMoveEvent(QMouseEvent *ev)
     }
 }
 
-
-void _scene_widg::updat_cam()
-{
+void _scene_widg::updat_cam(){
     if(k_forward)
         mainCam.move_forward();
     else if(k_backward)
@@ -360,7 +269,6 @@ void _scene_widg::updat_cam()
     else if(k_back)
         mainCam.move_down();
 }
-
 
 void _scene_widg::keyPressEvent(QKeyEvent* ev)
 {
@@ -401,7 +309,6 @@ void _scene_widg::keyPressEvent(QKeyEvent* ev)
             k_right=1;
             break;
     }
-//    updat_cam();
 }
 
 void _scene_widg::wheelEvent(QWheelEvent *ev)
@@ -456,11 +363,9 @@ void _scene_widg::keyReleaseEvent(QKeyEvent *ev)
 //}
 
 
-void _scene_widg::animate()
-{
+void _scene_widg::animate(){
     repaint();
 }
-
 
 std::string _scene_widg::getShader
         (const std::string& file_dir)
@@ -639,7 +544,6 @@ void _scene_widg::detachProgram()
 
 void _scene_widg::send_data()
 {
-    qDebug() << "send_data\n";
     basic_objects = {
         new coord_sys(this,
                       programs[0],
@@ -665,8 +569,8 @@ void _scene_widg::send_data()
         new external_obj(this,
                          programs[1],
                          "plane",
-                         "./primitives/plane_300x300_1sub-div",
-                         "tex/plane_grass_1024x1024.jpg",
+                         ros::package::getPath("zaytuna")+"/primitives/plane_300x300_1sub-div",
+                         ros::package::getPath("zaytuna")+"/tex/plane_grass_1024x1024.jpg",
                          GL_QUADS
 //                         ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
 //                         glm::translate(glm::dvec3(0.0, 0.0, 0.0))
@@ -674,8 +578,8 @@ void _scene_widg::send_data()
         ,new external_obj(this,
                          programs[1],
                          "fence",
-                         "./primitives/fence_300x300_2H_1W",
-                         "tex/fence_brick_1024x1024.jpg",
+                         ros::package::getPath("zaytuna")+"/primitives/fence_300x300_2H_1W",
+                         ros::package::getPath("zaytuna")+"/tex/fence_brick_1024x1024.jpg",
                          GL_QUADS
 //                         ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
 //                         glm::translate(glm::dvec3(0.0, 0.0, 0.0))
@@ -692,8 +596,8 @@ void _scene_widg::send_data()
         new external_obj(this,
                          programs[1],
                          "mini_lap",
-                         "./primitives/mini-lap",
-                         "tex/mini_lap_exemplar.jpg",
+                         ros::package::getPath("zaytuna")+"/primitives/mini-lap",
+                         ros::package::getPath("zaytuna")+"/tex/mini_lap_exemplar.jpg",
                          GL_QUADS
 //                         ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
 //                         glm::translate(glm::dvec3(0.0, 0.0, 0.0))
@@ -701,8 +605,8 @@ void _scene_widg::send_data()
         ,new external_obj(this,
                          programs[1],
                          "lap1",
-                         "./primitives/lap1",
-                         "tex/lap1_exemplar.jpg",
+                         ros::package::getPath("zaytuna")+"/primitives/lap1",
+                         ros::package::getPath("zaytuna")+"/tex/lap1_exemplar.jpg",
                          GL_QUADS
 //                         ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
 //                         glm::translate(glm::dvec3(0.0, 0.0, 0.0))
@@ -710,8 +614,8 @@ void _scene_widg::send_data()
         ,new external_obj(this,
                          programs[1],
                          "lap2",
-                         "./primitives/lap2",
-                         "tex/lap2_exemplar.jpg",
+                         ros::package::getPath("zaytuna")+"/primitives/lap2",
+                         ros::package::getPath("zaytuna")+"/tex/lap2_exemplar.jpg",
                          GL_QUADS
 //                         ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
 //                         glm::translate(glm::dvec3(0.0, 0.0, 0.0))
@@ -719,8 +623,8 @@ void _scene_widg::send_data()
         ,new external_obj(this,
                          programs[1],
                          "lap3",
-                         "./primitives/lap3",
-                         "tex/lap3_exemplar.jpg",
+                         ros::package::getPath("zaytuna")+"/primitives/lap3",
+                         ros::package::getPath("zaytuna")+"/tex/lap3_exemplar.jpg",
                          GL_QUADS
 //                        ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
 //                        glm::translate(glm::dvec3(0.0, 0.0, 0.0))
@@ -731,17 +635,17 @@ void _scene_widg::send_data()
             new obstacle_pack<GLdouble>(this,
                 programs[3],
                 Obstacle_Type::CARTON_BOX,
-                "./primitives/carton_box",
-                "tex/carton_box.jpg",
+                ros::package::getPath("zaytuna")+"/primitives/carton_box",
+                ros::package::getPath("zaytuna")+"/tex/carton_box.jpg",
                 GL_QUADS);
     obstacle_objects->add_category
             (Obstacle_Type::BRICK_WALL,
-             "./primitives/brick_wall",
-             "tex/brick_wall.jpg");
+             ros::package::getPath("zaytuna")+"/primitives/brick_wall",
+             ros::package::getPath("zaytuna")+"/tex/brick_wall.jpg");
     obstacle_objects->add_category
             (Obstacle_Type::STONE_WALL,
-             "./primitives/stone_wall",
-             "tex/stone_wall_1.jpg");
+             ros::package::getPath("zaytuna")+"/primitives/stone_wall",
+             ros::package::getPath("zaytuna")+"/tex/stone_wall_1.jpg");
     //------------------------------
 
     fboFormat.setSamples(NUM_SAMPLES_PER_PIXEL);
@@ -749,8 +653,8 @@ void _scene_widg::send_data()
             (QGLFramebufferObject::CombinedDepthStencil);
     model_vehicles = new model_vehicle(this,
            programs[3],
-           "./primitives/zaytuna_model",
-           "tex/zaytuna-fragments.png",
+           ros::package::getPath("zaytuna")+"/primitives/zaytuna_model",
+           ros::package::getPath("zaytuna")+"/tex/zaytuna-fragments.png",
            GL_TRIANGLES );
 
 
@@ -832,9 +736,9 @@ void _scene_widg::delete_vehicle
     auto it = model_vehicles->find(_name);
     model_vehicles->vehicles.erase(it);
 }
-zaytuna::vehicle_attribute*
+zaytuna::vehicle_attributes*
 _scene_widg::getOtherVeh(const std::string& _name){
-    zaytuna::vehicle_attribute* other{nullptr};
+    zaytuna::vehicle_attributes* other{nullptr};
     for(uint32_t i{0}; i<model_vehicles->vehicles.size(); ++i)
         if(model_vehicles->vehicles[i].attribs.name != _name)
             return &model_vehicles->vehicles[i];

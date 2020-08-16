@@ -38,18 +38,10 @@
 #ifndef ZAY_SHAPE_DATA_HPP
 #define ZAY_SHAPE_DATA_HPP
 
-
-
 #include "zay_headers.hpp"
 #include "zay_vertex.hpp"
-#include "zay_utility.hpp"
-#include <boost/spirit/include/qi.hpp>
-//#include <boost/spirit/home/x3.hpp>
-//#include <boost/spirit/include/support_istream_iterator.hpp>
-//#include <boost/iterator/counting_iterator.hpp>
 
-namespace qi = boost::spirit::qi;
-// namespace x3 = boost::spirit::x3;
+
 
 namespace zaytuna {
 
@@ -63,7 +55,6 @@ struct shape_data
     GLuint verNum;
     GLuint* indices;
     GLuint indNum;
-//    std::vector<glm::vec3> normals;
 
     GLsizeiptr verBufSize() const
     {

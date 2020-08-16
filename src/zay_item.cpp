@@ -64,9 +64,7 @@ scene_object::scene_object
     initial_transformationMat{_translation*_rotation}{}
 
 
-//==================================================================================================
-
-
+////////////////////////////////
 external_obj::external_obj
         (USED_GL_VERSION * const _widg,
          const GLuint programID,
@@ -81,8 +79,7 @@ external_obj::external_obj
                  _rotation, _translation ),
     name{_name}, MODE{_MODE}
 {
-    primitives = shape_maker
-            <zaytuna::vertexL1_16>::extractExternal(_dir);
+    primitives = obj_parser::extractExternal(_dir);
 
     QImage tex_buffer;
     _widg->glGenTextures(1, &_texID);
@@ -117,13 +114,11 @@ external_obj::external_obj
 
 }
 
-external_obj::~external_obj()
-{
+external_obj::~external_obj(){
     clean_up();
 }
 
-void external_obj::clean_up()
-{
+void external_obj::clean_up(){
     primitives.cleanUP();
     _widg->glDeleteVertexArrays(1, &_VAO_ID);
     _widg->glDeleteTextures(1, &_texID);
@@ -144,7 +139,7 @@ void external_obj::transmit_data(GLintptr& _offset,const GLuint& theBufferID,
 
     num_indices = static_cast<GLsizei>(primitives.indNum);
 
-    //================================================
+    ///////////////////////////////////////
     _widg->glGenVertexArrays(1, &_VAO_ID);
 
     _widg->glBindVertexArray(_VAO_ID);
@@ -158,10 +153,10 @@ void external_obj::transmit_data(GLintptr& _offset,const GLuint& theBufferID,
                                  reinterpret_cast<void*>(off_set));
     _widg->glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE,
                                  VERTEX_BYTE_SIZE_1,
-                                 reinterpret_cast<void*>(off_set + TYPE_SIZE * 3));
+                                 reinterpret_cast<void*>(off_set + TYPE_SIZE * NORMALS_STRIDE));
     _widg->glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE,
                                  VERTEX_BYTE_SIZE_1,
-                                 reinterpret_cast<void*>(off_set + TYPE_SIZE * 6));
+                                 reinterpret_cast<void*>(off_set + TYPE_SIZE * TEXTURE_STRIDE));
     _widg->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, theBufferID);
 
     off_set += primitives.verBufSize()
@@ -171,9 +166,7 @@ void external_obj::transmit_data(GLintptr& _offset,const GLuint& theBufferID,
         transformMatLocation
                 = _widg->glGetUniformLocation(_programID, "transformMat");
 
-
     primitives.cleanUP();
-
 }
 
 
@@ -191,14 +184,12 @@ void external_obj::render_obj(zaytuna::camera const*const activeCam)
                           reinterpret_cast<void*>(inds_offset));
 }
 
-GLsizeiptr external_obj::buffer_size() const
-{
+GLsizeiptr external_obj::buffer_size() const{
     return primitives.verBufSize()
            + primitives.indBufSize();
 }
 
-// // -------
-
+/////////////////////////////////////////////
 zaytuna::coord_sys::coord_sys(USED_GL_VERSION * const _widg,
                               const GLuint programID,
                               const std::string& _name,
@@ -240,7 +231,7 @@ void coord_sys::transmit_data(GLintptr& _offset,const GLuint& theBufferID,
 
     num_indices = static_cast<GLsizei>(primitives.indNum);
 
-    //=======================================
+    ///////////////////////////////////
     _widg->glGenVertexArrays(1, &_VAO_ID);
 
     _widg->glBindVertexArray(_VAO_ID);
@@ -254,10 +245,10 @@ void coord_sys::transmit_data(GLintptr& _offset,const GLuint& theBufferID,
                                  reinterpret_cast<void*>(off_set));
     _widg->glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE,
                                  VERTEX_BYTE_SIZE_0,
-                                 reinterpret_cast<void*>(off_set + TYPE_SIZE * 3));
+                                 reinterpret_cast<void*>(off_set + TYPE_SIZE * NORMALS_STRIDE));
     _widg->glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE,
                                  VERTEX_BYTE_SIZE_0,
-                                 reinterpret_cast<void*>(off_set + TYPE_SIZE * 6));
+                                 reinterpret_cast<void*>(off_set + TYPE_SIZE * TEXTURE_STRIDE));
     _widg->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, theBufferID);
 
     off_set += primitives.verBufSize()
@@ -287,15 +278,13 @@ void coord_sys::render_obj(zaytuna::camera const*const activeCam)
                           reinterpret_cast<void*>(inds_offset));
 }
 
-GLsizeiptr coord_sys::buffer_size() const
-{
+GLsizeiptr coord_sys::buffer_size() const{
     return primitives.verBufSize()
            + primitives.indBufSize();
 }
 
 
-// // --------------------
-
+////////////////////////////////////
 zaytuna::grid_plane::grid_plane(USED_GL_VERSION * const _widg,
                               const GLuint programID,
                               const std::string& _name,
@@ -312,16 +301,13 @@ zaytuna::grid_plane::grid_plane(USED_GL_VERSION * const _widg,
     primitives =
             shape_maker<zaytuna::vertexL1_12>::makeGrid(length,
                                                         width, tessellatio);
-
 }
 
-grid_plane::~grid_plane()
-{
+grid_plane::~grid_plane(){
     this->clean_up();
 }
 
-void grid_plane::clean_up()
-{
+void grid_plane::clean_up(){
     primitives.cleanUP();
     _widg->glDeleteVertexArrays(1, &_VAO_ID);
 }
@@ -341,8 +327,7 @@ void grid_plane::transmit_data(GLintptr& _offset,const GLuint& theBufferID,
 
     num_indices = static_cast<GLsizei>(primitives.indNum);
 
-    //=================================
-
+    ///////////////////////////////////
     _widg->glGenVertexArrays(1, &_VAO_ID);
 
     _widg->glBindVertexArray(_VAO_ID);
@@ -356,10 +341,10 @@ void grid_plane::transmit_data(GLintptr& _offset,const GLuint& theBufferID,
                                  reinterpret_cast<void*>(off_set));
     _widg->glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE,
                                  VERTEX_BYTE_SIZE_0,
-                                 reinterpret_cast<void*>(off_set + TYPE_SIZE * 3));
+                                 reinterpret_cast<void*>(off_set + TYPE_SIZE * NORMALS_STRIDE));
     _widg->glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE,
                                  VERTEX_BYTE_SIZE_0,
-                                 reinterpret_cast<void*>(off_set + TYPE_SIZE * 6));
+                                 reinterpret_cast<void*>(off_set + TYPE_SIZE * TEXTURE_STRIDE));
     _widg->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, theBufferID);
 
     off_set += primitives.verBufSize()
@@ -370,7 +355,6 @@ void grid_plane::transmit_data(GLintptr& _offset,const GLuint& theBufferID,
                 _widg->glGetUniformLocation(_programID, "transformMat");
 
     primitives.cleanUP();
-
 }
 
 
@@ -389,15 +373,12 @@ void grid_plane::render_obj(zaytuna::camera const*const activeCam)
                           reinterpret_cast<void*>(inds_offset));
 }
 
-GLsizeiptr grid_plane::buffer_size() const
-{
+GLsizeiptr grid_plane::buffer_size() const{
     return primitives.verBufSize()
            + primitives.indBufSize();
 }
 
-// // -----------------
-
-
+////////////////////////////
 zaytuna::skybox_obj::skybox_obj(USED_GL_VERSION * const _widg,
                                     const GLuint programID,
                                     const std::string& _name,
@@ -411,13 +392,13 @@ zaytuna::skybox_obj::skybox_obj(USED_GL_VERSION * const _widg,
     primitives = shape_maker<zaytuna::vertexL1_0>::makeCubemap();
 
     QImage tex_buffer;
-    std::vector<QString> faces={
-        "tex/skybox-jpg/right.jpg",
-        "tex/skybox-jpg/left.jpg",
-        "tex/skybox-jpg/top.jpg",
-        "tex/skybox-jpg/bottom.jpg",
-        "tex/skybox-jpg/front.jpg",
-        "tex/skybox-jpg/back.jpg" };
+    std::vector<std::string> faces={
+        ros::package::getPath("zaytuna")+"/tex/skybox-jpg/right.jpg",
+        ros::package::getPath("zaytuna")+"/tex/skybox-jpg/left.jpg",
+        ros::package::getPath("zaytuna")+"/tex/skybox-jpg/top.jpg",
+        ros::package::getPath("zaytuna")+"/tex/skybox-jpg/bottom.jpg",
+        ros::package::getPath("zaytuna")+"/tex/skybox-jpg/front.jpg",
+        ros::package::getPath("zaytuna")+"/tex/skybox-jpg/back.jpg" };
     _widg->glGenTextures(1, &_texID);
     _widg->glBindTexture(GL_TEXTURE_CUBE_MAP, _texID);
     _widg->glTexParameteri(GL_TEXTURE_CUBE_MAP,
@@ -440,7 +421,7 @@ zaytuna::skybox_obj::skybox_obj(USED_GL_VERSION * const _widg,
     _widg->glTexParameteri(GL_TEXTURE_CUBE_MAP,
                     GL_TEXTURE_MAX_LEVEL, 0);
     for (GLuint i = 0; i < 6; ++i){
-        _load_tex(tex_buffer, faces[i], "JPG", 0, 1);
+        _load_tex(tex_buffer, faces[i].c_str(), "JPG", 0, 1);
         _widg->glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X+i,
                      0, 3, tex_buffer.width(),
                      tex_buffer.height(), 0,
@@ -476,7 +457,7 @@ void skybox_obj::transmit_data(GLintptr& _offset,const GLuint& theBufferID,
 
     num_indices = static_cast<GLsizei>(primitives.indNum);
 
-    //======================
+    //////////////////////////////
     _widg->glGenVertexArrays(1, &_VAO_ID);
 
     _widg->glBindVertexArray(_VAO_ID);
@@ -492,14 +473,11 @@ void skybox_obj::transmit_data(GLintptr& _offset,const GLuint& theBufferID,
     off_set += primitives.verBufSize()
             + primitives.indBufSize();
 
-
     if(transformMatLocation == -1)
         transformMatLocation =
                 _widg->glGetUniformLocation(_programID, "transformMat");
 
-
     primitives.cleanUP();
-
 }
 
 
@@ -526,9 +504,8 @@ GLsizeiptr skybox_obj::buffer_size() const
            + primitives.indBufSize();
 }
 
-//======================================================================================================
-//======================================================================================================
 
+////////////////////////////////////////
 zaytuna::model_vehicle::model_vehicle(USED_GL_VERSION * const _widg,
                                     const GLuint programID,
                                     const std::string& _dir,
@@ -538,26 +515,21 @@ zaytuna::model_vehicle::model_vehicle(USED_GL_VERSION * const _widg,
     prims_dir{_dir.c_str()}, tex_dir{_tex.c_str()}, PRIMITIVES_TYPE{_MODE}
 {
 
-    model_primitives = shape_maker
-            <zaytuna::vertexL1_16>::extractExternal
+    model_primitives = obj_parser::extractExternal
             (prims_dir.toStdString());
-    fronttires_primitives = shape_maker
-            <zaytuna::vertexL1_16>::extractExternal
+    fronttires_primitives = obj_parser::extractExternal
             (prims_dir.toStdString()+"-single_tire");
-    backtires_primitives = shape_maker
-            <zaytuna::vertexL1_16>::extractExternal
+    backtires_primitives = obj_parser::extractExternal
             (prims_dir.toStdString()+"-back_tires");
-    lidar_primitives = shape_maker
-            <zaytuna::vertexL1_16>::extractExternal
+    lidar_primitives = obj_parser::extractExternal
             (prims_dir.toStdString()+"-lidar");
-
 }
 
 void model_vehicle::add_vehicle
         (QGLFramebufferObject *const FBO_,
          const transform_attribs<GLdouble> attribs){
     vehicles.push_back
-            (new vehicle_attribute(_widg, FBO_,
+            (new vehicle_attributes(_widg, FBO_,
                                    attribs));
 }
 
@@ -636,8 +608,7 @@ void model_vehicle::transmit_data(GLintptr& _offset,
 
     lidarNumIndices = static_cast<GLsizei>(lidar_primitives.indNum);
 
-    //==============================================================
-
+    ////////////////////////////////////////
     // model
     _widg->glGenVertexArrays(1, &_VAO_ID);
 
@@ -652,10 +623,10 @@ void model_vehicle::transmit_data(GLintptr& _offset,
                                  reinterpret_cast<void*>(off_set));
     _widg->glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE,
                                  VERTEX_BYTE_SIZE_1,
-                                 reinterpret_cast<void*>(off_set + TYPE_SIZE * 3));
+                                 reinterpret_cast<void*>(off_set + TYPE_SIZE * NORMALS_STRIDE));
     _widg->glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE,
                                  VERTEX_BYTE_SIZE_1,
-                                 reinterpret_cast<void*>(off_set + TYPE_SIZE * 6));
+                                 reinterpret_cast<void*>(off_set + TYPE_SIZE * TEXTURE_STRIDE));
     _widg->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, theBufferID);
 
     off_set+= model_primitives.verBufSize()
@@ -675,10 +646,10 @@ void model_vehicle::transmit_data(GLintptr& _offset,
                                  reinterpret_cast<void*>(off_set));
     _widg->glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE,
                                  VERTEX_BYTE_SIZE_1,
-                                 reinterpret_cast<void*>(off_set + TYPE_SIZE * 3));
+                                 reinterpret_cast<void*>(off_set + TYPE_SIZE * NORMALS_STRIDE));
     _widg->glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE,
                                  VERTEX_BYTE_SIZE_1,
-                                 reinterpret_cast<void*>(off_set + TYPE_SIZE * 6));
+                                 reinterpret_cast<void*>(off_set + TYPE_SIZE * TEXTURE_STRIDE));
     _widg->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, theBufferID);
 
     off_set+= fronttires_primitives.verBufSize()
@@ -698,10 +669,10 @@ void model_vehicle::transmit_data(GLintptr& _offset,
                                  reinterpret_cast<void*>(off_set));
     _widg->glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE,
                                  VERTEX_BYTE_SIZE_1,
-                                 reinterpret_cast<void*>(off_set + TYPE_SIZE * 3));
+                                 reinterpret_cast<void*>(off_set + TYPE_SIZE * NORMALS_STRIDE));
     _widg->glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE,
                                  VERTEX_BYTE_SIZE_1,
-                                 reinterpret_cast<void*>(off_set + TYPE_SIZE * 6));
+                                 reinterpret_cast<void*>(off_set + TYPE_SIZE * TEXTURE_STRIDE));
     _widg->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, theBufferID);
 
     off_set+= backtires_primitives.verBufSize()
@@ -721,10 +692,10 @@ void model_vehicle::transmit_data(GLintptr& _offset,
                                  reinterpret_cast<void*>(off_set));
     _widg->glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE,
                                  VERTEX_BYTE_SIZE_1,
-                                 reinterpret_cast<void*>(off_set + TYPE_SIZE * 3));
+                                 reinterpret_cast<void*>(off_set + TYPE_SIZE * NORMALS_STRIDE));
     _widg->glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE,
                                  VERTEX_BYTE_SIZE_1,
-                                 reinterpret_cast<void*>(off_set + TYPE_SIZE * 6));
+                                 reinterpret_cast<void*>(off_set + TYPE_SIZE * TEXTURE_STRIDE));
     _widg->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, theBufferID);
 
     off_set+= lidar_primitives.verBufSize()
@@ -759,8 +730,6 @@ void model_vehicle::transmit_data(GLintptr& _offset,
                  GL_UNSIGNED_BYTE, tex_buffer.bits());
 
 }
-
-
 
 GLsizeiptr model_vehicle::buffer_size() const
 {
@@ -874,21 +843,19 @@ void model_vehicle::render_obj(zaytuna::camera const*const activeCam)
 
 }
 
-boost::ptr_vector<vehicle_attribute>::iterator
+boost::ptr_vector<vehicle_attributes>::iterator
 model_vehicle::find(const std::string& _name)
 {
-    boost::ptr_vector<vehicle_attribute>::iterator it;
+    boost::ptr_vector<vehicle_attributes>::iterator it;
     for(it = vehicles.begin(); it!=vehicles.end(); ++it)
         if( (*it).attribs.name == _name)
             return it;
-    qDebug() << "VEHICLE NOT FOUND: "<< _name.c_str() << " !!!!!!!!!!\n";
-//    exit(EXIT_FAILURE);
     return it;
 }
 
 
-// // useful for debugging
-void model_vehicle::render_vectors_state(vehicle_attribute* vehicle, camera *activeCam)
+//////------------useful--for--debugging---------------
+void model_vehicle::render_vectors_state(vehicle_attributes* vehicle, camera *activeCam)
 {
     _widg->glUseProgram(0);
     _widg->glLineWidth(5.0f);
@@ -954,12 +921,6 @@ void model_vehicle::render_vectors_state(vehicle_attribute* vehicle, camera *act
     _widg->glFlush();
 
 }
-
-//====================================================================
-//====================================================================
-
-
-
 
 }  // namespace zaytuna
 

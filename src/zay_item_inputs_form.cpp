@@ -20,17 +20,16 @@ item_inputs_form::item_inputs_form
     ui->T_Z->setValue(attribs.translation_vec.z);
 }
 
-item_inputs_form::~item_inputs_form()
-{
+item_inputs_form::~item_inputs_form(){
     delete ui;
 }
 
-
-} // namespace  zaytuna
-
-void zaytuna::item_inputs_form::on_decision_tools_accepted()
-{
+void item_inputs_form::on_decision_tools_accepted(){
     this->attribs.angle = ui->angle->value();
     this->attribs.translation_vec.x = ui->T_X->value();
     this->attribs.translation_vec.z = ui->T_Z->value();
 }
+
+} // namespace  zaytuna
+
+

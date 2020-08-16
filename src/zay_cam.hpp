@@ -81,11 +81,6 @@ public:
 
 
     ~camera();
-private:
-//    glm::vec3 view_direction;
-//    glm::vec3 camera_position;
-//    glm::vec3 up_direction;
-//    glm::vec2 mouse_position;
 };
 
 } // namespace zaytuna

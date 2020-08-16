@@ -49,24 +49,36 @@ class model_vehicle;
 class _scene_widg;
 class primary_win;
 
+typedef std::allocator<void> void_alloc;
 
-class vehicle_attribute
+class vehicle_attributes
 {
-//    Q_OBJECT
-    USED_GL_VERSION* _widg{nullptr};
-    QImage local_cam_img;//{QImage(WIDTH, HEIGHT, QImage::Format_RGB888)};
-//    std::vector<GLubyte> raw_img{std::vector<GLubyte>( WIDTH * HEIGHT * 3, 0 )};
+
+    ros::NodeHandle node_handle;
+    ros::Publisher gps_pub, ticks_pub, orientation_pub, cam_pub;
+    ros::Subscriber speed_sub, steering_sub;
+
+    void speed_callback(const std_msgs::Float64&);
+    void steering_callback(const std_msgs::Float64&);
+
+    zay_vec3<std::allocator<void>> vehicle_pos;
+    geometry_msgs::Vector3_<std::allocator<void>>& pos_ref{vehicle_pos};
+    zay_vec3<std::allocator<void>> vehicle_orientation;
+    geometry_msgs::Vector3_<std::allocator<void>>& orientation_ref{vehicle_orientation};
+    zay_uint32<std::allocator<void>> current_ticks;
+    std_msgs::UInt32_<std::allocator<void>>& current_ticks_ref{current_ticks};
+    
+    sensor_msgs::Image_<std::allocator<void>> local_cam_msg;
+    QImage local_cam_img{QImage(WIDTH, HEIGHT, QImage::Format_RGB888)};
 
     std::chrono::time_point<std::chrono::_V2::system_clock,
                     std::chrono::nanoseconds> timer_t;
-
-
-//    std::string name{"uninitialized_object_name"};
+    
+    USED_GL_VERSION* _widg{nullptr};
     transform_attribs<GLdouble> attribs;
     QGLFramebufferObject* localView_buffer{nullptr};
 
     double elapsed_t;
-
 
     friend class model_vehicle;
     friend class _scene_widg;
@@ -74,12 +86,12 @@ class vehicle_attribute
 
 
 public:
-    vehicle_attribute() = default;
-    explicit vehicle_attribute
+    vehicle_attributes() = default;
+    explicit vehicle_attributes
             (USED_GL_VERSION*,
              QGLFramebufferObject *const,
              const transform_attribs<GLdouble>);
-    ~vehicle_attribute();
+    ~vehicle_attributes();
 
     void actuate();
 
@@ -97,7 +109,7 @@ public:
     double STEERING_WHEEL;  // in degrees, 'amount of vertical rotation of the wheels'
     double amount_of_hRotation{0.0}; // amount of horizontal rotation of the wheels
     double amount_of_rotation_Lidar{0.0}; // amount of rotation of lidar
-    double lidar_spin_speed{10.0}; // per frame
+    const double lidar_spin_speed{750.0}; // per frame
 
 
     double accumulated_dist; // accumulated distance
@@ -111,12 +123,11 @@ public:
 
     void update_attribs();
     void update_rotation_att();
-    void update_steerin(void);
     void update_cent(void);
     void update_positional_attributes(const transform_attribs<GLdouble>);
 
-    void pubFront_img(void);
-    void captureBuffer(void);
+    inline void pubFront_img(void);
+    inline void grab_buffer(void);
     transform_attribs<GLdouble> current_state(void);
 
 
@@ -148,6 +159,17 @@ public:
 
 
 };
+
+
+void vehicle_attributes::grab_buffer(){
+    local_cam_img = localView_buffer->toImage().convertToFormat(QImage::Format_RGB888);
+    memcpy((char*)local_cam_msg.data.data(), 
+           local_cam_img.bits(), 
+           FRONT_IMG_SIZE);
+    cam_pub.publish(local_cam_msg);
+    // local_cam_img.save((attribs.name+".jpg").c_str());
+}
+
 
 
 

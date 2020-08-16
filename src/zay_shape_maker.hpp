@@ -31,8 +31,7 @@
  *
  */
 
-
-
+// #pragma once
 
 
 #ifndef ZAY_SHAPE_MAKER_HPP
@@ -45,9 +44,7 @@
 #include "zay_shape_data.hpp"
 
 
-
 namespace zaytuna {
-
 
 template <typename VERT>
 class shape_maker
@@ -68,9 +65,6 @@ public:
     static shape_data<VERT>
     makeCoord(GLfloat axes_length = 10.0f);
     static shape_data<VERT> makeLap();
-
-    static shape_data<VERT>
-    extractExternal(const std::string&);
 
 
 };

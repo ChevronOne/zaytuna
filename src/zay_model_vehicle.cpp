@@ -37,14 +37,15 @@
 
 #include "zay_model_vehicle.hpp"
 #include "zay_scene_widg.hpp"
-//#include "zay_headers.hpp"
 
 namespace zaytuna {
 
 
-// for debugging
+////-----for--debugging-----
 extern double GLOBAL_MOVEMENT_SPEED;
 extern double GLOBAL_STEERING_WHEEL;
+
+
 
 glm::dvec3 rotate(glm::dvec3 p, const glm::dvec3 c,
                   const double angle, const bool ccw);
@@ -52,8 +53,7 @@ glm::dvec3 rotate(glm::dvec3 p, const glm::dvec3 c,
 glm::dvec3 intersect(const glm::dvec3 p1, const glm::dvec3 p2,
                      const glm::dvec3 p3, const glm::dvec3 p4);
 
-
-zaytuna::vehicle_attribute::vehicle_attribute
+zaytuna::vehicle_attributes::vehicle_attributes
             (USED_GL_VERSION* _widg,
              QGLFramebufferObject *const FBO_,
              const transform_attribs<GLdouble> attribs):
@@ -65,22 +65,55 @@ zaytuna::vehicle_attribute::vehicle_attribute
         radius_of_rotation(0.0),
         center_of_rotation(glm::dvec3(0.0,0.0,0.0)){
 
-    frontCam.FIELD_OF_VIEW = 55.0; // sould be adjusted!
+    frontCam.FIELD_OF_VIEW = 55.0; // should be adjusted!
     update_positional_attributes(attribs);
 
     transformationMats[1] = f_rightT;
     transformationMats[2] = f_leftT;
     transformationMats[3] = backT;
     transformationMats[4] = lidar;
+
+    gps_pub = node_handle.advertise<geometry_msgs::Vector3>
+            ("zaytuna/"+attribs.name+"/gps",10);
+    orientation_pub = node_handle.advertise<geometry_msgs::Vector3>
+            ("zaytuna/"+attribs.name+"/orientation",10);
+    ticks_pub = node_handle.advertise<std_msgs::UInt32>
+            ("zaytuna/"+attribs.name+"/ticks",10);
+
+    cam_pub = node_handle.advertise<sensor_msgs::Image>
+            ("zaytuna/"+attribs.name+"/front_cam",0);
+
+    speed_sub = node_handle.subscribe
+            ("zaytuna/"+attribs.name+"/speed", 1,
+             &vehicle_attributes::speed_callback, this);
+    steering_sub = node_handle.subscribe
+            ("zaytuna/"+attribs.name+"/steering", 1,
+             &vehicle_attributes::steering_callback, this);
+
+    local_cam_msg.header = std_msgs::Header();
+    local_cam_msg.width = WIDTH;
+    local_cam_msg.height = HEIGHT;
+    local_cam_msg.encoding = "rgb8";
+    local_cam_msg.step = WIDTH * NUM_OF_CHANNELS;
+    local_cam_msg.is_bigendian = 0;
+    local_cam_msg.data.resize(FRONT_IMG_SIZE);
+}
+void vehicle_attributes::speed_callback
+        (const std_msgs::Float64& _val){
+    double val{_val.data};
+    MOVEMENT_SPEED = -(val > 1.0? SPEED_SCALAR :
+          (val<-1.0? -SPEED_SCALAR : SPEED_SCALAR*val));
+}
+void vehicle_attributes::steering_callback
+        (const std_msgs::Float64& _val){
+    double val{_val.data};
+    STEERING_WHEEL = val == 0.0 ? STEERING_MARGIN_OF_ERROR :
+          ((val>1.0? MAX_TURN_ANGLE:
+          (val<-1.0? -MAX_TURN_ANGLE: MAX_TURN_ANGLE*val))*M_PI)/180.0;
 }
 
-void vehicle_attribute::update_positional_attributes
+void vehicle_attributes::update_positional_attributes
         (const transform_attribs<GLdouble> attribs){
-
-    std::cout<< "vehicle " << attribs.name << " update attribs:\n\tangle: "
-             << attribs.angle <<"\n\trotation: " << attribs.rotation_vec
-             << "\n\ttranslation: " << attribs.translation_vec << "\n" << std::flush;
-
 
     this->attribs = attribs;
     transformationMats[0] = attribs.transformMat();
@@ -92,8 +125,6 @@ void vehicle_attribute::update_positional_attributes
     rotationMat = glm::rotate(0.0, up_direction);
 
     vehic_direction = glm::dmat3(attribs.rotationMat()) * vehic_direction;
-//    frontCam.view_direction  = glm::dmat3(rotation_)
-//                               * frontCam.view_direction;
 
     back_ideal_tire = old_back_ideal_tire = transformationMats[0]
                                         * glm::vec4(back_ideal_tire, 1.0);
@@ -113,22 +144,27 @@ void vehicle_attribute::update_positional_attributes
 }
 
 
-void vehicle_attribute::update_attribs()
+void vehicle_attributes::update_attribs()
 {
-    MOVEMENT_SPEED = GLOBAL_MOVEMENT_SPEED;
-    STEERING_WHEEL = GLOBAL_STEERING_WHEEL;
+// //    MOVEMENT_SPEED = GLOBAL_MOVEMENT_SPEED;
+// //    STEERING_WHEEL = GLOBAL_STEERING_WHEEL;
+
     if(MOVEMENT_SPEED != 0.0){
 
         update_rotation_att();
         accumulated_dist = traveled_dist + accumulated_dist;
-        ticks_counter = static_cast<uint32_t>(accumulated_dist/meters_per_tick);
+        current_ticks = ticks_counter = static_cast<uint32_t>(accumulated_dist/meters_per_tick);
         accumulated_dist = fmod(accumulated_dist, meters_per_tick);
-    } else
+    } else{
+        elapsed_t = std::chrono::duration<double,
+        std::ratio< 1, 1>>
+        (std::chrono::high_resolution_clock::now() - timer_t).count();
         timer_t = std::chrono::high_resolution_clock::now();
+    }
     actuate();
 }
 
-void vehicle_attribute::update_rotation_att()
+void vehicle_attributes::update_rotation_att()
 {
     // the radius of rotation
     radius_of_rotation = std::abs( front_back_distance/std::tan(STEERING_WHEEL));
@@ -155,7 +191,6 @@ void vehicle_attribute::update_rotation_att()
     AMOUNT_OF_ROTATION = (std::tan(STEERING_WHEEL)
                           * MOVEMENT_SPEED * elapsed_t)/front_back_distance;
 
-
     rotationMat =  glm::translate(center_of_rotation)
             * glm::rotate(glm::radians(AMOUNT_OF_ROTATION), up_direction)
             * glm::translate(-center_of_rotation);
@@ -164,7 +199,7 @@ void vehicle_attribute::update_rotation_att()
 
     old_back_ideal_tire = back_ideal_tire;
 
-    back_ideal_tire =  rotationMat * glm::dvec4(back_ideal_tire, 1.0);
+    vehicle_pos = back_ideal_tire =  rotationMat * glm::dvec4(back_ideal_tire, 1.0);
     front_ideal_tire =  rotationMat * glm::dvec4(front_ideal_tire, 1.0);
 
     traveled_dist = glm::radians(std::abs(AMOUNT_OF_ROTATION))
@@ -172,19 +207,15 @@ void vehicle_attribute::update_rotation_att()
 
     frontCam.camera_position = transformationMats[0] * camPos;
 
-
-
-    vehic_direction = glm::mat3(glm::rotate(glm::radians(AMOUNT_OF_ROTATION),
+    vehicle_orientation = vehic_direction = glm::mat3(glm::rotate(glm::radians(AMOUNT_OF_ROTATION),
                                             up_direction))
                       * vehic_direction;
     frontCam.view_direction = glm::mat3(glm::rotate(glm::radians(AMOUNT_OF_ROTATION),
                                                     up_direction))
                               * frontCam.view_direction;
-
-
 }
 
-void vehicle_attribute::actuate()
+void vehicle_attributes::actuate()
 {
     if(std::abs(STEERING_WHEEL) < 0.0001){
         transformationMats[1] =  transformationMats[0] * f_rightT;
@@ -219,18 +250,21 @@ void vehicle_attribute::actuate()
     transformationMats[2] = glm::dmat4(transformationMats[2]) * tires_hRotation;
     transformationMats[3] = glm::dmat4(transformationMats[3]) * tires_hRotation;
 
-
     transformationMats[4] = transformationMats[0] * lidar
             * glm::rotate(glm::radians(amount_of_rotation_Lidar <= -360 ?
                 amount_of_rotation_Lidar = 0
-                : amount_of_rotation_Lidar -= lidar_spin_speed),
+                : amount_of_rotation_Lidar -= (lidar_spin_speed*elapsed_t)),
                   glm::dvec3(0.0, 1.0, 0.0));
 
     frontCam.updateWorld_to_viewMat();
+
+    gps_pub.publish(pos_ref);
+    orientation_pub.publish(orientation_ref);
+    ticks_pub.publish(current_ticks_ref);
 }
 
 transform_attribs<GLdouble>
-vehicle_attribute::current_state(void){
+vehicle_attributes::current_state(void){
     GLdouble angle{glm::degrees
                 (glm::angle(glm::dvec3(1.0, 0.0, 0.0),
                  vehic_direction))};
@@ -239,24 +273,29 @@ vehicle_attribute::current_state(void){
     return attribs;
 }
 
-vehicle_attribute::~vehicle_attribute()
+vehicle_attributes::~vehicle_attributes()
 {
     if(localView_buffer!=nullptr)
         delete localView_buffer;
 }
 
-void vehicle_attribute::pubFront_img()
-{
-    local_cam_img.save((attribs.name+".jpg").c_str());
-}
-void vehicle_attribute::captureBuffer(){
-    local_cam_img = localView_buffer->toImage();
-}
+/////-----------removed OpenCV dependency-----------
+// void vehicle_attributes::pubFront_img()
+// {
+//     // local_cam_img_reformed = local_cam_img.convertToFormat(QImage::Format_RGB888);
+//     // cv::Mat mat(local_cam_img.height(), 
+//     //             local_cam_img.width(), 
+//     //             CV_8UC3, 
+//     //             local_cam_img.bits(), 
+//     //             local_cam_img.bytesPerLine());
+//     // local_cam_msg = cv_bridge::CvImage(std_msgs::Header(), "rgb8", mat).toImageMsg();
+//     // cam_pub.publish(local_cam_msg);
+//     //// local_cam_img.save((attribs.name+".jpg").c_str());
+// }
 
 
 //===================================================================
-
-// old approache
+////-----------Old Approach For Ackerman Rotation----- 
 glm::dvec3 rotate(glm::dvec3 p, const glm::dvec3 c,
                   const double angle, const bool ccw){
     double _sin = std::sin(angle);
@@ -270,8 +309,6 @@ glm::dvec3 rotate(glm::dvec3 p, const glm::dvec3 c,
     else // cw: clockwise rotation
         p = glm::dvec3(  p.x * _cos - p.z * _sin, 0.0f,
                          p.z * _cos + p.x * _sin);
-
-
     return p+c;
 }
 
@@ -285,13 +322,7 @@ glm::dvec3 intersect(const glm::dvec3 p1,
     return glm::dvec3{ p1.x + temp * (p2.x - p1.x), 0.0f, p1.z + temp * (p2.z - p1.z) };
 }
 
-
-void vehicle_attribute::update_steerin()
-{
-
-}
-
-void vehicle_attribute::update_cent()
+void vehicle_attributes::update_cent()
 {
         glm::dvec3 p1, p2;
 

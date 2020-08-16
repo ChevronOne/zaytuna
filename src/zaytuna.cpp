@@ -34,7 +34,6 @@
 
 
 
-
 #include "zay_primary_win.hpp"
 #include <QApplication>
 #include <QFontDatabase>
@@ -44,16 +43,17 @@
 int main(int argc, char *argv[])
 {
 
+    ros::init(argc, argv, "zaytuna");
     QApplication a(argc, argv);
 
-    QString fontPath = "fonts/OpenSans-Light.ttf";
-    int fontId = QFontDatabase::addApplicationFont(fontPath);
-    if (fontId != -1)
-    {
-        QFont font("OpenSans-Regular");
-        a.setFont(font);
-    }else
-        std::cerr << "WARNING: fonts did not load!\n" << std::flush;
+   std::string fontPath{ros::package::getPath("zaytuna")+"/fonts/OpenSans-Light.ttf"};
+   int fontId = QFontDatabase::addApplicationFont(fontPath.c_str());
+   if (fontId != -1)
+   {
+       QFont font("OpenSans-Regular");
+       a.setFont(font);
+   }else
+       std::cerr << "WARNING: fonts did not load!\n" << std::flush;
 
     if (!QGLFormat::hasOpenGL() || !QGLFramebufferObject::hasOpenGLFramebufferObjects()) {
         QMessageBox::information(nullptr, "OpenGL FrameBuffer Object",

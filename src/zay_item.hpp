@@ -51,11 +51,6 @@
 #include <boost/ptr_container/ptr_vector.hpp>
 
 
-
-
-
-
-
 namespace zaytuna{
 
 class primary_win;
@@ -103,8 +98,7 @@ public:
 
 
 
-// ---------------------------------------------
-
+//////////////////////////////
 class external_obj : public scene_object
 {
 
@@ -143,9 +137,7 @@ public:
 };
 
 
-
-// --------------------------------------------
-
+/////////////////////////////////
 class coord_sys : public scene_object
 {
 
@@ -180,9 +172,7 @@ public:
 };
 
 
-
-//-----------------------------------------
-
+///////////////////////////////////
 class grid_plane : public scene_object
 {
 
@@ -219,10 +209,7 @@ public:
 };
 
 
-
-
-// ----------------------------------------------
-
+/////////////////////////////
 class skybox_obj : public scene_object
 {
 
@@ -257,9 +244,7 @@ public:
 
 };
 
-//---------------------------------------------------------------
-
-
+///////////////////////////
 class model_vehicle : public scene_object
 {
     shape_data<zaytuna::vertexL1_16> model_primitives;
@@ -298,15 +283,11 @@ class model_vehicle : public scene_object
     GLsizei backtiresNumIndices;
     GLsizei lidarNumIndices;
 
-//    ptr_vector<vehicle_attribute*> vehicles;
-    boost::ptr_vector<vehicle_attribute> vehicles;
+    boost::ptr_vector<vehicle_attributes> vehicles;
 
-    boost::ptr_vector<vehicle_attribute>::iterator
+    boost::ptr_vector<vehicle_attributes>::iterator
     find(const std::string&);
-
-
     virtual void clean_up(void) override;
-
 
     friend class _scene_widg;
     friend class primary_win;
@@ -331,17 +312,14 @@ public:
 
 
 
-    // useful for debugging
-    void render_vectors_state(vehicle_attribute*, zaytuna::camera*);
+    ////----------useful--for--debugging--------
+    void render_vectors_state(vehicle_attributes*, zaytuna::camera*);
 };
 
 
-//---------------------------------------------------------------
-
-
+////////////////////////////////////////
 template<class T>
 struct obstacle_instance{
-//    std::string name;
     obstacle_attribs<T> attribs;
     glm::tmat4x4<T> transformMat{
         glm::translate(glm::dvec3(0.0, 0.0, 0.0))
@@ -379,8 +357,7 @@ struct obstacle_wrapper{
             type{type},
             prims_dir{prims_dir},
             tex_dir{tex_dir}{
-        primitives = shape_maker
-                <zaytuna::vertexL1_16>::extractExternal(prims_dir);
+        primitives = obj_parser::extractExternal(prims_dir);
         QImage tex_buffer;
         _widg->glGenTextures(1, &_texID);
         _widg->glBindTexture(GL_TEXTURE_2D, _texID);
@@ -434,7 +411,7 @@ struct obstacle_wrapper{
 
         num_indices = static_cast<GLsizei>(primitives.indNum);
 
-        //================================================
+        ///////////////////////////////
         _widg->glGenVertexArrays(1, &_VAO_ID);
         _widg->glBindVertexArray(_VAO_ID);
         _widg->glEnableVertexAttribArray(0);
@@ -446,16 +423,14 @@ struct obstacle_wrapper{
                                      reinterpret_cast<void*>(off_set));
         _widg->glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE,
                                      VERTEX_BYTE_SIZE_1,
-                                     reinterpret_cast<void*>(off_set + TYPE_SIZE * 3));
+                                     reinterpret_cast<void*>(off_set + TYPE_SIZE * NORMALS_STRIDE));
         _widg->glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE,
                                      VERTEX_BYTE_SIZE_1,
-                                     reinterpret_cast<void*>(off_set + TYPE_SIZE * 6));
+                                     reinterpret_cast<void*>(off_set + TYPE_SIZE * TEXTURE_STRIDE));
         _widg->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, theBufferID);
         off_set += primitives.verBufSize()
                 + primitives.indBufSize();
-//        if(transformMatLocation == -1)
-//            transformMatLocation
-//                    = _widg->glGetUniformLocation(_programID, "transformMat");
+
         primitives.cleanUP();
     }
 
@@ -499,12 +474,10 @@ struct obstacle_pack : public scene_object {
 
     void delete_obstacle(const std::string& _name){
 #if __cplusplus > 201703L
-        std::cout <<"has cpp20\n" << std::endl;
         std::erase_if(categories[category[_name]]->instances,
             [=](obstacle_instance<T> instance)
             {return instance.attribs.name == _name; });
 #else
-        std::cout << "do not have cpp20\n" << std::endl;
         categories[category[_name]]->instances.erase(find(_name));
 #endif
     }

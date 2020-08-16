@@ -54,14 +54,10 @@
 #include <map>
 
 #include <QOpenGLFunctions>
-//#include <QOpenGLWidget>
 #include <QGLWidget>
 #include <QOpenGLFunctions_3_0>
-//#include <QOpenGLFunctions_3_2_Core>
 #include <QTimer>
-
 #include <QGL>
-
 #include <QImage>
 #include <QMessageBox>
 #include <QGLFormat>
@@ -70,27 +66,38 @@
 
 #include <QDebug>
 
-#if __has_include(<experimental/filesystem>)
-
+#if __has_include(<filesystem>)
+#include <filesystem>
+namespace fs = std::filesystem;
+#else
 #include <experimental/filesystem>
 namespace fs = std::experimental::filesystem::v1;
-
 #endif
 
+#include "ros/ros.h"
+#include "geometry_msgs/Vector3.h"
+#include "nav_msgs/Odometry.h"
+#include "std_msgs/UInt32.h"
+#include "std_msgs/UInt64.h"
+#include "std_msgs/Float32.h"
+#include "std_msgs/Float64.h"
+#include "sensor_msgs/Image.h"
+#include "ros/package.h"
 
-//extern double GLOBAL_MOVEMENT_SPEED;
-//extern double GLOBAL_STEERING_WHEEL;
-//Q_GLOBAL_STATIC(uint32_t, vehicle_counter)
-//Q_GLOBAL_STATIC(uint32_t, obstacle_counter)
-extern uint32_t vehicle_counter;
-extern uint32_t obstacle_counter;
-//extern QString vehicle_name;
-//extern QString obstacle_name;
-
+#define BOOST_MAJOR_VERSION BOOST_VERSION / 0x186A0 
+#define BOOST_MINOR_VERSION BOOST_VERSION / 0x64 % 0x3E8
+#define BOOST_PATCH_LEVEL BOOST_VERSION % 0x64
 
 typedef GLfloat DATA_TYPE;
-typedef  QOpenGLFunctions_3_0 USED_GL_VERSION;
+typedef QOpenGLFunctions_3_0 USED_GL_VERSION;
 typedef QGLWidget QGL_WIDGET_VERSION;
+
+#if !(BOOST_MAJOR_VERSION==0x1 && ((BOOST_MINOR_VERSION==0x41 && \
+        (BOOST_PATCH_LEVEL==0x0 || BOOST_PATCH_LEVEL==0x1)) || \
+     (BOOST_MINOR_VERSION==0x42 && BOOST_PATCH_LEVEL==0x0)))
+#define BOOST_SPIRIT_X3_SEMANTIC_ACTION
+#endif
+
 
 
 #define _USE_MATH_DEFINES
@@ -111,14 +118,8 @@ typedef QGLWidget QGL_WIDGET_VERSION;
 # define M_SQRT1_2	0.70710678118654752440	/* 1/sqrt(2) */
 #endif
 
-//#define PI 3.14159265358979323846
 #define NUM_OF(arr)  sizeof(arr) / sizeof(*arr)
-
 #define SIGN_OF(val)  (float(0) < val) - (val < float(0))
-
-
-
-
 #define TYPE_SIZE sizeof(DATA_TYPE)
 #define NUM_VERTICES_PER_TRI 3
 #define NUM_VERTICES_PER_TEXCOR 2
@@ -129,15 +130,25 @@ typedef QGLWidget QGL_WIDGET_VERSION;
 #define VERTEX_BYTE_SIZE_0  NUM_FLOATS_PER_VERTEX_0 * TYPE_SIZE
 #define VERTEX_BYTE_SIZE_1 NUM_FLOATS_PER_VERTEX_1 * TYPE_SIZE
 #define MOUSE_DELTA_IGNORE 7
-#define NUM_SEC_FRAME_RATE 1.0 // number of seconds to display frame rate
+#define NUM_SEC_FRAME_RATE 1.0
 #define WIDTH 800
 #define HEIGHT 500
 #define NUM_SAMPLES_PER_PIXEL 8
+#define SPEED_SCALAR 600
+#define MAX_TURN_ANGLE 25
+#define STEERING_MARGIN_OF_ERROR 0.00000001
+#define NUM_OF_CHANNELS 3
+#define FRONT_IMG_SIZE WIDTH*HEIGHT*NUM_OF_CHANNELS
+#define FRONT_CAM_FREQUENCY 20
+#define NORMALS_STRIDE 3 
+#define TEXTURE_STRIDE 6
+#define ZAYTUNA_VERSION 0x0001
+#define ZAYTUNA_MINOR_VERSION 0x0000
 
 
 
-//--------------------------
 
+////--------GLM---------------
 #include <glm/vec3.hpp>
 #include "glm/glm.hpp"
 #include <glm/gtc/matrix_transform.hpp>
@@ -147,10 +158,7 @@ typedef QGLWidget QGL_WIDGET_VERSION;
 #include <glm/gtx/transform.hpp>
 #include <glm/gtx/vector_angle.hpp>
 
-
-
-
-
+#include <glm/gtc/quaternion.hpp>
 
 
 

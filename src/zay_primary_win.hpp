@@ -71,20 +71,18 @@ public:
 
 
 protected:
-//    void mouseMoveEvent(QMouseEvent*);
-//    void keyPressEvent(QKeyEvent*);
     virtual void closeEvent(QCloseEvent*);
 
 private slots:
-    void on_grid_check_clicked(bool checked);
-    void on_coord_check_clicked(bool checked);
+    void on_grid_check_clicked(bool);
+    void on_coord_check_clicked(bool);
     void update_displys(void);
-    void on_cam_movement_speed_valueChanged(double arg1);
-    void on_cam_rotation_speed_valueChanged(double arg1);
-    void on_speedV_valueChanged(int value);
-    void on_SpinBox_Near_valueChanged(double arg1);
-    void on_SpinBox_Far_valueChanged(double arg1);
-    void on_SpinBox_FieldOfView_valueChanged(double arg1);
+    void on_cam_movement_speed_valueChanged(double);
+    void on_cam_rotation_speed_valueChanged(double);
+    void on_speedV_valueChanged(int);
+    void on_SpinBox_Near_valueChanged(double);
+    void on_SpinBox_Far_valueChanged(double);
+    void on_SpinBox_FieldOfView_valueChanged(double);
     void on_radioButton_Global_clicked();
     void on_radioButton_Local_clicked();
     void on_steeringV_valueChanged(int value);
@@ -101,6 +99,7 @@ private slots:
     void edit_obstacle(const QString&);
     void on_auto_perspective_radio_clicked();
     void on_custom_perspective_radio_clicked();
+    void on_front_cam_freq_SpinBox_valueChanged(double);
 
 private:
     Ui::primary_win *ui{nullptr};
@@ -110,7 +109,7 @@ private:
     std::map<QString, void(primary_win::*)(const QPoint&)> menus_popups;
     QTreeWidgetItem *vehicle_type{nullptr}, *obstacle_type{nullptr};
     std::map<QString, QTreeWidgetItem*> vehicles, obstacles;
-
+    uint32_t vehicle_counter{1}, obstacle_counter{1};
 };
 
 

@@ -33,19 +33,33 @@
 
 
 
-
-
 #ifndef ZAY_UTILITY_HPP
 #define ZAY_UTILITY_HPP
 
 
 #include "zay_headers.hpp"
+#include "zay_shape_data.hpp"
+
 #include <vector>
 #include <boost/assign/list_of.hpp>
 #include <QImage>
 
+#include <boost/spirit/home/x3.hpp>
+#include <boost/spirit/include/support_istream_iterator.hpp>
+namespace x3 = boost::spirit::x3;
+
+#ifndef BOOST_SPIRIT_X3_SEMANTIC_ACTION
+
+#include <boost/fusion/adapted/struct.hpp>
+#include <boost/fusion/include/as_vector.hpp>
+#endif
+
 namespace zaytuna {
 
+struct obj_parser{
+    static shape_data<zaytuna::vertexL1_16> 
+        extractExternal(const std::string&);
+};
 
 template<class T>
 class ptr_vector : public std::vector<T>
@@ -70,8 +84,23 @@ public:
             delete *it;
     }
 };
-enum class Obstacle_Type { CARTON_BOX, BRICK_WALL, STONE_WALL };
+template <class allocator>
+struct zay_vec3 : public geometry_msgs::Vector3_<allocator>{
+    inline zay_vec3<allocator>& operator=(const glm::dvec3& glm_vec){
+        this->x = glm_vec.x;
+        this->y = glm_vec.y;
+        this->z = glm_vec.z;
+        return *this; }
+};
+template <class allocator>
+struct zay_uint32 : public std_msgs::UInt32_<allocator>{
+    inline zay_uint32<allocator>& operator=(const uint32_t& val){
+        this->data = val;
+        return *this; }
+};
 
+
+enum class Obstacle_Type { CARTON_BOX, BRICK_WALL, STONE_WALL };
 template<class T>
 struct transform_attribs
 {
@@ -170,8 +199,6 @@ public:
 
 };
 
-glm::vec3 rCol(void);
-
 template<class T>
 std::ostream& operator<<(std::ostream&out, const glm::tvec3<T>&vec){
     unsigned def_per = out.precision();
@@ -187,16 +214,11 @@ void _load_tex(QImage&, const QString&, const char*, bool, bool);
 
 const char* DebugGLerr(unsigned);
 
-//namespace std{
-//    class warning : public exception
-//    {
-//    public:
-//         warning(const string& warn_msg) {}
-//         const char* what() { return warn_msg.c_str(); } //message of warning
-//    private:
-//         string warn_msg;
-//    };
-//}
+struct OBJ {
+    std::vector<glm::vec3> positions, normals;
+    std::vector<glm::vec2> texCoords;
+    std::vector<uint32_t> faces;
+};
 
 
 } // namespace zaytuna

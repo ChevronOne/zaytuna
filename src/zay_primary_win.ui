@@ -1,5 +1,38 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>  <!--Zaytuna Simulator, primary window interface-->
 <ui version="4.0">
+<!--//  
+    //  Copyright (C) 2007 Free Software Foundation, Inc. <https://fsf.org/>
+    //
+    //  This file is part of the Zaytuna Simulator Project.
+    //
+    //  Distributed under the terms of the GNU General Public License
+    //  as published by the Free Software Foundation; You should have
+    //  received a copy of the GNU General Public License.
+    //  If not, see <http://www.gnu.org/licenses/>.
+    //
+    //
+    //  This software is distributed in the hope that it will be useful, but WITHOUT
+    //  WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+    //  WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE AND
+    //  NON-INFRINGEMENT. IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR ANYONE
+    //  DISTRIBUTING THE SOFTWARE BE LIABLE FOR ANY DAMAGES OR OTHER LIABILITY,
+    //  WHETHER IN CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+    //  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. See the GNU
+    //  General Public License for more details.
+
+    /*
+     * Copyright Abbas Mohammed Murrey 2019-20
+     *
+     * Permission to use, copy, modify, distribute and sell this software
+     * for any purpose is hereby granted without fee, provided that the
+     * above copyright notice appear in all copies and that both the copyright
+     * notice and this permission notice appear in supporting documentation.
+     * I make no representations about the suitability of this software for any
+     * purpose.  It is provided "as is" without express or implied warranty.
+     *
+     *
+     *
+     */-->
  <class>primary_win</class>
  <widget class="QMainWindow" name="primary_win">
   <property name="enabled">
@@ -1103,6 +1136,51 @@
      </property>
      <property name="checked">
       <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QDoubleSpinBox" name="front_cam_freq_SpinBox">
+     <property name="geometry">
+      <rect>
+       <x>290</x>
+       <y>405</y>
+       <width>71</width>
+       <height>26</height>
+      </rect>
+     </property>
+     <property name="minimum">
+      <double>1.000000000000000</double>
+     </property>
+     <property name="maximum">
+      <double>100.000000000000000</double>
+     </property>
+     <property name="value">
+      <double>20.000000000000000</double>
+     </property>
+    </widget>
+    <widget class="QLabel" name="fornt_cam_freq_lab">
+     <property name="geometry">
+      <rect>
+       <x>290</x>
+       <y>375</y>
+       <width>171</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Front cam frequency</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="Hz_lab">
+     <property name="geometry">
+      <rect>
+       <x>370</x>
+       <y>410</y>
+       <width>67</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Hz</string>
      </property>
     </widget>
    </widget>
