@@ -46,8 +46,8 @@
 
 #include <boost/spirit/home/x3.hpp>
 #include <boost/spirit/include/support_istream_iterator.hpp>
-#include <boost/iostreams/device/mapped_file.hpp>
-#include "boost/spirit/include/support_iso8859_1.hpp"
+//#include <boost/iostreams/device/mapped_file.hpp>
+//#include "boost/spirit/include/support_iso8859_1.hpp"
 namespace x3 = boost::spirit::x3;
 
 #ifndef BOOST_SPIRIT_X3_SEMANTIC_ACTION
