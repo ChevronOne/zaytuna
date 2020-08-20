@@ -55,7 +55,7 @@ class vehicle_attributes
 {
 
     ros::NodeHandle node_handle;
-    ros::Publisher gps_pub, ticks_pub, orientation_pub, cam_pub;
+    ros::Publisher gps_pub, ticks_pub, orientation_pub, cam_pub, geo_pub;
     ros::Subscriber speed_sub, steering_sub;
 
     void speed_callback(const std_msgs::Float64&);
@@ -65,6 +65,8 @@ class vehicle_attributes
     geometry_msgs::Vector3_<std::allocator<void>>& pos_ref{vehicle_pos};
     zay_vec3<std::allocator<void>> vehicle_orientation;
     geometry_msgs::Vector3_<std::allocator<void>>& orientation_ref{vehicle_orientation};
+    zay_geo_pose<std::allocator<void>> vehicle_geometry;
+    geometry_msgs::Pose_<std::allocator<void>>& vehicle_geometry_ref{vehicle_geometry};
     zay_uint32<std::allocator<void>> current_ticks;
     std_msgs::UInt32_<std::allocator<void>>& current_ticks_ref{current_ticks};
     

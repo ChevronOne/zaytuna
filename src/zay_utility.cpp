@@ -72,13 +72,14 @@ namespace Parser {
 shape_data<vertexL1_16> obj_parser::extractExternal
     (const std::string& _dir){
 
-    std::ifstream f_stream(_dir, std::ios::in);
-    if( !f_stream.is_open()){
+    boost::iostreams::mapped_file f_mmap(_dir,
+            boost::iostreams::mapped_file::readonly);
+    if(!f_mmap.is_open()){
         std::cerr << "could not open file <" << _dir << ">\n";
-        exit(EXIT_FAILURE);
-    }
-    
-    boost::spirit::istream_iterator _head(f_stream >> std::noskipws), _tail;
+        exit(EXIT_FAILURE); }
+    const char* _head = f_mmap.const_data();
+    const char* _tail = _head + f_mmap.size();
+
     OBJ primitives;
     if (x3::parse(_head, _tail, Parser::OBJ, primitives)){
         std::for_each(primitives.faces.begin(), primitives.faces.end(), 
@@ -117,11 +118,13 @@ namespace zaytuna {
 shape_data<vertexL1_16> obj_parser::extractExternal
     (const std::string& _dir){
 
-    std::ifstream f_stream(_dir, std::ios::in);
-    if( !f_stream.is_open()){
+    boost::iostreams::mapped_file f_mmap(_dir,
+            boost::iostreams::mapped_file::readonly);
+    if(!f_mmap.is_open()){
         std::cerr << "could not open file <" << _dir << ">\n";
-        exit(EXIT_FAILURE);
-    }
+        exit(EXIT_FAILURE); }
+    const char* _head = f_mmap.const_data();
+    const char* _tail = _head + f_mmap.size();
 
     std::vector<float> positions, texCoords, normals;
     std::vector<uint32_t> faces;
@@ -145,8 +148,7 @@ shape_data<vertexL1_16> obj_parser::extractExternal
             *(sequence_i("f", faces) >> (x3::eoi|+x3::eol))
         )];
 
-   boost::spirit::istream_iterator _head(f_stream
-                                   >> std::noskipws), _tail;
+
    shape_data<vertexL1_16> _object;
 
    if (x3::parse(_head, _tail, OBJ)) {

@@ -74,9 +74,11 @@ zaytuna::vehicle_attributes::vehicle_attributes
     transformationMats[4] = lidar;
 
     gps_pub = node_handle.advertise<geometry_msgs::Vector3>
-            ("zaytuna/"+attribs.name+"/gps/localization",10);
+            ("zaytuna/"+attribs.name+"/gps/localization",5);
     orientation_pub = node_handle.advertise<geometry_msgs::Vector3>
-            ("zaytuna/"+attribs.name+"/compass/orientation",10);
+            ("zaytuna/"+attribs.name+"/compass/orientation",5);
+    geo_pub = node_handle.advertise<geometry_msgs::Pose>
+            ("zaytuna/"+attribs.name+"/geometry/pose",5);
     ticks_pub = node_handle.advertise<std_msgs::UInt32>
             ("zaytuna/"+attribs.name+"/sensors/ticks",10);
 
@@ -84,10 +86,10 @@ zaytuna::vehicle_attributes::vehicle_attributes
             ("zaytuna/"+attribs.name+"/sensors/front_cam",0);
 
     speed_sub = node_handle.subscribe
-            ("zaytuna/"+attribs.name+"/speed", 1,
+            ("zaytuna/"+attribs.name+"/controller/speed", 1,
              &vehicle_attributes::speed_callback, this);
     steering_sub = node_handle.subscribe
-            ("zaytuna/"+attribs.name+"/steering", 1,
+            ("zaytuna/"+attribs.name+"/controller/steering", 1,
              &vehicle_attributes::steering_callback, this);
 
     local_cam_msg.header = std_msgs::Header();
@@ -124,10 +126,13 @@ void vehicle_attributes::update_positional_attributes
 
     rotationMat = glm::rotate(0.0, up_direction);
 
-    vehic_direction = glm::dmat3(attribs.rotationMat()) * vehic_direction;
+    vehicle_orientation = vehic_direction =
+            glm::dmat3(attribs.rotationMat()) * vehic_direction;
 
-    back_ideal_tire = old_back_ideal_tire = transformationMats[0]
-                                        * glm::vec4(back_ideal_tire, 1.0);
+    vehicle_pos = back_ideal_tire =
+            old_back_ideal_tire = transformationMats[0]
+            * glm::vec4(back_ideal_tire, 1.0);
+
     front_ideal_tire = transformationMats[0]
                         * glm::vec4(front_ideal_tire, 1.0);
 
@@ -141,6 +146,8 @@ void vehicle_attributes::update_positional_attributes
     front_tires_vRotation = glm::rotate(STEERING_WHEEL,
                                         glm::dvec3(0.0, 1.0, 0.0));
     frontCam.updateProjection(WIDTH, HEIGHT);
+
+    vehicle_geometry.update(back_ideal_tire, vehic_direction);
 }
 
 
@@ -258,6 +265,8 @@ void vehicle_attributes::actuate()
 
     frontCam.updateWorld_to_viewMat();
 
+    vehicle_geometry.update(back_ideal_tire, vehic_direction);
+    geo_pub.publish(vehicle_geometry_ref);
     gps_pub.publish(pos_ref);
     orientation_pub.publish(orientation_ref);
     ticks_pub.publish(current_ticks_ref);

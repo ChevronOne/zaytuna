@@ -46,6 +46,8 @@
 
 #include <boost/spirit/home/x3.hpp>
 #include <boost/spirit/include/support_istream_iterator.hpp>
+#include <boost/iostreams/device/mapped_file.hpp>
+#include "boost/spirit/include/support_iso8859_1.hpp"
 namespace x3 = boost::spirit::x3;
 
 #ifndef BOOST_SPIRIT_X3_SEMANTIC_ACTION
@@ -92,11 +94,25 @@ struct zay_vec3 : public geometry_msgs::Vector3_<allocator>{
         this->z = glm_vec.z;
         return *this; }
 };
+
 template <class allocator>
 struct zay_uint32 : public std_msgs::UInt32_<allocator>{
     inline zay_uint32<allocator>& operator=(const uint32_t& val){
         this->data = val;
         return *this; }
+};
+
+template<class allocator>
+struct zay_geo_pose : public geometry_msgs::Pose_<allocator> {
+    void update(const glm::dvec3& pos,
+                const glm::dvec3& dir){
+        this->position.x = pos.x;
+        this->position.y = pos.y;
+        this->position.z = pos.z;
+        double h_angle{atan2(dir.x, dir.z)/2.0};
+        this->orientation.y = sin(h_angle);
+        this->orientation.w = cos(h_angle);
+    }
 };
 
 
