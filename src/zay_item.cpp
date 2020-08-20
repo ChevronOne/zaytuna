@@ -81,35 +81,38 @@ external_obj::external_obj
 {
     primitives = obj_parser::extractExternal(_dir);
 
-    QImage tex_buffer;
-    _widg->glGenTextures(1, &_texID);
-    _widg->glBindTexture(GL_TEXTURE_2D, _texID);
+    _load_tex(_widg,_texID, _tex, TEX_TYPE::TEX_2D_MIPMAP,
+              "JPG", 0,0);
 
-    GLfloat max_anisotropic_extention{0};
-    _widg->glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT,
-                       &max_anisotropic_extention);
-    _widg->glTexParameterf(GL_TEXTURE_2D,
-                           GL_TEXTURE_MAX_ANISOTROPY_EXT,
-                           max_anisotropic_extention);
+//    QImage tex_buffer;
+//    _widg->glGenTextures(1, &_texID);
+//    _widg->glBindTexture(GL_TEXTURE_2D, _texID);
 
-    _widg->glTexParameteri(GL_TEXTURE_2D,
-                           GL_TEXTURE_WRAP_S,
-                           GL_REPEAT);
-    _widg->glTexParameteri(GL_TEXTURE_2D,
-                           GL_TEXTURE_WRAP_T,
-                           GL_REPEAT);
-    _widg->glTexParameteri(GL_TEXTURE_2D,
-                           GL_TEXTURE_MIN_FILTER,
-                           GL_LINEAR_MIPMAP_LINEAR);
-    _widg->glTexParameteri(GL_TEXTURE_2D,
-                           GL_TEXTURE_MAG_FILTER,
-                           GL_LINEAR);
-    _load_tex(tex_buffer, _tex.c_str(), "JPG", 0, 0);
-    _widg->glTexImage2D(GL_TEXTURE_2D, 0,
-                        GL_RGBA, tex_buffer.width(),
-                        tex_buffer.height(), 0, GL_RGBA,
-                        GL_UNSIGNED_BYTE, tex_buffer.bits());
-    _widg->glGenerateMipmap(GL_TEXTURE_2D);
+//    GLfloat max_anisotropic_extention{0};
+//    _widg->glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT,
+//                       &max_anisotropic_extention);
+//    _widg->glTexParameterf(GL_TEXTURE_2D,
+//                           GL_TEXTURE_MAX_ANISOTROPY_EXT,
+//                           max_anisotropic_extention);
+
+//    _widg->glTexParameteri(GL_TEXTURE_2D,
+//                           GL_TEXTURE_WRAP_S,
+//                           GL_REPEAT);
+//    _widg->glTexParameteri(GL_TEXTURE_2D,
+//                           GL_TEXTURE_WRAP_T,
+//                           GL_REPEAT);
+//    _widg->glTexParameteri(GL_TEXTURE_2D,
+//                           GL_TEXTURE_MIN_FILTER,
+//                           GL_LINEAR_MIPMAP_LINEAR);
+//    _widg->glTexParameteri(GL_TEXTURE_2D,
+//                           GL_TEXTURE_MAG_FILTER,
+//                           GL_LINEAR);
+//    _read_tex(tex_buffer, _tex, "JPG", 0, 0);
+//    _widg->glTexImage2D(GL_TEXTURE_2D, 0,
+//                        GL_RGBA, tex_buffer.width(),
+//                        tex_buffer.height(), 0, GL_RGBA,
+//                        GL_UNSIGNED_BYTE, tex_buffer.bits());
+//    _widg->glGenerateMipmap(GL_TEXTURE_2D);
 
 
 }
@@ -390,44 +393,45 @@ zaytuna::skybox_obj::skybox_obj(USED_GL_VERSION * const _widg,
     name{_name}, MODE{_MODE}
 {
     primitives = shape_maker<zaytuna::vertexL1_0>::makeCubemap();
+    _load_tex(_widg,_texID, "/tex/skybox", TEX_TYPE::TEX_CUBE_MAP,
+              "JPG", 0,1);
 
-    QImage tex_buffer;
-    std::vector<std::string> faces={
-        ros::package::getPath("zaytuna")+"/tex/skybox-jpg/right.jpg",
-        ros::package::getPath("zaytuna")+"/tex/skybox-jpg/left.jpg",
-        ros::package::getPath("zaytuna")+"/tex/skybox-jpg/top.jpg",
-        ros::package::getPath("zaytuna")+"/tex/skybox-jpg/bottom.jpg",
-        ros::package::getPath("zaytuna")+"/tex/skybox-jpg/front.jpg",
-        ros::package::getPath("zaytuna")+"/tex/skybox-jpg/back.jpg" };
-    _widg->glGenTextures(1, &_texID);
-    _widg->glBindTexture(GL_TEXTURE_CUBE_MAP, _texID);
-    _widg->glTexParameteri(GL_TEXTURE_CUBE_MAP,
-                    GL_TEXTURE_MIN_FILTER,
-                    GL_LINEAR);
-    _widg->glTexParameteri(GL_TEXTURE_CUBE_MAP,
-                    GL_TEXTURE_MAG_FILTER,
-                    GL_LINEAR);
-    _widg->glTexParameteri(GL_TEXTURE_CUBE_MAP,
-                    GL_TEXTURE_WRAP_S,
-                    GL_CLAMP_TO_EDGE);
-    _widg->glTexParameteri(GL_TEXTURE_CUBE_MAP,
-                    GL_TEXTURE_WRAP_T,
-                    GL_CLAMP_TO_EDGE);
-    _widg->glTexParameteri(GL_TEXTURE_CUBE_MAP,
-                    GL_TEXTURE_WRAP_R,
-                    GL_CLAMP_TO_EDGE);
-    _widg->glTexParameteri(GL_TEXTURE_CUBE_MAP,
-                    GL_TEXTURE_BASE_LEVEL, 0);
-    _widg->glTexParameteri(GL_TEXTURE_CUBE_MAP,
-                    GL_TEXTURE_MAX_LEVEL, 0);
-    for (GLuint i = 0; i < 6; ++i){
-        _load_tex(tex_buffer, faces[i].c_str(), "JPG", 0, 1);
-        _widg->glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X+i,
-                     0, 3, tex_buffer.width(),
-                     tex_buffer.height(), 0,
-                     GL_RGBA, GL_UNSIGNED_BYTE,
-                     tex_buffer.bits());
-    }
+//    QImage tex_buffer;
+//    std::vector<std::string> faces={
+//        "/tex/skybox/right.jpg",
+//        "/tex/skybox/left.jpg",
+//        "/tex/skybox/top.jpg",
+//        "/tex/skybox/bottom.jpg",
+//        "/tex/skybox/front.jpg",
+//        "/tex/skybox/back.jpg" };
+//    _widg->glGenTextures(1, &_texID);
+//    _widg->glBindTexture(GL_TEXTURE_CUBE_MAP, _texID);
+//    _widg->glTexParameteri(GL_TEXTURE_CUBE_MAP,
+//                    GL_TEXTURE_MIN_FILTER,
+//                    GL_LINEAR);
+//    _widg->glTexParameteri(GL_TEXTURE_CUBE_MAP,
+//                    GL_TEXTURE_MAG_FILTER,
+//                    GL_LINEAR);
+//    _widg->glTexParameteri(GL_TEXTURE_CUBE_MAP,
+//                    GL_TEXTURE_WRAP_S,
+//                    GL_CLAMP_TO_EDGE);
+//    _widg->glTexParameteri(GL_TEXTURE_CUBE_MAP,
+//                    GL_TEXTURE_WRAP_T,
+//                    GL_CLAMP_TO_EDGE);
+//    _widg->glTexParameteri(GL_TEXTURE_CUBE_MAP,
+//                    GL_TEXTURE_WRAP_R,
+//                    GL_CLAMP_TO_EDGE);
+//    _widg->glTexParameteri(GL_TEXTURE_CUBE_MAP,
+//                    GL_TEXTURE_BASE_LEVEL, 0);
+//    _widg->glTexParameteri(GL_TEXTURE_CUBE_MAP,
+//                    GL_TEXTURE_MAX_LEVEL, 0);
+//    for (GLuint i = 0; i < 6; ++i){
+//        _read_tex(tex_buffer, faces[i], "JPG", 0, 1);
+//        _widg->glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X+i,
+//                     0, 3, tex_buffer.width(),
+//                     tex_buffer.height(), 0,
+//                     GL_RGBA, GL_UNSIGNED_BYTE,
+//                     tex_buffer.bits());}
 }
 
 skybox_obj::~skybox_obj()
@@ -512,17 +516,17 @@ zaytuna::model_vehicle::model_vehicle(USED_GL_VERSION * const _widg,
                                     const std::string& _tex,
                                     const GLenum _MODE):
     scene_object(_widg, programID),
-    prims_dir{_dir.c_str()}, tex_dir{_tex.c_str()}, PRIMITIVES_TYPE{_MODE}
+    prims_dir{_dir}, tex_dir{_tex}, PRIMITIVES_TYPE{_MODE}
 {
 
     model_primitives = obj_parser::extractExternal
-            (prims_dir.toStdString());
+            (prims_dir);
     fronttires_primitives = obj_parser::extractExternal
-            (prims_dir.toStdString()+"-single_tire");
+            (prims_dir+"-single_tire");
     backtires_primitives = obj_parser::extractExternal
-            (prims_dir.toStdString()+"-back_tires");
+            (prims_dir+"-back_tires");
     lidar_primitives = obj_parser::extractExternal
-            (prims_dir.toStdString()+"-lidar");
+            (prims_dir+"-lidar");
 }
 
 void model_vehicle::add_vehicle
@@ -712,22 +716,33 @@ void model_vehicle::transmit_data(GLintptr& _offset,
 
     clean_up();
 
-    QImage tex_buffer;
-    _widg->glGenTextures(1, &_texID);
-    _widg->glBindTexture(GL_TEXTURE_2D, _texID);
-    _widg->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    _widg->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    _widg->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    _widg->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    _load_tex(_widg, _texID, tex_dir, TEX_TYPE::TEX_2D,
+              "PNG", 0,0);
 
-    if(!tex_buffer.load(tex_dir, "PNG")){
-         std::cerr << "image couldn't be loaded <" << tex_dir.toStdString() << ">!\n";
-         exit(EXIT_FAILURE);
-    }
-    tex_buffer = QGLWidget::convertToGLFormat(tex_buffer);
-    _widg->glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tex_buffer.width(),
-                 tex_buffer.height(), 0, GL_RGBA,
-                 GL_UNSIGNED_BYTE, tex_buffer.bits());
+//    QImage tex_buffer;
+//    _widg->glGenTextures(1, &_texID);
+//    _widg->glBindTexture(GL_TEXTURE_2D, _texID);
+//    _widg->glTexParameteri(GL_TEXTURE_2D,
+//                           GL_TEXTURE_WRAP_S,
+//                           GL_REPEAT);
+//    _widg->glTexParameteri(GL_TEXTURE_2D,
+//                           GL_TEXTURE_WRAP_T,
+//                           GL_REPEAT);
+//    _widg->glTexParameteri(GL_TEXTURE_2D,
+//                           GL_TEXTURE_MIN_FILTER,
+//                           GL_LINEAR);
+//    _widg->glTexParameteri(GL_TEXTURE_2D,
+//                           GL_TEXTURE_MAG_FILTER,
+//                           GL_LINEAR);
+
+//    if(!tex_buffer.load((ZAY_PACKAGE_PATH.c_str()+tex_dir).c_str(), "PNG")){
+//         std::cerr << "image couldn't be loaded <" << tex_dir << ">!\n";
+//         exit(EXIT_FAILURE);
+//    }
+//    tex_buffer = QGLWidget::convertToGLFormat(tex_buffer);
+//    _widg->glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tex_buffer.width(),
+//                 tex_buffer.height(), 0, GL_RGBA,
+//                 GL_UNSIGNED_BYTE, tex_buffer.bits());
 
 }
 

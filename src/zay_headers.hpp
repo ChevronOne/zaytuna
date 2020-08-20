@@ -157,6 +157,8 @@ typedef QGLWidget QGL_WIDGET_VERSION;
 
 
 
+const std::string ZAY_PACKAGE_PATH
+    {ros::package::getPath("zaytuna")};
 
 #endif // ZAY_HEADERS_HPP
 

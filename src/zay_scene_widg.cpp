@@ -581,7 +581,7 @@ void _scene_widg::send_data()
                          programs[1],
                          "plane",
                          ros::package::getPath("zaytuna")+"/primitives/plane_300x300_1sub-div",
-                         ros::package::getPath("zaytuna")+"/tex/plane_grass_1024x1024.jpg",
+                         "/tex/plane_grass_1024x1024.jpg",
                          GL_QUADS
 //                         ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
 //                         glm::translate(glm::dvec3(0.0, 0.0, 0.0))
@@ -590,7 +590,7 @@ void _scene_widg::send_data()
                          programs[1],
                          "fence",
                          ros::package::getPath("zaytuna")+"/primitives/fence_300x300_2H_1W",
-                         ros::package::getPath("zaytuna")+"/tex/fence_brick_1024x1024.jpg",
+                         "/tex/fence_brick_1024x1024.jpg",
                          GL_QUADS
 //                         ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
 //                         glm::translate(glm::dvec3(0.0, 0.0, 0.0))
@@ -608,7 +608,7 @@ void _scene_widg::send_data()
                          programs[1],
                          "mini_lap",
                          ros::package::getPath("zaytuna")+"/primitives/mini-lap",
-                         ros::package::getPath("zaytuna")+"/tex/mini_lap_exemplar.jpg",
+                         "/tex/mini_lap_exemplar.jpg",
                          GL_QUADS
 //                         ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
 //                         glm::translate(glm::dvec3(0.0, 0.0, 0.0))
@@ -617,7 +617,7 @@ void _scene_widg::send_data()
                          programs[1],
                          "lap1",
                          ros::package::getPath("zaytuna")+"/primitives/lap1",
-                         ros::package::getPath("zaytuna")+"/tex/lap1_exemplar.jpg",
+                         "/tex/lap1_exemplar.jpg",
                          GL_QUADS
 //                         ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
 //                         glm::translate(glm::dvec3(0.0, 0.0, 0.0))
@@ -626,7 +626,7 @@ void _scene_widg::send_data()
                          programs[1],
                          "lap2",
                          ros::package::getPath("zaytuna")+"/primitives/lap2",
-                         ros::package::getPath("zaytuna")+"/tex/lap2_exemplar.jpg",
+                         "/tex/lap2_exemplar.jpg",
                          GL_QUADS
 //                         ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
 //                         glm::translate(glm::dvec3(0.0, 0.0, 0.0))
@@ -635,7 +635,7 @@ void _scene_widg::send_data()
                          programs[1],
                          "lap3",
                          ros::package::getPath("zaytuna")+"/primitives/lap3",
-                         ros::package::getPath("zaytuna")+"/tex/lap3_exemplar.jpg",
+                         "/tex/lap3_exemplar.jpg",
                          GL_QUADS
 //                        ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
 //                        glm::translate(glm::dvec3(0.0, 0.0, 0.0))
@@ -647,16 +647,16 @@ void _scene_widg::send_data()
                 programs[3],
                 Obstacle_Type::CARTON_BOX,
                 ros::package::getPath("zaytuna")+"/primitives/carton_box",
-                ros::package::getPath("zaytuna")+"/tex/carton_box.jpg",
+                "/tex/carton_box.jpg",
                 GL_QUADS);
     obstacle_objects->add_category
             (Obstacle_Type::BRICK_WALL,
              ros::package::getPath("zaytuna")+"/primitives/brick_wall",
-             ros::package::getPath("zaytuna")+"/tex/brick_wall.jpg");
+             "/tex/brick_wall.jpg");
     obstacle_objects->add_category
             (Obstacle_Type::STONE_WALL,
              ros::package::getPath("zaytuna")+"/primitives/stone_wall",
-             ros::package::getPath("zaytuna")+"/tex/stone_wall_1.jpg");
+             "/tex/stone_wall_1.jpg");
     //------------------------------
 
     fboFormat.setSamples(NUM_SAMPLES_PER_PIXEL);
@@ -665,7 +665,7 @@ void _scene_widg::send_data()
     model_vehicles = new model_vehicle(this,
            programs[3],
            ros::package::getPath("zaytuna")+"/primitives/zaytuna_model",
-           ros::package::getPath("zaytuna")+"/tex/zaytuna-fragments.png",
+           "/tex/zaytuna-fragments.png",
            GL_TRIANGLES );
 
 

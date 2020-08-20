@@ -57,6 +57,7 @@ namespace x3 = boost::spirit::x3;
 #endif
 
 namespace zaytuna {
+enum class TEX_TYPE { TEX_CUBE_MAP, TEX_2D, TEX_2D_MIPMAP};
 
 struct obj_parser{
     static shape_data<zaytuna::vertexL1_16> 
@@ -226,7 +227,7 @@ std::ostream& operator<<(std::ostream&out, const glm::tvec3<T>&vec){
     out.precision(def_per);
 }
 
-void _load_tex(QImage&, const QString&, const char*, bool, bool);
+void _read_tex(QImage&, const std::string&, const char*, bool, bool);
 
 const char* DebugGLerr(unsigned);
 
@@ -235,6 +236,14 @@ struct OBJ {
     std::vector<glm::vec2> texCoords;
     std::vector<uint32_t> faces;
 };
+
+void _load_tex(USED_GL_VERSION * const _widg,
+              GLuint&,
+              const std::string&,
+              TEX_TYPE,
+              const char* _format=nullptr,
+              bool h_mirroring=0,
+              bool v_mirroring=0);
 
 
 } // namespace zaytuna

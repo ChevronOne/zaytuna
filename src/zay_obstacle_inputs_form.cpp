@@ -28,7 +28,6 @@ obstacle_inputs_form::obstacle_inputs_form(obstacle_attribs<GLdouble> attribs,
         break;
     default:
         ui->wall2_radio->setChecked(1);
-        break;
     }
 }
 

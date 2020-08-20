@@ -75,7 +75,7 @@ shape_data<vertexL1_16> obj_parser::extractExternal
     boost::iostreams::mapped_file f_mmap(_dir,
             boost::iostreams::mapped_file::readonly);
     if(!f_mmap.is_open()){
-        std::cerr << "could not open file <" << _dir << ">\n";
+        ROS_ERROR_STREAM("could not open file <" << _dir);
         exit(EXIT_FAILURE); }
     const char* _head = f_mmap.const_data();
     const char* _tail = _head + f_mmap.size();
@@ -89,10 +89,10 @@ shape_data<vertexL1_16> obj_parser::extractExternal
         exit(EXIT_FAILURE);
     }
     if (_head!=_tail){
-        std::cerr << "WARNING: file did not parsed properly <"
-                  << _dir << ">\n" << std::flush;
-        std::cout << "Unparsed: " << std::distance(_head,_tail)
-                  << " characters remained unparsed! object may not be rendered properly!\n" << std::flush;
+        ROS_WARN_STREAM("WARNING: file did not parsed properly <"
+                        << _dir << ">. object may not be rendered properly!");
+        ROS_WARN_STREAM("Unparsed: " << std::distance(_head,_tail)
+                        << " characters remained unparsed!");
     }
     
     shape_data<vertexL1_16> _object;
@@ -121,7 +121,7 @@ shape_data<vertexL1_16> obj_parser::extractExternal
     boost::iostreams::mapped_file f_mmap(_dir,
             boost::iostreams::mapped_file::readonly);
     if(!f_mmap.is_open()){
-        std::cerr << "could not open file <" << _dir << ">\n";
+        ROS_ERROR_STREAM("could not open file <" << _dir);
         exit(EXIT_FAILURE); }
     const char* _head = f_mmap.const_data();
     const char* _tail = _head + f_mmap.size();
@@ -172,10 +172,10 @@ shape_data<vertexL1_16> obj_parser::extractExternal
        exit(EXIT_FAILURE);
    }
    if (_head!=_tail){
-       std::cerr << "WARNING: file did not parsed properly <"
-                 << _dir << ">\n" << std::flush;
-       std::cout << "Unparsed: " << std::distance(_head,_tail)
-                 << " characters remained unparsed! object may not be rendered properly!\n" << std::flush;
+       ROS_WARN_STREAM("WARNING: file did not parsed properly <"
+                       << _dir << ">. object may not be rendered properly!");
+       ROS_WARN_STREAM("Unparsed: " << std::distance(_head,_tail)
+                       << " characters remained unparsed!");
    }
    return _object;
 }
@@ -183,23 +183,137 @@ shape_data<vertexL1_16> obj_parser::extractExternal
 #endif
 
 
-void _load_tex(QImage& buff,
-               const QString& _dir,
+void _read_tex(QImage& buff,
+               const std::string& dir,
                const char* _format,
                bool hMir, bool vMir)
 {
-    if(!(buff.load(_dir, _format))){
+    std::string _dir{ZAY_PACKAGE_PATH+dir};
+    if(!(buff.load(_dir.c_str(), _format))){
         std::cout << "image couldn't be loaded <"
-                  << _dir.toStdString() << ">!\n";
+                  << _dir << ">!\n";
         exit(EXIT_FAILURE);
     }
 
     buff = QGLWidget::convertToGLFormat(buff.mirrored(hMir, vMir));
     if(buff.isNull()){
         std::cout << "error occurred while converting the image <"
-                  <<_dir.toStdString() <<">!\n";
+                  <<_dir <<">!\n";
         exit(EXIT_FAILURE);
     }
+}
+
+void _load_tex(USED_GL_VERSION * const _widg,
+              GLuint& _texID,
+              const std::string& _dir,
+              TEX_TYPE tex_type,
+              const char* _format,
+              bool h_mirroring,
+              bool v_mirroring){
+
+
+    _widg->glGenTextures(1, &_texID);
+    QImage tex_buffer;
+    switch(tex_type){
+    case TEX_TYPE::TEX_CUBE_MAP:{
+        std::vector<std::string> faces={
+            _dir+"/right.jpg",
+            _dir+"/left.jpg",
+            _dir+"/top.jpg",
+            _dir+"/bottom.jpg",
+            _dir+"/front.jpg",
+            _dir+"/back.jpg" };
+
+        _widg->glBindTexture(GL_TEXTURE_CUBE_MAP, _texID);
+        _widg->glTexParameteri(GL_TEXTURE_CUBE_MAP,
+                        GL_TEXTURE_MIN_FILTER,
+                        GL_LINEAR);
+        _widg->glTexParameteri(GL_TEXTURE_CUBE_MAP,
+                        GL_TEXTURE_MAG_FILTER,
+                        GL_LINEAR);
+        _widg->glTexParameteri(GL_TEXTURE_CUBE_MAP,
+                        GL_TEXTURE_WRAP_S,
+                        GL_CLAMP_TO_EDGE);
+        _widg->glTexParameteri(GL_TEXTURE_CUBE_MAP,
+                        GL_TEXTURE_WRAP_T,
+                        GL_CLAMP_TO_EDGE);
+        _widg->glTexParameteri(GL_TEXTURE_CUBE_MAP,
+                        GL_TEXTURE_WRAP_R,
+                        GL_CLAMP_TO_EDGE);
+        _widg->glTexParameteri(GL_TEXTURE_CUBE_MAP,
+                        GL_TEXTURE_BASE_LEVEL, 0);
+        _widg->glTexParameteri(GL_TEXTURE_CUBE_MAP,
+                        GL_TEXTURE_MAX_LEVEL, 0);
+        for (GLuint i = 0; i < 6; ++i){
+            _read_tex(tex_buffer, faces[i],
+                      _format, h_mirroring, v_mirroring);
+            _widg->glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X+i,
+                         0, 3, tex_buffer.width(),
+                         tex_buffer.height(), 0,
+                         GL_RGBA, GL_UNSIGNED_BYTE,
+                         tex_buffer.bits());
+        }
+        break;
+    }
+    case TEX_TYPE::TEX_2D:{
+        _widg->glBindTexture(GL_TEXTURE_2D, _texID);
+        _widg->glTexParameteri(GL_TEXTURE_2D,
+                               GL_TEXTURE_WRAP_S,
+                               GL_REPEAT);
+        _widg->glTexParameteri(GL_TEXTURE_2D,
+                               GL_TEXTURE_WRAP_T,
+                               GL_REPEAT);
+        _widg->glTexParameteri(GL_TEXTURE_2D,
+                               GL_TEXTURE_MIN_FILTER,
+                               GL_LINEAR);
+        _widg->glTexParameteri(GL_TEXTURE_2D,
+                               GL_TEXTURE_MAG_FILTER,
+                               GL_LINEAR);
+        _read_tex(tex_buffer, _dir, _format,
+                  h_mirroring, v_mirroring);
+        _widg->glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tex_buffer.width(),
+                     tex_buffer.height(), 0, GL_RGBA,
+                     GL_UNSIGNED_BYTE, tex_buffer.bits());
+
+        break;
+    }
+    case TEX_TYPE::TEX_2D_MIPMAP:{
+        _widg->glBindTexture(GL_TEXTURE_2D, _texID);
+        GLfloat max_anisotropic_extention{0};
+        _widg->glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT,
+                           &max_anisotropic_extention);
+        _widg->glTexParameterf(GL_TEXTURE_2D,
+                               GL_TEXTURE_MAX_ANISOTROPY_EXT,
+                               max_anisotropic_extention);
+        _widg->glTexParameteri(GL_TEXTURE_2D,
+                               GL_TEXTURE_WRAP_S,
+                               GL_REPEAT);
+        _widg->glTexParameteri(GL_TEXTURE_2D,
+                               GL_TEXTURE_WRAP_T,
+                               GL_REPEAT);
+        _widg->glTexParameteri(GL_TEXTURE_2D,
+                               GL_TEXTURE_MIN_FILTER,
+                               GL_LINEAR_MIPMAP_LINEAR);
+        _widg->glTexParameteri(GL_TEXTURE_2D,
+                               GL_TEXTURE_MAG_FILTER,
+                               GL_LINEAR);
+        _read_tex(tex_buffer, _dir, _format,
+                  h_mirroring, v_mirroring);
+        _widg->glTexImage2D(GL_TEXTURE_2D, 0,
+                            GL_RGBA, tex_buffer.width(),
+                            tex_buffer.height(), 0, GL_RGBA,
+                            GL_UNSIGNED_BYTE, tex_buffer.bits());
+        _widg->glGenerateMipmap(GL_TEXTURE_2D);
+
+        break;
+    }
+    default:{
+        ROS_ERROR_STREAM("unknown texture type were encountered!");
+        _widg->glDeleteTextures(1, &_texID);
+        _texID=0;
+        return;}
+    }
+
 }
 
 const char *DebugGLerr(unsigned GL_enum)
