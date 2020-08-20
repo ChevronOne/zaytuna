@@ -360,35 +360,6 @@ struct obstacle_wrapper{
         primitives = obj_parser::extractExternal(prims_dir);
         _load_tex(_widg, _texID, tex_dir, TEX_TYPE::TEX_2D_MIPMAP,
                   "JPG", 0,0);
-
-//        QImage tex_buffer;
-//        _widg->glGenTextures(1, &_texID);
-//        _widg->glBindTexture(GL_TEXTURE_2D, _texID);
-//        GLfloat max_anisotropic_extention{0};
-//        _widg->glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT,
-//                           &max_anisotropic_extention);
-//        _widg->glTexParameterf(GL_TEXTURE_2D,
-//                               GL_TEXTURE_MAX_ANISOTROPY_EXT,
-//                               max_anisotropic_extention);
-
-//        _widg->glTexParameteri(GL_TEXTURE_2D,
-//                               GL_TEXTURE_WRAP_S,
-//                               GL_REPEAT);
-//        _widg->glTexParameteri(GL_TEXTURE_2D,
-//                               GL_TEXTURE_WRAP_T,
-//                               GL_REPEAT);
-//        _widg->glTexParameteri(GL_TEXTURE_2D,
-//                               GL_TEXTURE_MIN_FILTER,
-//                               GL_LINEAR_MIPMAP_LINEAR);
-//        _widg->glTexParameteri(GL_TEXTURE_2D,
-//                               GL_TEXTURE_MAG_FILTER,
-//                               GL_LINEAR);
-//        _read_tex(tex_buffer, tex_dir, "JPG", 0, 0);
-//        _widg->glTexImage2D(GL_TEXTURE_2D, 0,
-//                            GL_RGBA, tex_buffer.width(),
-//                            tex_buffer.height(), 0, GL_RGBA,
-//                            GL_UNSIGNED_BYTE, tex_buffer.bits());
-//        _widg->glGenerateMipmap(GL_TEXTURE_2D);
     }
 
     void clean_up(void){

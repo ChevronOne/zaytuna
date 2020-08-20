@@ -119,15 +119,15 @@ primary_win::primary_win(QWidget *parent) :
     add_obstacle(obstacle_attribs<GLdouble>
                     (Obstacle_Type::CARTON_BOX,
                      std::string(),
-                     0.0,
+                     -70.0,
                      {0.0, 1.0, 0.0},
-                     {0.0, 0.0, 0.0}),1);
+                     {2.0, 0.0, -1.0}),1);
     add_obstacle(obstacle_attribs<GLdouble>
                     (Obstacle_Type::BRICK_WALL,
                      std::string(),
-                     10.0,
+                     25.0,
                      {0.0, 1.0, 0.0},
-                     {2.0, 0.0, -1.0}),1);
+                     {8.8, 0.0, -3.0}),1);
     add_obstacle(obstacle_attribs<GLdouble>
                     (Obstacle_Type::STONE_WALL,
                      std::string(),

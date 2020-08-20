@@ -85,7 +85,7 @@ shape_data<vertexL1_16> obj_parser::extractExternal
         std::for_each(primitives.faces.begin(), primitives.faces.end(), 
                 [](uint32_t& val) { val-=1; });
     } else{
-        std::cerr << "failed to parse file <" << _dir << ">\n";
+        ROS_ERROR_STREAM("failed to parse file <" << _dir << ">");
         exit(EXIT_FAILURE);
     }
     if (_head!=_tail){
@@ -168,7 +168,7 @@ shape_data<vertexL1_16> obj_parser::extractExternal
        _object.indices = new unsigned int[_object.indNum];
        std::iota(_object.indices, _object.indices+_object.indNum, 0);
    } else{
-       std::cerr << "failed to parse file <" << _dir << ">\n";
+       ROS_ERROR_STREAM("failed to parse file <" << _dir << ">");
        exit(EXIT_FAILURE);
    }
    if (_head!=_tail){
@@ -190,15 +190,15 @@ void _read_tex(QImage& buff,
 {
     std::string _dir{ZAY_PACKAGE_PATH+dir};
     if(!(buff.load(_dir.c_str(), _format))){
-        std::cout << "image couldn't be loaded <"
-                  << _dir << ">!\n";
+        ROS_ERROR_STREAM("image couldn't be loaded <"
+                  << _dir << ">");
         exit(EXIT_FAILURE);
     }
 
     buff = QGLWidget::convertToGLFormat(buff.mirrored(hMir, vMir));
     if(buff.isNull()){
-        std::cout << "error occurred while converting the image <"
-                  <<_dir <<">!\n";
+        ROS_ERROR_STREAM("error occurred while converting the image <"
+                  <<_dir <<">!");
         exit(EXIT_FAILURE);
     }
 }

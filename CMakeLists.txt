@@ -6,7 +6,7 @@ set(CMAKE_BUILD_TYPE Release)
 
 set(CMAKE_CXX_FLAGS_RELEASE "-O2")
 set(CMAKE_CXX_STANDARD 14)
-add_compile_options(-O2 -Wall -std=c++20)
+add_compile_options(-O2 -Wall)
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
