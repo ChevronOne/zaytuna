@@ -205,13 +205,13 @@ public:
 class animated_program : public static_program
 {
 protected:
-    GLint inverse_transpose_transformMatLocation;
+    GLint inversed_transpose_transformMatLocation;
 public:
     animated_program(USED_GL_VERSION* const context,
                      GLuint ID, GLint matLocation,
                      GLint itt_matLocation):
         static_program(context, ID, matLocation),
-        inverse_transpose_transformMatLocation{itt_matLocation}{}
+        inversed_transpose_transformMatLocation{itt_matLocation}{}
     virtual ~animated_program() override = default;
 
 };

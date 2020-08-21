@@ -49,22 +49,22 @@ shape_maker<VERT>::makeGrid(GLfloat length,
     {
         v.position = glm::vec3(-ceil(length / 2), 0.0f, i);
         v.color = glm::vec3(0.6f, 0.6f, 0.6f);
-        v.normal = glm::vec3(0.0f, 1.0f, 0.0f);
+//        v.normal = glm::vec3(0.0f, 1.0f, 0.0f);
         ver.push_back(v);
         v.position = glm::vec3(floor(length / 2), 0.0f, i);
         v.color = glm::vec3(0.6f, 0.6f, 0.6f);
-        v.normal = glm::vec3(0.0f, 1.0f, 0.0f);
+//        v.normal = glm::vec3(0.0f, 1.0f, 0.0f);
         ver.push_back(v);
     }
     for (float i = -ceil(length / 2.0f); i <= floor(length / 2.0f); i += tessellation)
     {
         v.position = glm::vec3(i, 0.0f, -ceil(width / 2));
         v.color = glm::vec3(0.6f, 0.6f, 0.6f);
-        v.normal = glm::vec3(0.0f, 1.0f, 0.0f);
+//        v.normal = glm::vec3(0.0f, 1.0f, 0.0f);
         ver.push_back(v);
         v.position = glm::vec3(i, 0.0f, floor(width / 2));
         v.color = glm::vec3(0.6f, 0.6f, 0.6f);
-        v.normal = glm::vec3(0.0f, 1.0f, 0.0f);
+//        v.normal = glm::vec3(0.0f, 1.0f, 0.0f);
         ver.push_back(v);
     }
 
@@ -99,31 +99,31 @@ shape_maker<VERT>::makeCoord(GLfloat axes_length)
     coord.indices = new GLuint[coord.indNum];
     coord.verts[0].position = glm::vec3(0.0f, 0.001f, 0.0f); // X coord
     coord.verts[0].color = glm::vec3(0.0f, 0.0f, 1.0f);
-    coord.verts[0].normal = glm::vec3(0.0f, 1.0f, 0.0f);
+//    coord.verts[0].normal = glm::vec3(0.0f, 1.0f, 0.0f);
 
     coord.verts[1].position = glm::vec3(axes_length, 0.001f, 0.0f);
     coord.verts[1].color = glm::vec3(0.0f, 0.0f, 1.0f);
-    coord.verts[1].normal = glm::vec3(10.0f, 1.0f, 0.0f);
+//    coord.verts[1].normal = glm::vec3(10.0f, 1.0f, 0.0f);
 
 
 
     coord.verts[2].position = glm::vec3(0.0f, 0.001f, 0.0f);  // Z coord
     coord.verts[2].color = glm::vec3(0.0f, 1.0f, 0.0f);
-    coord.verts[2].normal = glm::vec3(0.0f, 1.0f, 0.0f);
+//    coord.verts[2].normal = glm::vec3(0.0f, 1.0f, 0.0f);
 
     coord.verts[3].position = glm::vec3(0.0f, 0.001f, axes_length);
     coord.verts[3].color = glm::vec3(0.0f, 1.0f, 0.0f);
-    coord.verts[3].normal = glm::vec3(00.0f, 1.0f, -10.0f);
+//    coord.verts[3].normal = glm::vec3(00.0f, 1.0f, -10.0f);
 
 
 
     coord.verts[4].position = glm::vec3(0.0f, 0.001f, 0.0f); // Y coord
     coord.verts[4].color = glm::vec3(1.0f, 0.0f, 0.0f);
-    coord.verts[4].normal = glm::vec3(1.0f, 0.0f, 0.0f);
+//    coord.verts[4].normal = glm::vec3(1.0f, 0.0f, 0.0f);
 
     coord.verts[5].position = glm::vec3(0.0f, axes_length, 0.0f);
     coord.verts[5].color = glm::vec3(1.0f, 0.0f, 0.0f);
-    coord.verts[5].normal = glm::vec3(1.0f, 10.0f, 0.0f);
+//    coord.verts[5].normal = glm::vec3(1.0f, 10.0f, 0.0f);
 
     for(GLuint i =0 ; i< coord.indNum; ++i)
         coord.indices[i] = i;

@@ -143,7 +143,7 @@ class coord_sys : public scene_object
 
 private:
     std::string name{"uninitialized_object_name"};
-    shape_data<zaytuna::vertexL1_12> primitives;
+    shape_data<zaytuna::vertexL1_1> primitives;
     glm::mat4 transformationMat{
         glm::translate(glm::dvec3(0.0, 0.0, 0.0))
     };
@@ -178,7 +178,7 @@ class grid_plane : public scene_object
 
 private:
     std::string name{"uninitialized_object_name"};
-    shape_data<zaytuna::vertexL1_12> primitives;
+    shape_data<zaytuna::vertexL1_1> primitives;
     glm::mat4 transformationMat{
         glm::translate(glm::dvec3(0.0, 0.0, 0.0))
     };

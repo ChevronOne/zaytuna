@@ -63,7 +63,7 @@
 #include <QGLFormat>
 //#include <QSurfaceFormat>
 #include <QGLFramebufferObject>
-
+#include <QIcon>
 #include <QDebug>
 
 #include "ros/ros.h"
@@ -120,10 +120,12 @@ typedef QGLWidget QGL_WIDGET_VERSION;
 #define NUM_VERTICES_PER_TEXCOR 2
 #define NUM_FLOATS_PER_VERTEX_0 9
 #define NUM_FLOATS_PER_VERTEX_1 8
+#define NUM_FLOATS_PER_VERTEX_2 6
 #define SHADERS_NUM 2
 #define PROGRAMS_NUM 4
 #define VERTEX_BYTE_SIZE_0  NUM_FLOATS_PER_VERTEX_0 * TYPE_SIZE
 #define VERTEX_BYTE_SIZE_1 NUM_FLOATS_PER_VERTEX_1 * TYPE_SIZE
+#define VERTEX_BYTE_SIZE_2 NUM_FLOATS_PER_VERTEX_2 * TYPE_SIZE
 #define MOUSE_DELTA_IGNORE 7
 #define NUM_SEC_FRAME_RATE 1.0
 #define WIDTH 800
@@ -137,6 +139,7 @@ typedef QGLWidget QGL_WIDGET_VERSION;
 #define FRONT_CAM_FREQUENCY 20
 #define NORMALS_STRIDE 3 
 #define TEXTURE_STRIDE 6
+#define COLOR_STRIDE 3
 #define ZAYTUNA_VERSION 0x0001
 #define ZAYTUNA_MINOR_VERSION 0x0000
 

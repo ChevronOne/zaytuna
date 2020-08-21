@@ -172,7 +172,7 @@ zaytuna::coord_sys::coord_sys(USED_GL_VERSION * const _widg,
                      _rotation, _translation ),
         name{_name}, LINE_WIDTH{line_width}
 {
-    primitives = shape_maker<zaytuna::vertexL1_12>::makeCoord(axes_length);
+    primitives = shape_maker<zaytuna::vertexL1_1>::makeCoord(axes_length);
 
 }
 
@@ -208,18 +208,14 @@ void coord_sys::transmit_data(GLintptr& _offset,const GLuint& theBufferID,
     _widg->glBindVertexArray(_VAO_ID);
     _widg->glEnableVertexAttribArray(0);
     _widg->glEnableVertexAttribArray(1);
-    _widg->glEnableVertexAttribArray(2);
     _widg->glBindBuffer(GL_ARRAY_BUFFER, theBufferID);
 
     _widg->glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE,
-                                 VERTEX_BYTE_SIZE_0,
+                                 VERTEX_BYTE_SIZE_2,
                                  reinterpret_cast<void*>(off_set));
     _widg->glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE,
-                                 VERTEX_BYTE_SIZE_0,
-                                 reinterpret_cast<void*>(off_set + TYPE_SIZE * NORMALS_STRIDE));
-    _widg->glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE,
-                                 VERTEX_BYTE_SIZE_0,
-                                 reinterpret_cast<void*>(off_set + TYPE_SIZE * TEXTURE_STRIDE));
+                                 VERTEX_BYTE_SIZE_2,
+                                 reinterpret_cast<void*>(off_set + TYPE_SIZE * COLOR_STRIDE));
     _widg->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, theBufferID);
 
     off_set += primitives.verBufSize()
@@ -270,7 +266,7 @@ zaytuna::grid_plane::grid_plane(USED_GL_VERSION * const _widg,
         name{_name}, LINE_WIDTH{line_width}
 {
     primitives =
-            shape_maker<zaytuna::vertexL1_12>::makeGrid(length,
+            shape_maker<zaytuna::vertexL1_1>::makeGrid(length,
                                                         width, tessellation);
 }
 
@@ -304,18 +300,14 @@ void grid_plane::transmit_data(GLintptr& _offset,const GLuint& theBufferID,
     _widg->glBindVertexArray(_VAO_ID);
     _widg->glEnableVertexAttribArray(0);
     _widg->glEnableVertexAttribArray(1);
-    _widg->glEnableVertexAttribArray(2);
     _widg->glBindBuffer(GL_ARRAY_BUFFER, theBufferID);
 
     _widg->glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE,
-                                 VERTEX_BYTE_SIZE_0,
+                                 VERTEX_BYTE_SIZE_2,
                                  reinterpret_cast<void*>(off_set));
     _widg->glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE,
-                                 VERTEX_BYTE_SIZE_0,
-                                 reinterpret_cast<void*>(off_set + TYPE_SIZE * NORMALS_STRIDE));
-    _widg->glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE,
-                                 VERTEX_BYTE_SIZE_0,
-                                 reinterpret_cast<void*>(off_set + TYPE_SIZE * TEXTURE_STRIDE));
+                                 VERTEX_BYTE_SIZE_2,
+                                 reinterpret_cast<void*>(off_set + TYPE_SIZE * COLOR_STRIDE));
     _widg->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, theBufferID);
 
     off_set += primitives.verBufSize()

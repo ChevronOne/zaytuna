@@ -391,9 +391,8 @@ std::string _scene_widg::getShader
     }
     else
     {
-        std::string program =
-                std::string(std::istreambuf_iterator<char>(_stream),
-                            std::istreambuf_iterator<char>());
+        std::string program{std::istreambuf_iterator<char>(_stream),
+                            std::istreambuf_iterator<char>()};
         _stream.close();
         fStatus = FileStatus::LOADED;
         return program;
@@ -497,28 +496,28 @@ void _scene_widg::initShader(const std::string& file_Dir,
                     for (size_t _ind = 0; _ind != SHADERS_NUM; ++_ind)
                         glAttachShader(program_object, _Shaders[_ind]);
 
-                    if(attrib_location == 0){
+                    switch (attrib_location) {
+                    case 0:{
                         glBindAttribLocation(program_object, 0, "vertPos");
                         glBindAttribLocation(program_object, 1, "vertColor");
-                        glBindAttribLocation(program_object, 2, "vertNorm");
-                    }else if(attrib_location == 1){
+                        break;
+                    }
+                    case 1: case 3:{
                         glBindAttribLocation(program_object, 0, "vertPos");
                         glBindAttribLocation(program_object, 1, "vertNorm");
                         glBindAttribLocation(program_object, 2, "texCoor");
-                    }else if(attrib_location == 2){
+                        break;
+                    }
+                    case 2:{
                         glBindAttribLocation(program_object, 0, "vertPos");
-//                        glBindAttribLocation(program_object, 1, "vertNorm");
-//                        glBindAttribLocation(program_object, 2, "texCoor");
-                    }else if(attrib_location == 3){
-                        glBindAttribLocation(program_object, 0, "vertPos");
-                        glBindAttribLocation(program_object, 1, "vertNorm");
-                        glBindAttribLocation(program_object, 2, "texCoor");
-
-                    }else{
+                        break;
+                    }
+                    default:{
                         std::cout << "program "
                                   << file_Dir
                                   << " not initialized!\n";
                         exit(EXIT_FAILURE);
+                    }
                     }
 
                     glLinkProgram(program_object);

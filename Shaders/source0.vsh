@@ -2,7 +2,7 @@
 
 in vec3 vertPos;
 in vec3 vertColor;
-in vec3 vertNorm;
+//in vec3 vertNorm;
 
 uniform mat4 transformMat;
 
