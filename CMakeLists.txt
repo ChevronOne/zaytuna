@@ -23,7 +23,7 @@ find_package(Qt5 REQUIRED COMPONENTS Core Widgets Gui OpenGL
 )
 # find_package(OpenCV REQUIRED)
 
-find_package(Boost COMPONENTS iostreams REQUIRED)
+#find_package(Boost COMPONENTS iostreams REQUIRED)
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
@@ -35,8 +35,8 @@ find_package(catkin REQUIRED COMPONENTS
   # cv_bridge
 )
 
-set(CMAKE_CXX_FLAGS "-pthread")
-set(CMAKE_EXE_LINKER_FLAGS "-pthread")
+#set(CMAKE_CXX_FLAGS "-pthread")
+#set(CMAKE_EXE_LINKER_FLAGS "-pthread")
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -280,7 +280,7 @@ target_link_libraries(zay_simu
     Qt5::OpenGL
     ${catkin_LIBRARIES}
     # ${OpenCV_LIBS}
-    ${Boost_LIBRARIES}
+#    ${Boost_LIBRARIES}
     )
 
 
