@@ -107,11 +107,12 @@ public:
     glm::dmat4 rotationMat; // rotation matrix of model vehicle;
 
     double AMOUNT_OF_ROTATION; // amount of rotation of the model vehicle 'per frame'
-    double MOVEMENT_SPEED;  //  need to be adjusted for m/s
-    double STEERING_WHEEL;  // in degrees, 'amount of vertical rotation of the wheels'
+    double MOVEMENT_SPEED, REMOTE_SPEED;  //  need to be adjusted for m/s
+    double STEERING_WHEEL, REMOTE_STEERING;  // in degrees, 'amount of vertical rotation of the wheels'
     double amount_of_hRotation{0.0}; // amount of horizontal rotation of the wheels
     double amount_of_rotation_Lidar{0.0}; // amount of rotation of lidar
-    const double lidar_spin_speed{750.0}; // per frame
+    const double lidar_spin_speed{750.0}; // constant scalar 'affects only rendering'
+    bool is_detached{1};
 
 
     double accumulated_dist; // accumulated distance

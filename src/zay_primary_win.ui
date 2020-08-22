@@ -10,13 +10,13 @@
     <x>0</x>
     <y>0</y>
     <width>1440</width>
-    <height>730</height>
+    <height>845</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
     <width>1440</width>
-    <height>730</height>
+    <height>845</height>
    </size>
   </property>
   <property name="maximumSize">
@@ -66,7 +66,7 @@
       <x>10</x>
       <y>466</y>
       <width>1421</width>
-      <height>200</height>
+      <height>321</height>
      </rect>
     </property>
     <property name="sizePolicy">
@@ -84,7 +84,7 @@
     <property name="maximumSize">
      <size>
       <width>16777215</width>
-      <height>200</height>
+      <height>16777215</height>
      </size>
     </property>
     <property name="frameShape">
@@ -93,237 +93,6 @@
     <property name="frameShadow">
      <enum>QFrame::Raised</enum>
     </property>
-    <widget class="QFrame" name="control_tools_frame">
-     <property name="geometry">
-      <rect>
-       <x>11</x>
-       <y>21</y>
-       <width>741</width>
-       <height>169</height>
-      </rect>
-     </property>
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="minimumSize">
-      <size>
-       <width>741</width>
-       <height>0</height>
-      </size>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>800</width>
-       <height>16777215</height>
-      </size>
-     </property>
-     <property name="frameShape">
-      <enum>QFrame::NoFrame</enum>
-     </property>
-     <property name="frameShadow">
-      <enum>QFrame::Raised</enum>
-     </property>
-     <widget class="QWidget" name="layoutWidget">
-      <property name="geometry">
-       <rect>
-        <x>6</x>
-        <y>15</y>
-        <width>723</width>
-        <height>131</height>
-       </rect>
-      </property>
-      <layout class="QHBoxLayout" name="horizontalLayout_3">
-       <item>
-        <widget class="QGroupBox" name="steering_groupBox">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>371</width>
-           <height>71</height>
-          </size>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>371</width>
-           <height>91</height>
-          </size>
-         </property>
-         <property name="title">
-          <string>Steering</string>
-         </property>
-         <widget class="QLabel" name="max_left_turn_steering_lab">
-          <property name="geometry">
-           <rect>
-            <x>10</x>
-            <y>30</y>
-            <width>31</width>
-            <height>16</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>-25</string>
-          </property>
-         </widget>
-         <widget class="QLabel" name="max_right_turn_steering_lab">
-          <property name="geometry">
-           <rect>
-            <x>320</x>
-            <y>30</y>
-            <width>31</width>
-            <height>20</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>25</string>
-          </property>
-         </widget>
-         <widget class="QWidget" name="layoutWidget_4">
-          <property name="geometry">
-           <rect>
-            <x>10</x>
-            <y>50</y>
-            <width>351</width>
-            <height>24</height>
-           </rect>
-          </property>
-          <layout class="QHBoxLayout" name="horizontalLayout_2">
-           <item>
-            <widget class="QSlider" name="steeringV">
-             <property name="minimum">
-              <number>-25</number>
-             </property>
-             <property name="maximum">
-              <number>25</number>
-             </property>
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLabel" name="steeringDis">
-             <property name="maximumSize">
-              <size>
-               <width>25</width>
-               <height>16777215</height>
-              </size>
-             </property>
-             <property name="text">
-              <string>val</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </widget>
-        </widget>
-       </item>
-       <item>
-        <spacer name="horizontalSpacer">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeType">
-          <enum>QSizePolicy::Fixed</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>13</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="speed_groupBox">
-         <property name="minimumSize">
-          <size>
-           <width>323</width>
-           <height>71</height>
-          </size>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>323</width>
-           <height>91</height>
-          </size>
-         </property>
-         <property name="title">
-          <string>Speed</string>
-         </property>
-         <widget class="QLabel" name="max_backward_speed_lab">
-          <property name="geometry">
-           <rect>
-            <x>10</x>
-            <y>40</y>
-            <width>41</width>
-            <height>16</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>-600</string>
-          </property>
-         </widget>
-         <widget class="QLabel" name="max_forward_speed_lab">
-          <property name="geometry">
-           <rect>
-            <x>220</x>
-            <y>40</y>
-            <width>41</width>
-            <height>16</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>600</string>
-          </property>
-         </widget>
-         <widget class="QWidget" name="layoutWidget_5">
-          <property name="geometry">
-           <rect>
-            <x>10</x>
-            <y>50</y>
-            <width>261</width>
-            <height>24</height>
-           </rect>
-          </property>
-          <layout class="QHBoxLayout" name="horizontalLayout">
-           <item>
-            <widget class="QSlider" name="speedV">
-             <property name="minimum">
-              <number>-600</number>
-             </property>
-             <property name="maximum">
-              <number>600</number>
-             </property>
-             <property name="value">
-              <number>0</number>
-             </property>
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLabel" name="speedDis">
-             <property name="text">
-              <string>val</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </widget>
-        </widget>
-       </item>
-      </layout>
-     </widget>
-    </widget>
     <widget class="QFrame" name="camera_indicators_frame">
      <property name="enabled">
       <bool>true</bool>
@@ -331,7 +100,7 @@
      <property name="geometry">
       <rect>
        <x>770</x>
-       <y>35</y>
+       <y>45</y>
        <width>651</width>
        <height>131</height>
       </rect>
@@ -625,6 +394,305 @@
       </property>
       <property name="intValue" stdset="0">
        <number>0</number>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QGroupBox" name="groupBox">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>10</y>
+       <width>601</width>
+       <height>301</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>Control Panel</string>
+     </property>
+     <widget class="QGroupBox" name="speed_groupBox">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>190</y>
+        <width>400</width>
+        <height>100</height>
+       </rect>
+      </property>
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>400</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="title">
+       <string>Speed</string>
+      </property>
+      <widget class="QLabel" name="max_backward_speed_lab">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>20</y>
+         <width>51</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>-1.0</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="max_forward_speed_lab">
+       <property name="geometry">
+        <rect>
+         <x>290</x>
+         <y>20</y>
+         <width>41</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>1.0</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="speedDis">
+       <property name="geometry">
+        <rect>
+         <x>318</x>
+         <y>51</y>
+         <width>71</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>0.0</string>
+       </property>
+      </widget>
+      <widget class="QSlider" name="speedV">
+       <property name="geometry">
+        <rect>
+         <x>11</x>
+         <y>58</y>
+         <width>300</width>
+         <height>22</height>
+        </rect>
+       </property>
+       <property name="minimum">
+        <number>-600</number>
+       </property>
+       <property name="maximum">
+        <number>600</number>
+       </property>
+       <property name="value">
+        <number>0</number>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QGroupBox" name="steering_groupBox">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>80</y>
+        <width>400</width>
+        <height>100</height>
+       </rect>
+      </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>400</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="title">
+       <string>Steering</string>
+      </property>
+      <widget class="QLabel" name="max_left_turn_steering_lab">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>20</y>
+         <width>51</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>-1.0</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="max_right_turn_steering_lab">
+       <property name="geometry">
+        <rect>
+         <x>290</x>
+         <y>20</y>
+         <width>41</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>1.0</string>
+       </property>
+      </widget>
+      <widget class="QSlider" name="steeringV">
+       <property name="geometry">
+        <rect>
+         <x>11</x>
+         <y>58</y>
+         <width>300</width>
+         <height>22</height>
+        </rect>
+       </property>
+       <property name="minimum">
+        <number>-25</number>
+       </property>
+       <property name="maximum">
+        <number>25</number>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+      <widget class="QLabel" name="steeringDis">
+       <property name="geometry">
+        <rect>
+         <x>318</x>
+         <y>51</y>
+         <width>71</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>0.0</string>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QRadioButton" name="slider_control_radio">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>30</y>
+        <width>180</width>
+        <height>30</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Slider</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QRadioButton" name="key_control_radio">
+      <property name="geometry">
+       <rect>
+        <x>170</x>
+        <y>30</y>
+        <width>180</width>
+        <height>30</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Key Controller</string>
+      </property>
+     </widget>
+     <widget class="QDoubleSpinBox" name="max_speed_SpinBox">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>420</x>
+        <y>260</y>
+        <width>91</width>
+        <height>26</height>
+       </rect>
+      </property>
+      <property name="decimals">
+       <number>3</number>
+      </property>
+      <property name="maximum">
+       <double>1.000000000000000</double>
+      </property>
+      <property name="singleStep">
+       <double>0.010000000000000</double>
+      </property>
+      <property name="value">
+       <double>0.000000000000000</double>
+      </property>
+     </widget>
+     <widget class="QDoubleSpinBox" name="max_steering_SpinBox">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>420</x>
+        <y>150</y>
+        <width>91</width>
+        <height>26</height>
+       </rect>
+      </property>
+      <property name="decimals">
+       <number>3</number>
+      </property>
+      <property name="maximum">
+       <double>1.000000000000000</double>
+      </property>
+      <property name="singleStep">
+       <double>0.100000000000000</double>
+      </property>
+      <property name="value">
+       <double>0.001000000000000</double>
+      </property>
+     </widget>
+     <widget class="QLabel" name="max_steering_lab">
+      <property name="geometry">
+       <rect>
+        <x>420</x>
+        <y>120</y>
+        <width>181</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Steering +/-</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="max_speed_lab">
+      <property name="geometry">
+       <rect>
+        <x>420</x>
+        <y>230</y>
+        <width>181</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Speed +/-</string>
       </property>
      </widget>
     </widget>
@@ -1088,7 +1156,7 @@
       </rect>
      </property>
      <property name="text">
-      <string>grid</string>
+      <string>Grid</string>
      </property>
      <property name="checked">
       <bool>true</bool>
@@ -1104,7 +1172,7 @@
       </rect>
      </property>
      <property name="text">
-      <string>coord</string>
+      <string>Coord</string>
      </property>
      <property name="checked">
       <bool>true</bool>
@@ -1115,7 +1183,7 @@
       <rect>
        <x>305</x>
        <y>405</y>
-       <width>81</width>
+       <width>91</width>
        <height>26</height>
       </rect>
      </property>
@@ -1145,7 +1213,7 @@
     <widget class="QLabel" name="Hz_lab">
      <property name="geometry">
       <rect>
-       <x>400</x>
+       <x>410</x>
        <y>412</y>
        <width>67</width>
        <height>17</height>
@@ -1163,7 +1231,7 @@
      <x>0</x>
      <y>0</y>
      <width>1440</width>
-     <height>22</height>
+     <height>26</height>
     </rect>
    </property>
   </widget>

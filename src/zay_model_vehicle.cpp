@@ -60,7 +60,8 @@ zaytuna::vehicle_attributes::vehicle_attributes
         _widg{_widg}, attribs{attribs},
         localView_buffer{FBO_}, elapsed_t{0.0},
         AMOUNT_OF_ROTATION(0.0), MOVEMENT_SPEED(0.0),
-        STEERING_WHEEL(0.00000001), accumulated_dist(0.0),
+        REMOTE_SPEED{0.0}, STEERING_WHEEL(STEERING_MARGIN_OF_ERROR),
+        REMOTE_STEERING(STEERING_MARGIN_OF_ERROR), accumulated_dist(0.0),
         traveled_dist(0.0), ticks_counter(0),
         radius_of_rotation(0.0),
         center_of_rotation(glm::dvec3(0.0,0.0,0.0)){
@@ -103,13 +104,13 @@ zaytuna::vehicle_attributes::vehicle_attributes
 void vehicle_attributes::speed_callback
         (const std_msgs::Float64& _val){
     double val{_val.data};
-    MOVEMENT_SPEED = -(val > 1.0? SPEED_SCALAR :
+    REMOTE_SPEED = -(val > 1.0? SPEED_SCALAR :
           (val<-1.0? -SPEED_SCALAR : SPEED_SCALAR*val));
 }
 void vehicle_attributes::steering_callback
         (const std_msgs::Float64& _val){
     double val{_val.data};
-    STEERING_WHEEL = val == 0.0 ? STEERING_MARGIN_OF_ERROR :
+    REMOTE_STEERING = val == 0.0 ? STEERING_MARGIN_OF_ERROR :
           ((val>1.0? MAX_TURN_ANGLE:
           (val<-1.0? -MAX_TURN_ANGLE: MAX_TURN_ANGLE*val))*M_PI)/180.0;
 }
@@ -153,8 +154,13 @@ void vehicle_attributes::update_positional_attributes
 
 void vehicle_attributes::update_attribs()
 {
-// //    MOVEMENT_SPEED = GLOBAL_MOVEMENT_SPEED;
-// //    STEERING_WHEEL = GLOBAL_STEERING_WHEEL;
+    if(is_detached){
+        MOVEMENT_SPEED = REMOTE_SPEED;
+        STEERING_WHEEL = REMOTE_STEERING;
+    }else{
+        MOVEMENT_SPEED = GLOBAL_MOVEMENT_SPEED;
+        STEERING_WHEEL = GLOBAL_STEERING_WHEEL;
+    }
 
     if(MOVEMENT_SPEED != 0.0){
 

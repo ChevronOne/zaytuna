@@ -40,8 +40,15 @@
 #include "zay_scene_widg.hpp"
 #include "zay_primary_win.hpp"
 
+
 namespace zaytuna {
 
+
+//// for debugging
+double GLOBAL_MOVEMENT_SPEED{0.0};
+double GLOBAL_STEERING_WHEEL{0.00000001};
+extern double SLIDER_MOVEMENT_SPEED;
+extern double SLIDER_STEERING_WHEEL;
 
 double _scene_widg::sX, _scene_widg::sY; //, _scene_widg::sZ;
 double _scene_widg::delta_sX, _scene_widg::delta_sY;
@@ -52,20 +59,37 @@ double _scene_widg::glX, _scene_widg::glY; //, _scene_widg::glZ;
 _scene_widg::_scene_widg(QGLFormat _format, QWidget* parent):
     QGL_WIDGET_VERSION(_format, parent),
     fStatus{ FileStatus::UNDEFINED },
-    elap_accumulated{0.0},cam_freq_accumulated{0.0}, elapsed{0.0},
+    elap_accumulated{0.0}, cam_freq_accumulated{0.0}, elapsed{0.0},
     frame_rate{0.0}, front_cam_freq{FRONT_CAM_FREQUENCY}, 
-    imgs_sec{1.0/FRONT_CAM_FREQUENCY}, frames_counter{0},
-    k_forward{0}, k_backward{0}, k_left{0}, k_right{0}, k_up{0}, k_back{0}
+    imgs_sec{1.0/FRONT_CAM_FREQUENCY}, local_control_speed{6.0},
+    local_control_steering{0.218}, frames_counter{0},
+    k_forward{0}, k_backward{0}, k_left{0}, k_right{0}, k_up{0}, k_down{0},
+    l_forward{0}, l_backward{0}, l_left{0}, l_right{0}
 {
     //    QSurfaceFormat _format;
     //    _format.setSamples(NUM_SAMPLES_PER_PIXEL); 
     //    setFormat(_format);
 
+    mainCam.updateProjection(WIDTH, HEIGHT);
     activeCam = &mainCam;
     connect(&timer, SIGNAL(timeout()), this, SLOT(animate()));
     makeCurrent();
     setMouseTracking(true);
     this->setFocusPolicy(Qt::StrongFocus);
+}
+
+void _scene_widg::update_contrl_attribs(void){
+    if(key_control){
+        GLOBAL_MOVEMENT_SPEED = l_forward? -local_control_speed:
+          (l_backward? local_control_speed:0.0);
+
+        GLOBAL_STEERING_WHEEL = l_right? local_control_steering:
+          (l_left? -local_control_steering:STEERING_MARGIN_OF_ERROR);
+
+    }else{
+        GLOBAL_MOVEMENT_SPEED = SLIDER_MOVEMENT_SPEED;
+        GLOBAL_STEERING_WHEEL = SLIDER_STEERING_WHEEL;
+    }
 }
 
 _scene_widg::~_scene_widg(){
@@ -102,7 +126,7 @@ void _scene_widg::initializeGL()
         initShader(ros::package::getPath("zaytuna")+"/Shaders/source"+std::to_string(i), programs[i], i);
 
     send_data();
-    std::cout << "  Zaytuna Simulator " <<(int)ZAYTUNA_VERSION << "." << (int)ZAYTUNA_MINOR_VERSION << ", "
+    std::cout << "  Zaytuna Simulator " <<ZAYTUNA_VERSION << "." << ZAYTUNA_MINOR_VERSION << ", "
               << "running with following system specifications:\n" << std::flush;
              
     ROS_INFO_STREAM("Vendor: " << reinterpret_cast<const char*>(glGetString(GL_VENDOR)));
@@ -110,7 +134,7 @@ void _scene_widg::initializeGL()
     ROS_INFO_STREAM("OpenGL Version: " << reinterpret_cast<const char*>(glGetString(GL_VERSION)));
     ROS_INFO_STREAM("GL Shading Language Version: " << reinterpret_cast<const char*>(glGetString(GL_SHADING_LANGUAGE_VERSION)));
 
-    timer.start(0);
+    timer.start(10);
     start_t = std::chrono::high_resolution_clock::now();
 }
 
@@ -126,19 +150,16 @@ void _scene_widg::render_local_scene(camera const*const current_cam)
         lap_objects[i]->render_obj(current_cam);
 
     obstacle_objects->render_obj(current_cam);
-    
-	
-	/*
-     * disable 'grid' and 'coordinates' from vehicles cam
-     *
-    */
 
-//    if(coord_checked)
-//        basic_objects[0]->render_obj(current_cam);
 
-//    if(grid_checked)
-//        basic_objects[1]->render_obj(current_cam);
+     //// disable 'grid' and 'coordinates' from vehicles cam
+/*
+    if(coord_checked)
+        basic_objects[0]->render_obj(current_cam);
 
+    if(grid_checked)
+        basic_objects[1]->render_obj(current_cam);
+*/
 
     model_vehicles->render_obj(current_cam);
 }
@@ -146,8 +167,8 @@ void _scene_widg::render_local_scene(camera const*const current_cam)
 
 void _scene_widg::paintGL()
 {
-   ros::spinOnce();
-
+    ros::spinOnce();
+    update_contrl_attribs();
     if(activeCam == &mainCam){
         update_cam();
         if(activeCam->auto_perspective ){
@@ -240,7 +261,7 @@ void _scene_widg::updateProjection()
 
 void _scene_widg::mouseMoveEvent(QMouseEvent *ev){
     if(activeCam == &mainCam){
-        if(ev->buttons()){
+        if(ev->buttons()==Qt::LeftButton){
             delta_sX = sX - ev->pos().x();
             delta_sY = sY - ev->pos().y();
             if( delta_sX > 0)
@@ -277,48 +298,49 @@ void _scene_widg::update_cam(){
         mainCam.strafe_right();
     else if(k_up)
         mainCam.move_up();
-    else if(k_back)
+    else if(k_down)
         mainCam.move_down();
 }
 
 void _scene_widg::keyPressEvent(QKeyEvent* ev)
 {
 
-    if( (activeCam != &mainCam)
-            | k_forward
-            | k_backward
-            | k_left
-            | k_right
-            | k_up
-            | k_back)
-        return;
-
+    if(activeCam == &mainCam){
+        switch (ev->key())
+        {
+            case Qt::Key::Key_W:
+                k_forward=1;
+                return;
+            case Qt::Key::Key_S:
+                k_backward=1;
+                return;
+            case Qt::Key::Key_Left: case Qt::Key::Key_A:
+                k_left=1;
+                return;
+            case Qt::Key::Key_Right: case Qt::Key::Key_D:
+                k_right=1;
+                return;
+            case Qt::Key::Key_Up:
+                k_up=1;
+                return;
+            case Qt::Key::Key_Down:
+                k_down=1;
+                return;
+        }
+    }
     switch (ev->key())
     {
-        case Qt::Key::Key_W:
-            k_forward=1;
+        case Qt::Key::Key_T:
+            l_forward=1;
             break;
-        case Qt::Key::Key_S:
-            k_backward=1;
+        case Qt::Key::Key_G:
+            l_backward=1;
             break;
-        case Qt::Key::Key_Left:
-            k_left^=1;
+        case Qt::Key::Key_F:
+            l_left=1;
             break;
-        case Qt::Key::Key_Right:
-            k_right=1;
-            break;
-        case Qt::Key::Key_Up:
-            k_up=1;
-            break;
-        case Qt::Key::Key_Down:
-            k_back=1;
-            break;
-        case Qt::Key::Key_A:
-            k_left=1;
-            break;
-        case Qt::Key::Key_D:
-            k_right=1;
-            break;
+        case Qt::Key::Key_H:
+            l_right=1;
     }
 }
 
@@ -331,7 +353,6 @@ void _scene_widg::wheelEvent(QWheelEvent *ev)
 
 void _scene_widg::keyReleaseEvent(QKeyEvent *ev)
 {
-    if(activeCam == &mainCam)
     switch (ev->key())
     {
         case Qt::Key::Key_W:
@@ -350,7 +371,7 @@ void _scene_widg::keyReleaseEvent(QKeyEvent *ev)
             k_up=0;
             break;
         case Qt::Key::Key_Down:
-            k_back=0;
+            k_down=0;
             break;
         case Qt::Key::Key_A:
             k_left=0;
@@ -358,19 +379,28 @@ void _scene_widg::keyReleaseEvent(QKeyEvent *ev)
         case Qt::Key::Key_D:
             k_right=0;
             break;
+        case Qt::Key::Key_T:
+            l_forward=0;
+            break;
+        case Qt::Key::Key_G:
+            l_backward=0;
+            break;
+        case Qt::Key::Key_F:
+            l_left=0;
+            break;
+        case Qt::Key::Key_H:
+            l_right=0;
     }
 }
 
 //void _scene_widg::mousePressEvent(QMouseEvent *e)
 //{
-//    std::cout << "clicked\n";
 //    clicked = true;
 //}
 
 //void _scene_widg::mouseReleaseEvent(QMouseEvent *e)
 //{
 //    clicked = false;
-//    std::cout << "released\n" ;
 //}
 
 
@@ -579,7 +609,7 @@ void _scene_widg::send_data()
         new external_obj(this,
                          programs[1],
                          "plane",
-                         ros::package::getPath("zaytuna")+"/primitives/plane_300x300_1sub-div",
+                         ZAY_PACKAGE_PATH+"/primitives/plane_300x300_1sub-div",
                          "/tex/plane_grass_1024x1024.jpg",
                          GL_QUADS
 //                         ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
@@ -588,7 +618,7 @@ void _scene_widg::send_data()
         ,new external_obj(this,
                          programs[1],
                          "fence",
-                         ros::package::getPath("zaytuna")+"/primitives/fence_300x300_2H_1W",
+                         ZAY_PACKAGE_PATH+"/primitives/fence_300x300_2H_1W",
                          "/tex/fence_brick_1024x1024.jpg",
                          GL_QUADS
 //                         ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
@@ -606,7 +636,7 @@ void _scene_widg::send_data()
         new external_obj(this,
                          programs[1],
                          "mini_lap",
-                         ros::package::getPath("zaytuna")+"/primitives/mini-lap",
+                         ZAY_PACKAGE_PATH+"/primitives/mini-lap",
                          "/tex/mini_lap_exemplar.jpg",
                          GL_QUADS
 //                         ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
@@ -615,7 +645,7 @@ void _scene_widg::send_data()
         ,new external_obj(this,
                          programs[1],
                          "lap1",
-                         ros::package::getPath("zaytuna")+"/primitives/lap1",
+                         ZAY_PACKAGE_PATH+"/primitives/lap1",
                          "/tex/lap1_exemplar.jpg",
                          GL_QUADS
 //                         ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
@@ -624,7 +654,7 @@ void _scene_widg::send_data()
         ,new external_obj(this,
                          programs[1],
                          "lap2",
-                         ros::package::getPath("zaytuna")+"/primitives/lap2",
+                         ZAY_PACKAGE_PATH+"/primitives/lap2",
                          "/tex/lap2_exemplar.jpg",
                          GL_QUADS
 //                         ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
@@ -633,7 +663,7 @@ void _scene_widg::send_data()
         ,new external_obj(this,
                          programs[1],
                          "lap3",
-                         ros::package::getPath("zaytuna")+"/primitives/lap3",
+                         ZAY_PACKAGE_PATH+"/primitives/lap3",
                          "/tex/lap3_exemplar.jpg",
                          GL_QUADS
 //                        ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
@@ -645,16 +675,16 @@ void _scene_widg::send_data()
             new obstacle_pack<GLdouble>(this,
                 programs[3],
                 Obstacle_Type::CARTON_BOX,
-                ros::package::getPath("zaytuna")+"/primitives/carton_box",
+                ZAY_PACKAGE_PATH+"/primitives/carton_box",
                 "/tex/carton_box.jpg",
                 GL_QUADS);
     obstacle_objects->add_category
             (Obstacle_Type::BRICK_WALL,
-             ros::package::getPath("zaytuna")+"/primitives/brick_wall",
+             ZAY_PACKAGE_PATH+"/primitives/brick_wall",
              "/tex/brick_wall.jpg");
     obstacle_objects->add_category
             (Obstacle_Type::STONE_WALL,
-             ros::package::getPath("zaytuna")+"/primitives/stone_wall",
+             ZAY_PACKAGE_PATH+"/primitives/stone_wall",
              "/tex/stone_wall_1.jpg");
     //------------------------------
 
@@ -663,7 +693,7 @@ void _scene_widg::send_data()
             (QGLFramebufferObject::CombinedDepthStencil);
     model_vehicles = new model_vehicle(this,
            programs[3],
-           ros::package::getPath("zaytuna")+"/primitives/zaytuna_model",
+           ZAY_PACKAGE_PATH+"/primitives/zaytuna_model",
            "/tex/zaytuna-fragments.png",
            GL_TRIANGLES );
 

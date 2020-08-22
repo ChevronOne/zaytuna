@@ -95,6 +95,7 @@ class _scene_widg : public QGL_WIDGET_VERSION, protected USED_GL_VERSION // QOpe
     void detachProgram(void);
     void send_data(void);
     void updateProjection(void);
+    inline void update_contrl_attribs(void);
     void cleanUp();
     void draw_local(void);
     inline void render_main_scene(zaytuna::camera const*const);
@@ -107,10 +108,12 @@ class _scene_widg : public QGL_WIDGET_VERSION, protected USED_GL_VERSION // QOpe
     void update_current_vehicle(const std::string&);
     obstacle_attribs<GLdouble> get_obstacle(const std::string&);
     zaytuna::vehicle_attributes* getOtherVeh(const std::string&);
-    double elap_accumulated{0.0}, cam_freq_accumulated{0.0}, elapsed{0.0};  // n/Sec
+    double elap_accumulated{0.0}, cam_freq_accumulated{0.0}, elapsed{0.0};  // nanSec
     double frame_rate{0};  // f/Sec
     double front_cam_freq{FRONT_CAM_FREQUENCY}; // Hz
     double imgs_sec{1.0/FRONT_CAM_FREQUENCY};
+    double local_control_speed{0.0},
+           local_control_steering{STEERING_MARGIN_OF_ERROR};
     uint32_t frames_counter{0};
     std::chrono::time_point<std::chrono::high_resolution_clock,
                     std::chrono::nanoseconds> start_t;
@@ -119,9 +122,12 @@ class _scene_widg : public QGL_WIDGET_VERSION, protected USED_GL_VERSION // QOpe
     QGLFramebufferObjectFormat fboFormat;
     bool coord_checked{true}, grid_checked{true};
     QTimer timer;
+    bool key_control{0};
     bool k_forward, k_backward,
          k_left, k_right,
-         k_up, k_back;
+         k_up, k_down,
+         l_forward, l_backward,
+         l_left, l_right;
     GLuint theBufferID;
     friend class zaytuna::primary_win;
 

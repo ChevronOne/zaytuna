@@ -43,8 +43,8 @@ namespace zaytuna {
 
 
 //// for debugging
-double GLOBAL_MOVEMENT_SPEED{0.0};
-double GLOBAL_STEERING_WHEEL{0.00000001};
+double SLIDER_MOVEMENT_SPEED{0.0};
+double SLIDER_STEERING_WHEEL{0.00000001};
 
 primary_win::primary_win(QWidget *parent) :
     QMainWindow(parent),
@@ -55,7 +55,6 @@ primary_win::primary_win(QWidget *parent) :
     _format.setSamples(NUM_SAMPLES_PER_PIXEL);
 
     _scene_widget = new _scene_widg(_format, this);
-
 
     ////////////////////////////////////
     _scene_widget->setObjectName(QStringLiteral("Place_Tracker"));
@@ -94,6 +93,9 @@ primary_win::primary_win(QWidget *parent) :
     menus_popups["Obstacles"]=&primary_win::obstacle_type_menu;
 
     /////////////////////////////////////////
+    ui->max_speed_SpinBox->setValue(_scene_widget->local_control_speed/SPEED_SCALAR);
+    ui->max_steering_SpinBox->setValue(glm::degrees(_scene_widget->local_control_steering)/MAX_TURN_ANGLE);
+
     ui->lcdCamViewX->display(_scene_widget->mainCam.view_direction.x);
     ui->lcdCamViewY->display(_scene_widget->mainCam.view_direction.y);
     ui->lcdCamViewZ->display(_scene_widget->mainCam.view_direction.z);
@@ -104,8 +106,8 @@ primary_win::primary_win(QWidget *parent) :
 
     ui->lcdFrameRate->display(_scene_widget->frame_rate);
 
-    ui->speedDis->setText(QString::number(0));
-    ui->steeringDis->setText(QString::number(0));
+//    ui->speedDis->setText(QString::number(0));
+//    ui->steeringDis->setText(QString::number(0));
 
     connect(&timer, SIGNAL(timeout()), this, SLOT(update_displays()));
     timer.start(1000);
@@ -217,7 +219,16 @@ void primary_win::front_cam_to_screen(const QString& _name){
     _scene_widget->update_current_vehicle(_name.toStdString());
     ui->radioButton_Local->setChecked(1);
     this->on_radioButton_Local_clicked();
-
+}
+void primary_win::attach_to_control_panel
+                   (const QString& _name){
+    auto it = _scene_widget->model_vehicles->find(_name.toStdString());
+    it->is_detached = 0;
+}
+void primary_win::detach_from_control_panel
+                    (const QString& _name){
+    auto it = _scene_widget->model_vehicles->find(_name.toStdString());
+    it->is_detached = 1;
 }
 void primary_win::delete_vehicle(const QString& _name){
     if(QMessageBox::question(this,
@@ -265,6 +276,16 @@ void primary_win::vehicle_menu(const QPoint& pos)
     connect(moveToScreen_act, &QAction::triggered, this,
             [=]{front_cam_to_screen(scene_objects->itemAt(pos)->text(0));} );
 
+    QAction *attach_to_panel = new QAction(QIcon(), tr("&connect to control panel"), this);
+    attach_to_panel->setStatusTip(tr("connect selected vehicle to control panel"));
+    connect(attach_to_panel, &QAction::triggered, this,
+            [=]{attach_to_control_panel(scene_objects->itemAt(pos)->text(0));} );
+
+    QAction *detach_from_panel = new QAction(QIcon(), tr("&detach from control panel"), this);
+    detach_from_panel->setStatusTip(tr("detach selected vehicle from control panel"));
+    connect(detach_from_panel, &QAction::triggered, this,
+            [=]{detach_from_control_panel(scene_objects->itemAt(pos)->text(0));} );
+
     QAction *editItem_act = new QAction(QIcon(), tr("&edit"), this);
     editItem_act->setStatusTip(tr("edit selected vehicle"));
     connect(editItem_act, &QAction::triggered, this,
@@ -277,6 +298,8 @@ void primary_win::vehicle_menu(const QPoint& pos)
 
     QMenu menu(this);
     menu.addAction(moveToScreen_act);
+    menu.addAction(attach_to_panel);
+    menu.addAction(detach_from_panel);
     menu.addAction(editItem_act);
     menu.addAction(delItem_act);
 
@@ -329,7 +352,6 @@ void primary_win::closeEvent(QCloseEvent *event){
 
 void primary_win::update_displays()
 {
-
     ui->lcdCamViewX->display(_scene_widget->activeCam->view_direction.x);
     ui->lcdCamViewY->display(_scene_widget->activeCam->view_direction.y);
     ui->lcdCamViewZ->display(_scene_widget->activeCam->view_direction.z);
@@ -347,8 +369,6 @@ void primary_win::update_displays()
     ui->SpinBox_Near->setValue(_scene_widget->activeCam->NEAR_PLANE);
     ui->SpinBox_Far->setValue(_scene_widget->activeCam->FAR_PLANE);
     ui->front_cam_freq_SpinBox->setValue(_scene_widget->front_cam_freq);
-
-
 }
 
 void primary_win::on_grid_check_clicked(bool checked){
@@ -399,25 +419,23 @@ void primary_win::on_radioButton_Local_clicked()
     _scene_widget->updateProjection();
 }
 
-void primary_win::on_steeringV_valueChanged(int value)
-{
-        ui->steeringDis->setText(QString::number(value));
-
-       if(value == 0){
-           GLOBAL_STEERING_WHEEL = STEERING_MARGIN_OF_ERROR;
-       }else{
-           GLOBAL_STEERING_WHEEL = (static_cast<double>(value)*M_PI) /180.0;
-       }
+void primary_win::on_steeringV_valueChanged(int value){
+    ui->steeringDis->setText(QString::number
+          (static_cast<double>(value)/MAX_TURN_ANGLE, 'f', 3));
+    if(value == 0){
+        SLIDER_STEERING_WHEEL = STEERING_MARGIN_OF_ERROR;
+    }else{
+        SLIDER_STEERING_WHEEL = (static_cast<double>(value)*M_PI) /180.0;
+    }
 }
 
-void primary_win::on_speedV_valueChanged(int value)
-{
-    ui->speedDis->setText(QString::number(value));
-   GLOBAL_MOVEMENT_SPEED = static_cast<double>(-value);
+void primary_win::on_speedV_valueChanged(int value){
+    ui->speedDis->setText(QString::number
+         (static_cast<double>(value)/SPEED_SCALAR, 'f', 3));
+    SLIDER_MOVEMENT_SPEED = static_cast<double>(-value);
 }
 
-void primary_win::on_auto_perspective_radio_clicked()
-{
+void primary_win::on_auto_perspective_radio_clicked(){
     ui->frame_perspective->setDisabled(1);
     _scene_widget->activeCam->auto_perspective = 1;
 }
@@ -428,15 +446,45 @@ void primary_win::on_custom_perspective_radio_clicked()
     _scene_widget->activeCam->auto_perspective = 0;
 }
 
-void primary_win::on_front_cam_freq_SpinBox_valueChanged(double arg)
-{
+void primary_win::on_front_cam_freq_SpinBox_valueChanged(double arg){
     _scene_widget->front_cam_freq = arg;
     _scene_widget->imgs_sec = 1.0/arg;
+}
+void primary_win::on_key_control_radio_clicked(){
+    ui->steering_groupBox->setEnabled(0);
+    ui->speed_groupBox->setEnabled(0);
+    ui->max_speed_SpinBox->setEnabled(1);
+    ui->max_steering_SpinBox->setEnabled(1);
+    _scene_widget->key_control=1;
+}
+void primary_win::on_slider_control_radio_clicked(){
+    ui->steering_groupBox->setEnabled(1);
+    ui->speed_groupBox->setEnabled(1);
+    ui->max_speed_SpinBox->setEnabled(0);
+    ui->max_steering_SpinBox->setEnabled(0);
+    _scene_widget->key_control=0;
+}
+void primary_win::on_max_steering_SpinBox_valueChanged(double val){
+    _scene_widget->local_control_steering = val==0.0? STEERING_MARGIN_OF_ERROR :
+            (glm::radians(val*MAX_TURN_ANGLE));
+}
+void primary_win::on_max_speed_SpinBox_valueChanged(double val){
+    _scene_widget->local_control_speed = SPEED_SCALAR*val;
 }
 
 
 
+
+
 } // namespace  zaytuna
+
+
+
+
+
+
+
+
 
 
 

@@ -35,8 +35,8 @@
 
 
 
-#ifndef ZAY_WIN_MAINLINER_HPP
-#define ZAY_WIN_MAINLINER_HPP
+#ifndef ZAY_PRIMARY_WIN_HPP
+#define ZAY_PRIMARY_WIN_HPP
 
 #include <QMainWindow>
 #include <QWidget>
@@ -63,7 +63,7 @@ class primary_win : public QMainWindow
 
 public:
     explicit primary_win(QWidget *parent = nullptr);
-    virtual ~primary_win();
+    virtual ~primary_win() override;
     void vehicle_type_menu(const QPoint&);
     void vehicle_menu(const QPoint&);
     void obstacle_type_menu(const QPoint&);
@@ -71,7 +71,7 @@ public:
 
 
 protected:
-    virtual void closeEvent(QCloseEvent*);
+    virtual void closeEvent(QCloseEvent*) override;
 
 private slots:
     void on_grid_check_clicked(bool);
@@ -86,13 +86,14 @@ private slots:
     void on_radioButton_Global_clicked();
     void on_radioButton_Local_clicked();
     void on_steeringV_valueChanged(int value);
-
     void menus(const QPoint&);
     void new_vehicle(void);
     void add_vehicle(transform_attribs<GLdouble>,bool);
     void new_obstacle(void);
     void add_obstacle(obstacle_attribs<GLdouble>,bool);
     void front_cam_to_screen(const QString&);
+    void attach_to_control_panel(const QString&);
+    void detach_from_control_panel(const QString&);
     void delete_vehicle(const QString&);
     void edit_vehicle(const QString&);
     void delete_obstacle(const QString&);
@@ -100,6 +101,10 @@ private slots:
     void on_auto_perspective_radio_clicked();
     void on_custom_perspective_radio_clicked();
     void on_front_cam_freq_SpinBox_valueChanged(double);
+    void on_key_control_radio_clicked();
+    void on_slider_control_radio_clicked();
+    void on_max_steering_SpinBox_valueChanged(double);
+    void on_max_speed_SpinBox_valueChanged(double);
 
 private:
     Ui::primary_win *ui{nullptr};
