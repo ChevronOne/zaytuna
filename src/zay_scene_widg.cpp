@@ -62,7 +62,7 @@ _scene_widg::_scene_widg(QGLFormat _format, QWidget* parent):
     elap_accumulated{0.0}, cam_freq_accumulated{0.0}, elapsed{0.0},
     frame_rate{0.0}, front_cam_freq{FRONT_CAM_FREQUENCY}, 
     imgs_sec{1.0/FRONT_CAM_FREQUENCY}, local_control_speed{6.0},
-    local_control_steering{0.218}, frames_counter{0},
+    local_control_steering{0.218}, frames_counter{0}, activeCam{&mainCam},
     k_forward{0}, k_backward{0}, k_left{0}, k_right{0}, k_up{0}, k_down{0},
     l_forward{0}, l_backward{0}, l_left{0}, l_right{0}
 {
@@ -71,7 +71,6 @@ _scene_widg::_scene_widg(QGLFormat _format, QWidget* parent):
     //    setFormat(_format);
 
     mainCam.updateProjection(WIDTH, HEIGHT);
-    activeCam = &mainCam;
     connect(&timer, SIGNAL(timeout()), this, SLOT(animate()));
     makeCurrent();
     setMouseTracking(true);
@@ -261,17 +260,17 @@ void _scene_widg::updateProjection()
 
 void _scene_widg::mouseMoveEvent(QMouseEvent *ev){
     if(activeCam == &mainCam){
-        if(ev->buttons()==Qt::LeftButton){
+        if(ev->buttons()==Qt::RightButton){
             delta_sX = sX - ev->pos().x();
             delta_sY = sY - ev->pos().y();
-            if( delta_sX > 0)
+            if( delta_sX > 0.0)
                 mainCam.strafe_right();
-            if(delta_sX < 0)
+            if(delta_sX < 0.0)
                 mainCam.strafe_left();
-            if(delta_sY > 0)
-                mainCam.move_down();
-            if(delta_sY < 0)
-                mainCam.move_up();
+            if(delta_sY > 0.0)
+                mainCam.move_backward();
+            if(delta_sY < 0.0)
+                mainCam.move_forward();
             sX = static_cast<double>(ev->x());
             sY = static_cast<double>(ev->y());
         }
@@ -282,7 +281,10 @@ void _scene_widg::mouseMoveEvent(QMouseEvent *ev){
                          (this->width())/2.0) ) -1;
             glY =  -((sY/ (static_cast<double>
                            (this->height())/2.0) ) -1);
-            mainCam.mouse_update(glm::vec2(ev->x(),ev->y()));
+            if(ev->buttons()==Qt::LeftButton)
+                mainCam.mouse_held_update(glm::vec2(ev->x(),ev->y()));
+            else
+                mainCam.mouse_update(glm::vec2(ev->x(),ev->y()));
         }
     }
 }
@@ -393,12 +395,16 @@ void _scene_widg::keyReleaseEvent(QKeyEvent *ev)
     }
 }
 
-//void _scene_widg::mousePressEvent(QMouseEvent *e)
+//void _scene_widg::mousePressEvent(QMouseEvent *ev)
 //{
-//    clicked = true;
+////    if(activeCam != &mainCam)
+////        return;
+////    if(ev->buttons()==Qt::LeftButton){
+////        mainCam.update_view_point();
+////    }
 //}
 
-//void _scene_widg::mouseReleaseEvent(QMouseEvent *e)
+//void _scene_widg::mouseReleaseEvent(QMouseEvent *ev)
 //{
 //    clicked = false;
 //}

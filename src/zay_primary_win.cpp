@@ -271,27 +271,27 @@ void primary_win::vehicle_type_menu(const QPoint& pos){
 }
 void primary_win::vehicle_menu(const QPoint& pos)
 {
-    QAction *moveToScreen_act = new QAction(QIcon(), tr("&front cam"), this);
+    QAction *moveToScreen_act = new QAction(QIcon(), tr("&Front cam"), this);
     moveToScreen_act->setStatusTip(tr("move front cam to screen"));
     connect(moveToScreen_act, &QAction::triggered, this,
             [=]{front_cam_to_screen(scene_objects->itemAt(pos)->text(0));} );
 
-    QAction *attach_to_panel = new QAction(QIcon(), tr("&connect to control panel"), this);
+    QAction *attach_to_panel = new QAction(QIcon(), tr("&Connect to control panel"), this);
     attach_to_panel->setStatusTip(tr("connect selected vehicle to control panel"));
     connect(attach_to_panel, &QAction::triggered, this,
             [=]{attach_to_control_panel(scene_objects->itemAt(pos)->text(0));} );
 
-    QAction *detach_from_panel = new QAction(QIcon(), tr("&detach from control panel"), this);
+    QAction *detach_from_panel = new QAction(QIcon(), tr("&Detach from control panel"), this);
     detach_from_panel->setStatusTip(tr("detach selected vehicle from control panel"));
     connect(detach_from_panel, &QAction::triggered, this,
             [=]{detach_from_control_panel(scene_objects->itemAt(pos)->text(0));} );
 
-    QAction *editItem_act = new QAction(QIcon(), tr("&edit"), this);
+    QAction *editItem_act = new QAction(QIcon(), tr("&Edit"), this);
     editItem_act->setStatusTip(tr("edit selected vehicle"));
     connect(editItem_act, &QAction::triggered, this,
             [=]{edit_vehicle(scene_objects->itemAt(pos)->text(0));} );
 
-    QAction *delItem_act = new QAction(QIcon(), tr("&delete"), this);
+    QAction *delItem_act = new QAction(QIcon(), tr("&Delete"), this);
     delItem_act->setStatusTip(tr("delete selected vehicle"));
     connect(delItem_act, &QAction::triggered, this,
             [=]{delete_vehicle(scene_objects->itemAt(pos)->text(0));} );
@@ -317,12 +317,12 @@ void primary_win::obstacle_type_menu(const QPoint& pos)
 }
 void primary_win::obstacle_menu(const QPoint& pos)
 {
-    QAction *editItem_act = new QAction(QIcon(), tr("&edit"), this);
+    QAction *editItem_act = new QAction(QIcon(), tr("&Edit"), this);
     editItem_act->setStatusTip(tr("edit selected obstacle"));
     connect(editItem_act, &QAction::triggered, this,
             [=]{edit_obstacle(scene_objects->itemAt(pos)->text(0));} );
 
-    QAction *delItem_act = new QAction(QIcon(), tr("&delete"), this);
+    QAction *delItem_act = new QAction(QIcon(), tr("&Delete"), this);
     delItem_act->setStatusTip(tr("delete selected obstacle"));
     connect(delItem_act, &QAction::triggered, this,
             [=]{delete_obstacle(scene_objects->itemAt(pos)->text(0));} );
@@ -405,7 +405,7 @@ void primary_win::on_SpinBox_FieldOfView_valueChanged(double arg){
 }
 
 void primary_win::on_radioButton_Global_clicked(){
-    _scene_widget->activeCam = &_scene_widget->mainCam;
+    _scene_widget->activeCam = &(_scene_widget->mainCam);
     ui->camTransformation->setEnabled(1);
     _scene_widget->updateProjection();
 }
@@ -414,7 +414,7 @@ void primary_win::on_radioButton_Local_clicked()
 {
     if(_scene_widget->current_model == nullptr)
         return;
-    _scene_widget->activeCam = &_scene_widget->current_model->frontCam;
+    _scene_widget->activeCam = &(_scene_widget->current_model->frontCam);
     ui->camTransformation->setEnabled(0);
     _scene_widget->updateProjection();
 }

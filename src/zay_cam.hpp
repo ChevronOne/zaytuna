@@ -41,6 +41,7 @@
 
 
 #include "zay_headers.hpp"
+#include "zay_utility.hpp"
 namespace zaytuna {
 
 
@@ -53,6 +54,7 @@ public:
     void updateProjection(const double&, const double&);
     void updateWorld_to_viewMat();
     void mouse_update(const glm::dvec2&);
+    void mouse_held_update(const glm::dvec2&);
     glm::dvec2 get_mouse_position();
     void move_forward(void);
     void move_backward(void);
@@ -73,6 +75,7 @@ public:
     glm::dvec3 view_direction;
     glm::dvec3 up_direction;
     glm::dvec3 camera_position;
+    glm::dvec3 view_point;
 
     glm::dvec2 mouse_position;
     glm::dmat4 projectionMat;

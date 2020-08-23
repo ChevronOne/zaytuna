@@ -40,14 +40,22 @@
 
 namespace zaytuna {
 
-camera::camera() : FIELD_OF_VIEW{55.0}, NEAR_PLANE{0.01}, 
+camera::camera() : ROTATION_SPEED{0.3}, MOVEMENT_SPEED{0.024},
+            FIELD_OF_VIEW{55.0}, NEAR_PLANE{0.01},
             FAR_PLANE{400.0}, auto_perspective{1},
-            view_direction{glm::dvec3(-0.41f , -0.6f , -0.68f)},
-            up_direction{glm::dvec3(0.0f, 1.0f, 0.0f)},
-            camera_position{glm::dvec3(+8.55f , 3.26f, 3.5f)} {
-    MOVEMENT_SPEED = 0.024;
-    ROTATION_SPEED = 0.3;
-}
+            view_direction{glm::dvec3(-0.41 , -0.6 , -0.68)},
+            up_direction{glm::dvec3(0.0, 1.0, 0.0)},
+            camera_position{glm::dvec3(8.55, 3.26, 3.5)},
+            view_point{glm::dvec3(0.0, 0.0, 0.0)},
+            mouse_position{glm::dvec2(0.0, 0.0)},
+            projectionMat{glm::perspective(glm::radians(FIELD_OF_VIEW),
+                                           static_cast<double>(WIDTH) / HEIGHT,
+                                           NEAR_PLANE,
+                                           FAR_PLANE)},
+            world_to_viewMat{glm::lookAt(camera_position,
+                                         camera_position + view_direction,
+                                         up_direction)},
+            transformationMat{projectionMat * world_to_viewMat}{}
 
 glm::dmat4 camera::getWorld_to_view_Mat()
 {
@@ -109,18 +117,55 @@ void camera::mouse_update(const glm::dvec2& new_mouse_position)
         mouse_position = new_mouse_position;
         return;
     }
+
+    //// v rotation
     view_direction =
             glm::dmat3(glm::rotate(glm::radians(-mouse_delta.x*ROTATION_SPEED),
                                   up_direction))
                                   * view_direction;
-
-    glm::dvec3 verticalRotaionVec = glm::cross(view_direction,
-                                               up_direction);
+    //// h rotation
     view_direction = glm::dmat3(glm::rotate(glm::radians(-mouse_delta.y*ROTATION_SPEED),
-                                            verticalRotaionVec))
-                                            * view_direction;
+                                            glm::cross(view_direction,
+                                                       up_direction)))
+                     * view_direction;
     mouse_position = new_mouse_position;
 }
+
+
+void camera::mouse_held_update(const glm::dvec2& new_mouse_position){
+    glm::dvec2 mouse_delta = new_mouse_position - mouse_position;
+    if (glm::length(mouse_delta) > MOUSE_DELTA_IGNORE || view_direction.y == 0.0)
+    {
+        mouse_position = new_mouse_position;
+        return;
+    }
+
+    view_point = glm::dvec3(((-camera_position.y*view_direction.x)
+                              +camera_position.x*view_direction.y)/view_direction.y,
+                            0.0,
+                            ((-camera_position.y*view_direction.z)
+                              +camera_position.z*view_direction.y)/view_direction.y);
+
+    //// v rotation
+    glm::dmat4 rotaionMat = glm::rotate(glm::radians(-mouse_delta.x*ROTATION_SPEED),
+                                                     up_direction);
+    glm::dmat4 pos_rotationMat = glm::translate(view_point) * rotaionMat * glm::translate(-view_point);
+
+    view_direction = glm::mat3(rotaionMat) * view_direction;
+    camera_position = pos_rotationMat * glm::dvec4(camera_position, 1.0);
+
+    //// h rotation
+    rotaionMat = glm::rotate(glm::radians(-mouse_delta.y*ROTATION_SPEED),
+                                        glm::cross(view_direction,
+                                                   up_direction));
+    pos_rotationMat = glm::translate(view_point) * rotaionMat * glm::translate(-view_point);
+
+    view_direction = glm::mat3(rotaionMat) * view_direction;
+    camera_position = pos_rotationMat * glm::dvec4(camera_position, 1.0);
+
+    mouse_position = new_mouse_position;
+}
+
 glm::dvec2 camera::get_mouse_position(){
     return mouse_position;
 }

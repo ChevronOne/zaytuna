@@ -118,7 +118,7 @@ class _scene_widg : public QGL_WIDGET_VERSION, protected USED_GL_VERSION // QOpe
     std::chrono::time_point<std::chrono::high_resolution_clock,
                     std::chrono::nanoseconds> start_t;
     camera mainCam ;
-    camera* activeCam{nullptr};
+    camera* activeCam{&mainCam};
     QGLFramebufferObjectFormat fboFormat;
     bool coord_checked{true}, grid_checked{true};
     QTimer timer;
@@ -138,7 +138,8 @@ protected:
     virtual void mouseMoveEvent(QMouseEvent*) override;
     virtual void keyPressEvent(QKeyEvent*) override;
     virtual void wheelEvent(QWheelEvent*) override;
-    virtual void keyReleaseEvent(QKeyEvent *event) override;
+    virtual void keyReleaseEvent(QKeyEvent*) override;
+//    virtual void mousePressEvent(QMouseEvent*) override;
 
 public:
     explicit _scene_widg(QGLFormat, QWidget* parent = nullptr);
