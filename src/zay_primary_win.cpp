@@ -70,7 +70,7 @@ primary_win::primary_win(QWidget *parent) :
 
     ///////////////////////////////////////
     scene_objects = new QTreeWidget(ui->edit_frame);
-    scene_objects->setGeometry(QRect(305, 10, 230, 330));
+    scene_objects->setGeometry(QRect(305, 10, 305, 255));
     scene_objects->setColumnCount(1);
     scene_objects->setObjectName(QStringLiteral("objects"));
     scene_objects->setEnabled(true);
@@ -82,7 +82,7 @@ primary_win::primary_win(QWidget *parent) :
 
     vehicle_type = new QTreeWidgetItem(scene_objects);
     vehicle_type->setText(0, "Vehicles");
-    vehicle_type->setExpanded(1);
+//    vehicle_type->setExpanded(1);
     scene_objects->addTopLevelItem(vehicle_type);
     menus_popups["Vehicles"]=&primary_win::vehicle_type_menu;
 
