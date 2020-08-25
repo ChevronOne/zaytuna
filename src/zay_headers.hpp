@@ -65,6 +65,7 @@
 #include <QGLFramebufferObject>
 #include <QIcon>
 #include <QDebug>
+#include <QFontDatabase>
 
 #include "ros/ros.h"
 #include "geometry_msgs/Vector3.h"

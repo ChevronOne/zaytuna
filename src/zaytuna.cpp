@@ -36,7 +36,6 @@
 
 #include "zay_primary_win.hpp"
 #include <QApplication>
-#include <QFontDatabase>
 #include <QScreen>
 #include <iostream>
 
@@ -77,7 +76,9 @@ int main(int argc, char *argv[])
     }
     w.setWindowTitle("Zaytuna-Simulator");
     w.show();
-    return a.exec();
+    int stat = a.exec();
+    QFontDatabase::removeApplicationFont(fontId);
+    return stat;
 }
 
 

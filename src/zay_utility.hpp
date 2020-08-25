@@ -245,6 +245,11 @@ void _load_tex(USED_GL_VERSION * const _widg,
               bool h_mirroring=0,
               bool v_mirroring=0);
 
+struct obstacle_tracker{
+    const char* category;
+    uint32_t counter;
+};
+
 
 } // namespace zaytuna
 

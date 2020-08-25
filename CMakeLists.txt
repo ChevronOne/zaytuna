@@ -3,10 +3,12 @@ project(zaytuna)
 
 
 set(CMAKE_BUILD_TYPE Release)
+#set(CMAKE_BUILD_TYPE Debug)
 
 set(CMAKE_CXX_FLAGS_RELEASE "-O2")
 set(CMAKE_CXX_STANDARD 14)
 add_compile_options(-O2 -Wall)
+#add_compile_options(-g2 -Wall)
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)

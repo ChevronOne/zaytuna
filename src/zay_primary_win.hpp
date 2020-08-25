@@ -97,6 +97,7 @@ private slots:
     void delete_vehicle(const QString&);
     void edit_vehicle(const QString&);
     void delete_obstacle(const QString&);
+    void delete_obstacle_confirm(const QString&);
     void edit_obstacle(const QString&);
     void on_auto_perspective_radio_clicked();
     void on_custom_perspective_radio_clicked();
@@ -114,7 +115,8 @@ private:
     std::map<QString, void(primary_win::*)(const QPoint&)> menus_popups;
     QTreeWidgetItem *vehicle_type{nullptr}, *obstacle_type{nullptr};
     std::map<QString, QTreeWidgetItem*> vehicles, obstacles;
-    uint32_t vehicle_counter{1}, obstacle_counter{1};
+    uint32_t vehicle_counter{1};
+    std::map<zaytuna::Obstacle_Type, obstacle_tracker> obstacle_counter;
 };
 
 

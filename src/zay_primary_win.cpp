@@ -69,6 +69,11 @@ primary_win::primary_win(QWidget *parent) :
     _scene_widget->setMaximumSize(QSize(WIDTH, HEIGHT));
 
     ///////////////////////////////////////
+
+    obstacle_counter[Obstacle_Type::CARTON_BOX] = {"carton_box_%1",1};
+    obstacle_counter[Obstacle_Type::BRICK_WALL] = {"brick_wall_%1",1};
+    obstacle_counter[Obstacle_Type::STONE_WALL] = {"stone_wall_%1",1};
+
     scene_objects = new QTreeWidget(ui->edit_frame);
     scene_objects->setGeometry(QRect(305, 10, 305, 255));
     scene_objects->setColumnCount(1);
@@ -106,9 +111,6 @@ primary_win::primary_win(QWidget *parent) :
 
     ui->lcdFrameRate->display(_scene_widget->frame_rate);
 
-//    ui->speedDis->setText(QString::number(0));
-//    ui->steeringDis->setText(QString::number(0));
-
     connect(&timer, SIGNAL(timeout()), this, SLOT(update_displays()));
     timer.start(1000);
 
@@ -136,8 +138,8 @@ primary_win::primary_win(QWidget *parent) :
                      15.0,
                      {0.0, 1.0, 0.0},
                      {4.0, 0.0, -3.0}),1);
-
 }
+
 void primary_win::new_vehicle(void)
 {
     item_inputs_form inputs_d;
@@ -173,6 +175,27 @@ void primary_win::edit_vehicle(const QString& _name){
     if (inputs_d.exec() == QDialog::Accepted)
         veh->update_positional_attributes(inputs_d.attribs);
 }
+void primary_win::delete_vehicle(const QString& _name){
+    if(QMessageBox::question(this,
+                "delete vehicle",
+                "delete vehicle '"+_name+"' ?",
+                QMessageBox::Ok|QMessageBox::Cancel) == QMessageBox::Ok){
+        if(_scene_widget->current_model != nullptr)
+            if(_scene_widget->current_model->attribs.name == _name.toStdString()){
+                _scene_widget->current_model
+                        = _scene_widget->getOtherVeh
+                        (_name.toStdString());
+                if(ui->radioButton_Local->isChecked()){
+                    ui->radioButton_Global->setChecked(1);
+                    this->on_radioButton_Global_clicked(); }
+            }
+        _scene_widget->delete_vehicle(_name.toStdString());
+        vehicle_type->removeChild(vehicles[_name]);
+        if(vehicles[_name] != nullptr)
+            delete vehicles[_name];
+        vehicles.erase(_name);
+    }
+}
 void primary_win::new_obstacle(void)
 {
     obstacle_inputs_form inputs_d;
@@ -190,31 +213,51 @@ void primary_win::edit_obstacle(const QString& _name){
     inputs_d.setWindowTitle("edit obstacle");
     inputs_d.setModal(1);
     if (inputs_d.exec() == QDialog::Accepted){
-        if(inputs_d.attribs.type == attribs.type)
-            _scene_widget->edit_obstacle(inputs_d.attribs);
-        else{
-            _scene_widget->delete_obstacle(_name.toStdString());
-            _scene_widget->add_obstacle(inputs_d.attribs);
-        }
+        delete_obstacle(_name);
+        add_obstacle(inputs_d.attribs, 0);
     }
 }
 void primary_win::add_obstacle
     (obstacle_attribs<GLdouble> attribs,
-     bool is_default)
+    bool is_default)
 {
-    QString obs_name{QString("obstacle_%1").arg(obstacle_counter++)};
+    QString obs_name{QString(obstacle_counter[attribs.type].category).arg
+        (obstacle_counter[attribs.type].counter++)
+        +"_X"+QString::number(attribs.translation_vec.x, 'f', 2) 
+        +"_Z"+QString::number(attribs.translation_vec.z, 'f', 2)};
     attribs.name = obs_name.toStdString();
-    if(is_default)
-        _scene_widget->default_objects.obstacles.emplace_back(attribs);
-    else
-        _scene_widget->add_obstacle(attribs);
+
     QTreeWidgetItem* obs = new QTreeWidgetItem();
     obs->setText(0, obs_name);
     obstacle_type->addChild(obs);
     menus_popups[obs_name]=&primary_win::obstacle_menu;
     obstacles[obs_name] = obs;
+    if(is_default)
+        _scene_widget->default_objects.obstacles.emplace_back(attribs);
+    else{
+        _scene_widget->add_obstacle(attribs);
+        obs->setSelected(1);
+    }
 }
 
+void primary_win::delete_obstacle(const QString& _name){
+    _scene_widget->delete_obstacle(_name.toStdString());
+    obstacle_type->removeChild(obstacles[_name]);
+    if(obstacles[_name] != nullptr)
+        delete obstacles[_name];
+    obstacles.erase(_name);
+    menus_popups.erase(_name);
+    obstacles.erase(_name);
+
+}
+void primary_win::delete_obstacle_confirm(const QString& _name){
+    if(QMessageBox::question(this,
+            "delete obstacle",
+            "delete obstacle '"+_name+"' ?",
+            QMessageBox::Ok|QMessageBox::Cancel) == QMessageBox::Ok){
+        delete_obstacle(_name);
+    }
+}
 void primary_win::front_cam_to_screen(const QString& _name){
     _scene_widget->update_current_vehicle(_name.toStdString());
     ui->radioButton_Local->setChecked(1);
@@ -230,37 +273,6 @@ void primary_win::detach_from_control_panel
     auto it = _scene_widget->model_vehicles->find(_name.toStdString());
     it->is_detached = 1;
 }
-void primary_win::delete_vehicle(const QString& _name){
-    if(QMessageBox::question(this,
-                "delete vehicle",
-                "delete vehicle '"+_name+"' ?",
-                QMessageBox::Ok|QMessageBox::Cancel) == QMessageBox::Ok){
-        if(_scene_widget->current_model != nullptr)
-            if(_scene_widget->current_model->attribs.name == _name.toStdString()){
-                _scene_widget->current_model
-                        = _scene_widget->getOtherVeh
-                        (_name.toStdString());
-                if(ui->radioButton_Local->isChecked()){
-                    ui->radioButton_Global->setChecked(1);
-                    this->on_radioButton_Global_clicked();
-                }
-            }
-        _scene_widget->delete_vehicle(_name.toStdString());
-        vehicle_type->removeChild(vehicles[_name]);
-        vehicles.erase(_name);
-    }
-}
-void primary_win::delete_obstacle(const QString& _name){
-    if(QMessageBox::question(this,
-            "delete obstacle",
-            "delete obstacle '"+_name+"' ?",
-            QMessageBox::Ok|QMessageBox::Cancel) == QMessageBox::Ok){
-        _scene_widget->delete_obstacle(_name.toStdString());
-        obstacle_type->removeChild(obstacles[_name]);
-        obstacles.erase(_name);
-    }
-}
-
 void primary_win::vehicle_type_menu(const QPoint& pos){
     QAction *addItem_act = new QAction(QIcon(), tr("&New Vehicle"), this);
     addItem_act->setStatusTip(tr("add new vehicle"));
@@ -325,7 +337,7 @@ void primary_win::obstacle_menu(const QPoint& pos)
     QAction *delItem_act = new QAction(QIcon(), tr("&Delete"), this);
     delItem_act->setStatusTip(tr("delete selected obstacle"));
     connect(delItem_act, &QAction::triggered, this,
-            [=]{delete_obstacle(scene_objects->itemAt(pos)->text(0));} );
+            [=]{delete_obstacle_confirm(scene_objects->itemAt(pos)->text(0));} );
 
     QMenu menu(this);
     menu.addAction(editItem_act);
@@ -336,14 +348,6 @@ void primary_win::obstacle_menu(const QPoint& pos)
 void primary_win::menus(const QPoint& pos){
     QTreeWidgetItem *selected = scene_objects->itemAt(pos);
     (this->*menus_popups[selected->text(0)])(pos);
-}
-
-primary_win::~primary_win()
-{
-    delete _scene_widget;
-    delete scene_objects;
-    timer.deleteLater();
-    delete ui;
 }
 
 void primary_win::closeEvent(QCloseEvent *event){
@@ -472,7 +476,13 @@ void primary_win::on_max_speed_SpinBox_valueChanged(double val){
     _scene_widget->local_control_speed = SPEED_SCALAR*val;
 }
 
-
+primary_win::~primary_win()
+{
+    delete _scene_widget;
+    delete scene_objects;
+    timer.deleteLater();
+    delete ui;
+}
 
 
 
