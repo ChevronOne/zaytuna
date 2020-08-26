@@ -59,8 +59,8 @@ zaytuna::vehicle_attributes::vehicle_attributes
              const transform_attribs<GLdouble> attribs):
         _widg{_widg}, attribs{attribs},
         localView_buffer{FBO_}, elapsed_t{0.0},
-        AMOUNT_OF_ROTATION(0.0), MOVEMENT_SPEED(0.0),
-        REMOTE_SPEED{0.0}, STEERING_WHEEL(STEERING_MARGIN_OF_ERROR),
+        AMOUNT_OF_ROTATION(0.0), MOVEMENT_SPEED(0.0), DESIRED_SPEED{0.0},
+        REMOTE_SPEED{0.0}, STEERING_WHEEL(STEERING_MARGIN_OF_ERROR), DESIRED_STEERING{0.0},
         REMOTE_STEERING(STEERING_MARGIN_OF_ERROR), accumulated_dist(0.0),
         traveled_dist(0.0), ticks_counter(0),
         radius_of_rotation(0.0),
@@ -152,15 +152,25 @@ void vehicle_attributes::update_positional_attributes
 }
 
 
-void vehicle_attributes::update_attribs()
+void vehicle_attributes::update_attribs(const double frame_rate)
 {
     if(is_detached){
-        MOVEMENT_SPEED = REMOTE_SPEED;
-        STEERING_WHEEL = REMOTE_STEERING;
+        DESIRED_SPEED = REMOTE_SPEED;
+        DESIRED_STEERING = REMOTE_STEERING;
     }else{
-        MOVEMENT_SPEED = GLOBAL_MOVEMENT_SPEED;
-        STEERING_WHEEL = GLOBAL_STEERING_WHEEL;
+        DESIRED_SPEED = GLOBAL_MOVEMENT_SPEED;
+        DESIRED_STEERING = GLOBAL_STEERING_WHEEL;
     }
+
+    if(std::abs(MOVEMENT_SPEED-DESIRED_SPEED)>DELAY_MARGIN_OF_ERROR)
+        MOVEMENT_SPEED+= (DESIRED_SPEED-MOVEMENT_SPEED)/(frame_rate*speed_delay);
+    else
+        MOVEMENT_SPEED = DESIRED_SPEED;
+    
+    if(std::abs(DESIRED_STEERING-STEERING_WHEEL)>DELAY_MARGIN_OF_ERROR)
+        STEERING_WHEEL+= (DESIRED_STEERING-STEERING_WHEEL)/(frame_rate*steering_delay);
+    else
+        STEERING_WHEEL=DESIRED_STEERING;
 
     if(MOVEMENT_SPEED != 0.0){
 

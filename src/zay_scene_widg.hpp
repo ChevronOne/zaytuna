@@ -110,7 +110,7 @@ class _scene_widg : public QGL_WIDGET_VERSION, protected USED_GL_VERSION // QOpe
     obstacle_attribs<GLdouble> get_obstacle(const std::string&);
     zaytuna::vehicle_attributes* getOtherVeh(const std::string&);
     double elap_accumulated{0.0}, cam_freq_accumulated{0.0}, elapsed{0.0};  // nanSec
-    double frame_rate{0};  // f/Sec
+    double frame_rate{1.0};  // f/Sec
     double front_cam_freq{FRONT_CAM_FREQUENCY}; // Hz
     double imgs_sec{1.0/FRONT_CAM_FREQUENCY};
     double local_control_speed{0.0},

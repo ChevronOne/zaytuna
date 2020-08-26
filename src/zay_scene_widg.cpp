@@ -60,7 +60,7 @@ _scene_widg::_scene_widg(QGLFormat _format, QWidget* parent):
     QGL_WIDGET_VERSION(_format, parent),
     fStatus{ FileStatus::UNDEFINED },
     elap_accumulated{0.0}, cam_freq_accumulated{0.0}, elapsed{0.0},
-    frame_rate{0.0}, front_cam_freq{FRONT_CAM_FREQUENCY}, 
+    frame_rate{1.0}, front_cam_freq{FRONT_CAM_FREQUENCY}, 
     imgs_sec{1.0/FRONT_CAM_FREQUENCY}, local_control_speed{6.0},
     local_control_steering{0.218}, frames_counter{0},
     limited_frames{100}, activeCam{&mainCam},
@@ -192,7 +192,7 @@ void _scene_widg::paintGL()
     }
 
     for(uint32_t i{0}; i<model_vehicles->vehicles.size(); ++i)
-        model_vehicles->vehicles[i].update_attribs();
+        model_vehicles->vehicles[i].update_attribs(frame_rate);
     if(activeCam==&mainCam)
         mainCam.updateWorld_to_viewMat();
     render_main_scene(activeCam);

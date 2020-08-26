@@ -107,8 +107,8 @@ public:
     glm::dmat4 rotationMat; // rotation matrix of model vehicle;
 
     double AMOUNT_OF_ROTATION; // amount of rotation of the model vehicle 'per frame'
-    double MOVEMENT_SPEED, REMOTE_SPEED;  //  need to be adjusted for m/s
-    double STEERING_WHEEL, REMOTE_STEERING;  // in degrees, 'amount of vertical rotation of the wheels'
+    double MOVEMENT_SPEED, DESIRED_SPEED,  REMOTE_SPEED;
+    double STEERING_WHEEL, DESIRED_STEERING, REMOTE_STEERING;
     double amount_of_hRotation{0.0}; // amount of horizontal rotation of the wheels
     double amount_of_rotation_Lidar{0.0}; // amount of rotation of lidar
     const double lidar_spin_speed{750.0}; // constant scalar 'affects only rendering'
@@ -124,7 +124,7 @@ public:
 
     glm::dvec3 center_of_rotation; // center of rotation of the model vehicle
 
-    void update_attribs();
+    void update_attribs(const double);
     void update_rotation_att();
     void update_cent(void);
     void update_positional_attributes(const transform_attribs<GLdouble>);
@@ -158,6 +158,9 @@ public:
     const double tires_radius{0.0311};
     const double PI2{2.0*M_PI};
     const double tires_circumference{PI2*tires_radius};
+
+    const double steering_delay{0.2}; // sec
+    const double speed_delay{0.3}; // sec
 
 
 
