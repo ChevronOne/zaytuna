@@ -75,7 +75,7 @@ primary_win::primary_win(QWidget *parent) :
     obstacle_counter[Obstacle_Type::STONE_WALL] = {"stone_wall_%1",1};
 
     scene_objects = new QTreeWidget(ui->edit_frame);
-    scene_objects->setGeometry(QRect(305, 10, 305, 255));
+    scene_objects->setGeometry(QRect(305, 10, 290, 255));
     scene_objects->setColumnCount(1);
     scene_objects->setObjectName(QStringLiteral("objects"));
     scene_objects->setEnabled(true);

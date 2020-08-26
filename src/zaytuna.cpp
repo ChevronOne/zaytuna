@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
         }
     }
     zaytuna::primary_win w;
-    QIcon icon((ZAY_PACKAGE_PATH+"/tex/zaytuna.png").c_str());
+    QIcon icon((ZAY_PACKAGE_PATH+"/tex/zaytuna").c_str());
     if(icon.isNull()){
         ROS_ERROR_STREAM("Failed to load zaytuna icon!");
     }else{

@@ -229,12 +229,12 @@ void _load_tex(USED_GL_VERSION * const _widg,
     switch(tex_type){
     case TEX_TYPE::TEX_CUBE_MAP:{
         std::vector<std::string> faces={
-            _dir+"/right.jpg",
-            _dir+"/left.jpg",
-            _dir+"/top.jpg",
-            _dir+"/bottom.jpg",
-            _dir+"/front.jpg",
-            _dir+"/back.jpg" };
+            _dir+"/right",
+            _dir+"/left",
+            _dir+"/top",
+            _dir+"/bottom",
+            _dir+"/front",
+            _dir+"/back" };
 
         _widg->glBindTexture(GL_TEXTURE_CUBE_MAP, _texID);
         _widg->glTexParameteri(GL_TEXTURE_CUBE_MAP,

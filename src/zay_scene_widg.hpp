@@ -95,6 +95,7 @@ class _scene_widg : public QGL_WIDGET_VERSION, protected USED_GL_VERSION // QOpe
     void detachProgram(void);
     void send_data(void);
     void updateProjection(void);
+    void update_time_interval(int);
     inline void update_contrl_attribs(void);
     void cleanUp();
     void draw_local(void);

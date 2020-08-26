@@ -122,7 +122,7 @@ void _scene_widg::initializeGL()
 
     glViewport(0, 0, this->width(), this->height());
     for(std::size_t i = 0; i<PROGRAMS_NUM; ++i)
-        initShader(ros::package::getPath("zaytuna")+"/Shaders/source"+std::to_string(i), programs[i], i);
+        initShader(ros::package::getPath("zaytuna")+"/programs/source"+std::to_string(i), programs[i], i);
 
     send_data();
     std::cout << "  Zaytuna Simulator " <<ZAYTUNA_VERSION << "." << ZAYTUNA_MINOR_VERSION << ", "
@@ -137,6 +137,9 @@ void _scene_widg::initializeGL()
     start_t = std::chrono::high_resolution_clock::now();
 }
 
+void _scene_widg::update_time_interval(int val){
+    timer.setInterval(val);
+}
 
 void _scene_widg::render_local_scene(camera const*const current_cam)
 {
@@ -616,7 +619,7 @@ void _scene_widg::send_data()
                          programs[1],
                          "plane",
                          ZAY_PACKAGE_PATH+"/primitives/plane_300x300_1sub-div",
-                         "/tex/plane_grass_1024x1024.jpg",
+                         "/tex/plane_grass_1024x1024",
                          GL_QUADS
 //                         ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
 //                         glm::translate(glm::dvec3(0.0, 0.0, 0.0))
@@ -625,7 +628,7 @@ void _scene_widg::send_data()
                          programs[1],
                          "fence",
                          ZAY_PACKAGE_PATH+"/primitives/fence_300x300_2H_1W",
-                         "/tex/fence_brick_1024x1024.jpg",
+                         "/tex/fence_brick_1024x1024",
                          GL_QUADS
 //                         ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
 //                         glm::translate(glm::dvec3(0.0, 0.0, 0.0))
@@ -643,7 +646,7 @@ void _scene_widg::send_data()
                          programs[1],
                          "mini_lap",
                          ZAY_PACKAGE_PATH+"/primitives/mini-lap",
-                         "/tex/mini_lap_exemplar.jpg",
+                         "/tex/mini_lap_exemplar",
                          GL_QUADS
 //                         ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
 //                         glm::translate(glm::dvec3(0.0, 0.0, 0.0))
@@ -652,7 +655,7 @@ void _scene_widg::send_data()
                          programs[1],
                          "lap1",
                          ZAY_PACKAGE_PATH+"/primitives/lap1",
-                         "/tex/lap1_exemplar.jpg",
+                         "/tex/lap1_exemplar",
                          GL_QUADS
 //                         ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
 //                         glm::translate(glm::dvec3(0.0, 0.0, 0.0))
@@ -661,7 +664,7 @@ void _scene_widg::send_data()
                          programs[1],
                          "lap2",
                          ZAY_PACKAGE_PATH+"/primitives/lap2",
-                         "/tex/lap2_exemplar.jpg",
+                         "/tex/lap2_exemplar",
                          GL_QUADS
 //                         ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
 //                         glm::translate(glm::dvec3(0.0, 0.0, 0.0))
@@ -670,7 +673,7 @@ void _scene_widg::send_data()
                          programs[1],
                          "lap3",
                          ZAY_PACKAGE_PATH+"/primitives/lap3",
-                         "/tex/lap3_exemplar.jpg",
+                         "/tex/lap3_exemplar",
                          GL_QUADS
 //                        ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
 //                        glm::translate(glm::dvec3(0.0, 0.0, 0.0))
@@ -682,16 +685,16 @@ void _scene_widg::send_data()
                 programs[3],
                 Obstacle_Type::CARTON_BOX,
                 ZAY_PACKAGE_PATH+"/primitives/carton_box",
-                "/tex/carton_box.jpg",
+                "/tex/carton_box",
                 GL_QUADS);
     obstacle_objects->add_category
             (Obstacle_Type::BRICK_WALL,
              ZAY_PACKAGE_PATH+"/primitives/brick_wall",
-             "/tex/brick_wall.jpg");
+             "/tex/brick_wall");
     obstacle_objects->add_category
             (Obstacle_Type::STONE_WALL,
              ZAY_PACKAGE_PATH+"/primitives/stone_wall",
-             "/tex/stone_wall_1.jpg");
+             "/tex/stone_wall_1");
     //------------------------------
 
     fboFormat.setSamples(NUM_SAMPLES_PER_PIXEL);
@@ -700,7 +703,7 @@ void _scene_widg::send_data()
     model_vehicles = new model_vehicle(this,
            programs[3],
            ZAY_PACKAGE_PATH+"/primitives/zaytuna_model",
-           "/tex/zaytuna-fragments.png",
+           "/tex/zaytuna-fragments",
            GL_TRIANGLES );
 
 
