@@ -111,6 +111,9 @@ primary_win::primary_win(QWidget *parent) :
 
     ui->lcdFrameRate->display(_scene_widget->frame_rate);
 
+    ui->limited_frames_spinBox->setValue
+            (static_cast<int>(_scene_widget->limited_frames));
+
     connect(&timer, SIGNAL(timeout()), this, SLOT(update_displays()));
     timer.start(1000);
 
@@ -138,6 +141,8 @@ primary_win::primary_win(QWidget *parent) :
                      15.0,
                      {0.0, 1.0, 0.0},
                      {4.0, 0.0, -3.0}),1);
+
+    setToolTipLabels();
 }
 
 void primary_win::new_vehicle(void)
@@ -475,6 +480,10 @@ void primary_win::on_max_steering_SpinBox_valueChanged(double val){
 void primary_win::on_max_speed_SpinBox_valueChanged(double val){
     _scene_widget->local_control_speed = SPEED_SCALAR*val;
 }
+void zaytuna::primary_win::on_limited_frames_spinBox_valueChanged
+        (int val){
+    _scene_widget->update_time_interval(static_cast<uint32_t>(val));
+}
 
 primary_win::~primary_win()
 {
@@ -484,9 +493,52 @@ primary_win::~primary_win()
     delete ui;
 }
 
+void primary_win::setToolTipLabels(void){
+    ui->limited_frames_spinBox->setToolTip
+            ("set a limitation for the frame rate per second");
+    ui->radioButton_Global->setToolTip
+            ("switch to main camera");
+    ui->radioButton_Local->setToolTip
+            ("switch to a local cam of one available vehicle");
+    ui->front_cam_freq_SpinBox->setToolTip
+            ("set a frequency of publishing images from vehicle's front cam");
+    ui->grid_check->setToolTip
+            ("show the grid");
+    ui->coord_check->setToolTip
+            ("show coordinate axes");
+    ui->cam_movement_speed->setToolTip
+            ("movement speed when navigating in the scene");
+    ui->cam_rotation_speed->setToolTip
+            ("rotation speed when hovering with mouse");
+    ui->SpinBox_FieldOfView->setToolTip
+            ("angle of view 'AOV'");
+    ui->auto_perspective_radio->setToolTip
+            ("set values of far- and near plane automatically");
+    ui->custom_perspective_radio->setToolTip
+            ("set custom values of near- and far-plane");
+    ui->SpinBox_Near->setToolTip
+            ("set a value for near-plane");
+    ui->SpinBox_Far->setToolTip
+            ("set a value for far-plane");
+    ui->slider_control_radio->setToolTip
+            ("control a connected vehicle with sliders");
+    ui->key_control_radio->setToolTip
+            ("control a connected vehicle with T,G,F,H keys");
+    ui->steeringV->setToolTip
+            ("set value of steering when controlling by slider");
+    ui->speedV->setToolTip
+            ("set value of speed when controlling by slider");
+    ui->max_steering_SpinBox->setToolTip
+            ("set a max value for steering when controlling by keys");
+    ui->max_speed_SpinBox->setToolTip
+            ("set a max value for speed when controlling by keys");
+}
+
 
 
 } // namespace  zaytuna
+
+
 
 
 

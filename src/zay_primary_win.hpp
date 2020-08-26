@@ -73,6 +73,7 @@ public:
 protected:
     virtual void closeEvent(QCloseEvent*) override;
 
+
 private slots:
     void on_grid_check_clicked(bool);
     void on_coord_check_clicked(bool);
@@ -106,8 +107,10 @@ private slots:
     void on_slider_control_radio_clicked();
     void on_max_steering_SpinBox_valueChanged(double);
     void on_max_speed_SpinBox_valueChanged(double);
+    void on_limited_frames_spinBox_valueChanged(int);
 
 private:
+    void setToolTipLabels(void);
     Ui::primary_win *ui{nullptr};
     QTimer timer;
     zaytuna::_scene_widg* _scene_widget{nullptr};

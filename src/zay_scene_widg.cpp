@@ -62,7 +62,8 @@ _scene_widg::_scene_widg(QGLFormat _format, QWidget* parent):
     elap_accumulated{0.0}, cam_freq_accumulated{0.0}, elapsed{0.0},
     frame_rate{0.0}, front_cam_freq{FRONT_CAM_FREQUENCY}, 
     imgs_sec{1.0/FRONT_CAM_FREQUENCY}, local_control_speed{6.0},
-    local_control_steering{0.218}, frames_counter{0}, activeCam{&mainCam},
+    local_control_steering{0.218}, frames_counter{0},
+    limited_frames{100}, activeCam{&mainCam},
     k_forward{0}, k_backward{0}, k_left{0}, k_right{0}, k_up{0}, k_down{0},
     l_forward{0}, l_backward{0}, l_left{0}, l_right{0}
 {
@@ -137,8 +138,9 @@ void _scene_widg::initializeGL()
     start_t = std::chrono::high_resolution_clock::now();
 }
 
-void _scene_widg::update_time_interval(int val){
-    timer.setInterval(val);
+void _scene_widg::update_time_interval(uint32_t val){
+    limited_frames = val;
+    timer.setInterval(1000/val);
 }
 
 void _scene_widg::render_local_scene(camera const*const current_cam)

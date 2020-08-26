@@ -95,7 +95,7 @@ class _scene_widg : public QGL_WIDGET_VERSION, protected USED_GL_VERSION // QOpe
     void detachProgram(void);
     void send_data(void);
     void updateProjection(void);
-    void update_time_interval(int);
+    void update_time_interval(uint32_t);
     inline void update_contrl_attribs(void);
     void cleanUp();
     void draw_local(void);
@@ -116,6 +116,7 @@ class _scene_widg : public QGL_WIDGET_VERSION, protected USED_GL_VERSION // QOpe
     double local_control_speed{0.0},
            local_control_steering{STEERING_MARGIN_OF_ERROR};
     uint32_t frames_counter{0};
+    uint32_t limited_frames{100};
     std::chrono::time_point<std::chrono::high_resolution_clock,
                     std::chrono::nanoseconds> start_t;
     camera mainCam ;
