@@ -42,8 +42,15 @@
 int main(int argc, char *argv[])
 {
     ros::init(argc, argv, "zaytuna");
-    QApplication a(argc, argv);
+        
+    while(!ros::master::check()){
+        std::this_thread::sleep_for(1s);
+        ROS_ERROR_STREAM("Zaytuna: connection to master at ["
+                         << ros::master::getHost()<<":"<<ros::master::getPort() 
+                         << "] yet to be established..");
+    }
 
+    QApplication a(argc, argv);
     if (!QGLFormat::hasOpenGL() || !QGLFramebufferObject::hasOpenGLFramebufferObjects()) {
         QMessageBox::warning(nullptr, "OpenGL FrameBuffer Object",
                                  "This system does not support OpenGL/FrameBuffer Object!");
@@ -79,6 +86,9 @@ int main(int argc, char *argv[])
     int stat = a.exec();
     QFontDatabase::removeApplicationFont(fontId);
     return stat;
+
+    
+    
 }
 
 
