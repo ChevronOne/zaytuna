@@ -84,7 +84,7 @@ zaytuna::vehicle_attributes::vehicle_attributes
             ("zaytuna/"+attribs.name+"/sensors/ticks",10);
 
     cam_pub = node_handle.advertise<sensor_msgs::Image>
-            ("zaytuna/"+attribs.name+"/sensors/front_cam",0);
+            ("zaytuna/"+attribs.name+"/sensors/front_cam/image_raw",0);
 
     speed_sub = node_handle.subscribe
             ("zaytuna/"+attribs.name+"/controller/speed", 1,

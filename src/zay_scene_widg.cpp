@@ -62,8 +62,8 @@ _scene_widg::_scene_widg(QGLFormat _format, QWidget* parent):
     elap_accumulated{0.0}, cam_freq_accumulated{0.0}, elapsed{0.0},
     frame_rate{1.0}, front_cam_freq{FRONT_CAM_FREQUENCY}, 
     imgs_sec{1.0/FRONT_CAM_FREQUENCY}, local_control_speed{6.0},
-    local_control_steering{0.218}, frames_counter{0},
-    limited_frames{100}, activeCam{&mainCam},
+    local_control_steering{0.39269908}, frames_counter{0},
+    limited_frames{61}, activeCam{&mainCam},
     k_forward{0}, k_backward{0}, k_left{0}, k_right{0}, k_up{0}, k_down{0},
     l_forward{0}, l_backward{0}, l_left{0}, l_right{0}
 {
@@ -620,7 +620,7 @@ void _scene_widg::send_data()
         new external_obj(this,
                          programs[1],
                          "plane",
-                         ZAY_PACKAGE_PATH+"/primitives/plane_300x300_1sub-div",
+                         ZAY_PACKAGE_PATH+"/primitives/zay_plane_300x300_1sub-div",
                          "/tex/plane_grass_1024x1024",
                          GL_QUADS
 //                         ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
@@ -629,7 +629,7 @@ void _scene_widg::send_data()
         ,new external_obj(this,
                          programs[1],
                          "fence",
-                         ZAY_PACKAGE_PATH+"/primitives/fence_300x300_2H_1W",
+                         ZAY_PACKAGE_PATH+"/primitives/zay_fence_300x300_2H_1W",
                          "/tex/fence_brick_1024x1024",
                          GL_QUADS
 //                         ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
@@ -647,7 +647,7 @@ void _scene_widg::send_data()
         new external_obj(this,
                          programs[1],
                          "mini_lap",
-                         ZAY_PACKAGE_PATH+"/primitives/mini-lap",
+                         ZAY_PACKAGE_PATH+"/primitives/zay_mini_lap",
                          "/tex/mini_lap_exemplar",
                          GL_QUADS
 //                         ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
@@ -656,7 +656,7 @@ void _scene_widg::send_data()
         ,new external_obj(this,
                          programs[1],
                          "lap1",
-                         ZAY_PACKAGE_PATH+"/primitives/lap1",
+                         ZAY_PACKAGE_PATH+"/primitives/zay_lap1",
                          "/tex/lap1_exemplar",
                          GL_QUADS
 //                         ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
@@ -665,7 +665,7 @@ void _scene_widg::send_data()
         ,new external_obj(this,
                          programs[1],
                          "lap2",
-                         ZAY_PACKAGE_PATH+"/primitives/lap2",
+                         ZAY_PACKAGE_PATH+"/primitives/zay_lap2",
                          "/tex/lap2_exemplar",
                          GL_QUADS
 //                         ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
@@ -674,7 +674,7 @@ void _scene_widg::send_data()
         ,new external_obj(this,
                          programs[1],
                          "lap3",
-                         ZAY_PACKAGE_PATH+"/primitives/lap3",
+                         ZAY_PACKAGE_PATH+"/primitives/zay_lap3",
                          "/tex/lap3_exemplar",
                          GL_QUADS
 //                        ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
@@ -686,16 +686,16 @@ void _scene_widg::send_data()
             new obstacle_pack<GLdouble>(this,
                 programs[3],
                 Obstacle_Type::CARTON_BOX,
-                ZAY_PACKAGE_PATH+"/primitives/carton_box",
+                ZAY_PACKAGE_PATH+"/primitives/zay_carton_box",
                 "/tex/carton_box",
                 GL_QUADS);
     obstacle_objects->add_category
             (Obstacle_Type::BRICK_WALL,
-             ZAY_PACKAGE_PATH+"/primitives/brick_wall",
+             ZAY_PACKAGE_PATH+"/primitives/zay_brick_wall",
              "/tex/brick_wall");
     obstacle_objects->add_category
             (Obstacle_Type::STONE_WALL,
-             ZAY_PACKAGE_PATH+"/primitives/stone_wall",
+             ZAY_PACKAGE_PATH+"/primitives/zay_stone_wall",
              "/tex/stone_wall_1");
     //------------------------------
 
