@@ -169,6 +169,7 @@ void primary_win::add_vehicle
     vehicle_type->addChild(veh);
     menus_popups[veh_name]=&primary_win::vehicle_menu;
     vehicles[veh_name] = veh;
+    scene_objects->resizeColumnToContents(0);
 }
 void primary_win::edit_vehicle(const QString& _name){
     auto veh{_scene_widget->model_vehicles->find
@@ -177,8 +178,10 @@ void primary_win::edit_vehicle(const QString& _name){
     inputs_d.setWindowTitle("edit vehicle");
     inputs_d.setModal(1);
 
-    if (inputs_d.exec() == QDialog::Accepted)
+    if (inputs_d.exec() == QDialog::Accepted){
         veh->update_positional_attributes(inputs_d.attribs);
+        scene_objects->resizeColumnToContents(0);
+    }
 }
 void primary_win::delete_vehicle(const QString& _name){
     if(QMessageBox::question(this,
@@ -199,6 +202,7 @@ void primary_win::delete_vehicle(const QString& _name){
         if(vehicles[_name] != nullptr)
             delete vehicles[_name];
         vehicles.erase(_name);
+        scene_objects->resizeColumnToContents(0);
     }
 }
 void primary_win::new_obstacle(void)
@@ -241,6 +245,7 @@ void primary_win::add_obstacle
         _scene_widget->default_objects.obstacles.emplace_back(attribs);
     else{
         _scene_widget->add_obstacle(attribs);
+        scene_objects->resizeColumnToContents(0);
         obs->setSelected(1);
     }
 }
@@ -253,6 +258,7 @@ void primary_win::delete_obstacle(const QString& _name){
     obstacles.erase(_name);
     menus_popups.erase(_name);
     obstacles.erase(_name);
+    scene_objects->resizeColumnToContents(0);
 
 }
 void primary_win::delete_obstacle_confirm(const QString& _name){
