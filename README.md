@@ -1,5 +1,5 @@
 <p align="center">
-    <img width="400" align="center" src="tex/1280px-Basmala" alt="Basmala" />
+    <img width="400" align="center" src="tex/Calligraphy" alt="Calligraphy" />
 </p>
 
 <br/><br/>
