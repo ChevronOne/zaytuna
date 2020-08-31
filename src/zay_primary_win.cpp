@@ -245,9 +245,9 @@ void primary_win::add_obstacle
         _scene_widget->default_objects.obstacles.emplace_back(attribs);
     else{
         _scene_widget->add_obstacle(attribs);
-        scene_objects->resizeColumnToContents(0);
         obs->setSelected(1);
     }
+    scene_objects->resizeColumnToContents(0);
 }
 
 void primary_win::delete_obstacle(const QString& _name){
