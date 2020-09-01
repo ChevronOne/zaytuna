@@ -76,25 +76,25 @@ void camera::updateProjection(const double& w, const double& h)
 
 void camera::updateWorld_to_viewMat()
 {
-   if(camera_position.y < 0.1)
-       camera_position.y = 0.1;
-   if(camera_position.y > 100.0)
-       camera_position.y = 100.0;
-
-//    if(camera_position.y < 0.011)
-//        camera_position.y = 0.011;
+//    if(camera_position.y < 0.1)
+//        camera_position.y = 0.1;
 //    if(camera_position.y > 100.0)
 //        camera_position.y = 100.0;
 
-   if(camera_position.x < -147.8)
-       camera_position.x = -147.8;
-   if(camera_position.x > 147.8)
-       camera_position.x = 147.8;
+   if(camera_position.y < 0.011)
+       camera_position.y = 0.011;
+   if(camera_position.y > 100.0)
+       camera_position.y = 100.0;
 
-   if(camera_position.z < -147.8)
-       camera_position.z = -147.8;
-   if(camera_position.z > 147.8)
-       camera_position.z = 147.8;
+   if(camera_position.x < -148.9)
+       camera_position.x = -148.9;
+   if(camera_position.x > 148.9)
+       camera_position.x = 148.9;
+
+   if(camera_position.z < -148.9)
+       camera_position.z = -148.9;
+   if(camera_position.z > 148.9)
+       camera_position.z = 148.9;
 
     world_to_viewMat = glm::lookAt(
                 camera_position,

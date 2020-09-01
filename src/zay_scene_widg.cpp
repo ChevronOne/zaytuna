@@ -76,6 +76,7 @@ _scene_widg::_scene_widg(QGLFormat _format, QWidget* parent):
     makeCurrent();
     setMouseTracking(true);
     this->setFocusPolicy(Qt::StrongFocus);
+    timer.setTimerType(Qt::PreciseTimer);
 }
 
 void _scene_widg::update_contrl_attribs(void){

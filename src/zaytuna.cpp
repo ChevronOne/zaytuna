@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
     }else{
         w.setWindowIcon(icon);
     }
-    w.setWindowTitle("Zaytuna-Simulator");
+    w.setWindowTitle("Zaytuna");
     w.show();
     int stat = a.exec();
     QFontDatabase::removeApplicationFont(fontId);
