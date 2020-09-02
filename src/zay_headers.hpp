@@ -67,6 +67,7 @@
 #include <QIcon>
 #include <QDebug>
 #include <QFontDatabase>
+#include <QPixmap>
 
 #include "ros/ros.h"
 #include "geometry_msgs/Vector3.h"

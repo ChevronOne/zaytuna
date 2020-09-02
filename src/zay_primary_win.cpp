@@ -114,6 +114,12 @@ primary_win::primary_win(QWidget *parent) :
     ui->limited_frames_spinBox->setValue
             (static_cast<int>(_scene_widget->limited_frames));
 
+    ui->coord_ref_lab->setPixmap(QPixmap
+        ((ZAY_PACKAGE_PATH+"/tex/coord_ref").c_str()).scaled
+            (ui->coord_ref_lab->width(), 
+            ui->coord_ref_lab->height(), 
+            Qt::KeepAspectRatio));
+
     connect(&timer, SIGNAL(timeout()), this, SLOT(update_displays()));
     timer.start(1000);
 
