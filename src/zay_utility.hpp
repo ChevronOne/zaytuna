@@ -58,7 +58,7 @@ namespace x3 = boost::spirit::x3;
 
 namespace zaytuna {
 enum class TEX_TYPE { TEX_CUBE_MAP, TEX_2D, TEX_2D_MIPMAP};
-
+enum class ZAY_GL_OBJECT_TYPE { PROGRAM, SHADER };
 struct obj_parser{
     static shape_data<zaytuna::vertexL1_16> 
         extractExternal(const std::string&);
@@ -179,41 +179,55 @@ protected:
 
 public:
   basic_program(USED_GL_VERSION* const context,
-                GLuint ID): gl_context{context}, program_ID{ID}{}
-  virtual ~basic_program() = default;
+                const std::string& _source): gl_context{context}
+                {init(_source);}
+  virtual ~basic_program(){
+      this->detachProgram();
+      gl_context->glDeleteProgram(program_ID);
+  }
   virtual void makeUnderUse(void){
       gl_context->glUseProgram(program_ID);
   }
   virtual void detachProgram(void){
       gl_context->glUseProgram(0);
   }
+  virtual GLuint program_handler(void) const{
+      return program_ID;
+  }
+  void init(const std::string&);
+  static void get_source(const std::string&, std::string&);
+  GLuint compile_shader(const std::string&, GLenum);
+  void checkErrors(GLuint, GLuint,
+                   ZAY_GL_OBJECT_TYPE, 
+                   const std::string&);
+  virtual void get_attrib_locations(){
+      gl_context->glBindAttribLocation(program_ID, 0, "vertPos");
+  }
 };
 
-class static_program : public basic_program
-{
-protected:
-    GLint transformMatLocation;
+class static_program : public basic_program{
 public:
     static_program(USED_GL_VERSION* const context,
-                   GLuint ID, GLint matLocation):
-        basic_program(context, ID),
-        transformMatLocation{matLocation}{}
-    virtual ~static_program() override = default;
-
+                   const std::string& _source):
+        basic_program(context, _source){}
+    virtual ~static_program() override {};
+    virtual void get_attrib_locations() override{
+        gl_context->glBindAttribLocation(program_ID, 0, "vertPos");
+        gl_context->glBindAttribLocation(program_ID, 1, "vertColor");
+    }
 };
 
-class animated_program : public static_program
-{
-protected:
-    GLint inversed_transpose_transformMatLocation;
+class animated_program : public basic_program{
 public:
     animated_program(USED_GL_VERSION* const context,
-                     GLuint ID, GLint matLocation,
-                     GLint itt_matLocation):
-        static_program(context, ID, matLocation),
-        inversed_transpose_transformMatLocation{itt_matLocation}{}
-    virtual ~animated_program() override = default;
-
+                     const std::string& _source):
+        basic_program(context, _source){}
+    virtual ~animated_program() override {};
+    virtual void get_attrib_locations() override{
+        gl_context->glBindAttribLocation(program_ID, 0, "vertPos");
+        gl_context->glBindAttribLocation(program_ID, 1, "vertNorm");
+        gl_context->glBindAttribLocation(program_ID, 2, "texCoor");
+    }
 };
 
 template<class T>
@@ -228,7 +242,6 @@ std::ostream& operator<<(std::ostream&out, const glm::tvec3<T>&vec){
 }
 
 void _read_tex(QImage&, const std::string&, const char*, bool, bool);
-
 const char* DebugGLerr(unsigned);
 
 struct OBJ {

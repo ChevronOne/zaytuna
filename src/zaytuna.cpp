@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
     ros::init(argc, argv, "zaytuna");
         
     while(!ros::master::check()){
-        std::this_thread::sleep_for(1s);
+        std::this_thread::sleep_for(2s);
         ROS_ERROR_STREAM("Zaytuna: connection to master at ["
                          << ros::master::getHost()<<":"<<ros::master::getPort() 
                          << "] yet to be established..");
@@ -65,11 +65,11 @@ int main(int argc, char *argv[])
         QFont font("OpenSans-Regular");
         a.setFont(font);
     }else{
-        ROS_WARN_STREAM("WARNING: fonts did not load!");
-        if(QMessageBox::warning(nullptr, "warning",
-                                "Failed to load fonts! Do you want to proceed?",
+        ROS_WARN_STREAM("WARNING: default fonts did not load!");
+        if(!(QMessageBox::warning(nullptr, "warning",
+                                "Failed to load default fonts! Do you want to proceed?",
                                 QMessageBox::StandardButtons(QMessageBox::Yes | QMessageBox::No),
-                                QMessageBox::No)==QMessageBox::No)
+                                QMessageBox::No)==QMessageBox::Yes))
         {
             return -1;
         }

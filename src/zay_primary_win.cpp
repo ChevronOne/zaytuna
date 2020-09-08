@@ -57,7 +57,7 @@ primary_win::primary_win(QWidget *parent) :
     _scene_widget = new _scene_widg(_format, this);
 
     ////////////////////////////////////
-    _scene_widget->setObjectName(QStringLiteral("Place_Tracker"));
+    _scene_widget->setObjectName(QStringLiteral("_scene_widget"));
     _scene_widget->setEnabled(true);
     _scene_widget->setGeometry(QRect(630, 25, WIDTH, HEIGHT));
     QSizePolicy sizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
@@ -416,8 +416,6 @@ void primary_win::on_SpinBox_Near_valueChanged(double arg){
 }
 
 void primary_win::on_SpinBox_Far_valueChanged(double arg){
-    _scene_widget->activeCam->FAR_PLANE = arg;
-    _scene_widget->updateProjection();
 }
 
 void primary_win::on_SpinBox_FieldOfView_valueChanged(double arg){

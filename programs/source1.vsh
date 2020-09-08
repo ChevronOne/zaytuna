@@ -13,6 +13,8 @@ out vec4 light;
 void main()
 {
     gl_Position = transformMat * vec4(vertPos, 1.0);
-    light = vec4(vec3(0.85f, 0.85f, 0.85f)+(max(dot(normalize(vec3(200.0f, 100.f, -200.f)-vertPos), vertNorm), 0.f)*vec3(0.4f, .4f, .4f)), 1.f);
+    light = vec4(vec3(0.85f, 0.85f, 0.85f) // ambient
+            +(max(dot(normalize(vec3(5000000.0f, 4000000.0f, -5000000.0f) // sun's position
+            -vertPos), vertNorm), 0.f)*vec3(0.4f, .4f, .4f)), 1.f);
 	TexCoord = texCoor;
 }

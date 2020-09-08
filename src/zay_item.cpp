@@ -143,7 +143,7 @@ void external_obj::transmit_data(GLintptr& _offset,const GLuint& theBufferID,
 
 void external_obj::render_obj(zaytuna::camera const*const activeCam)
 {
-    _widg->glUseProgram(_programID);
+    // _widg->glUseProgram(_programID);
     transformationMat = activeCam->transformationMat * initial_transformationMat;
     _widg->glBindVertexArray(_VAO_ID);
     _widg->glBindTexture(GL_TEXTURE_2D, _texID);
@@ -232,7 +232,7 @@ void coord_sys::transmit_data(GLintptr& _offset,const GLuint& theBufferID,
 
 void coord_sys::render_obj(zaytuna::camera const*const activeCam)
 {
-    _widg->glUseProgram(_programID);
+    // _widg->glUseProgram(_programID);
     transformationMat = activeCam->transformationMat;
     _widg->glBindVertexArray(_VAO_ID);
 
@@ -323,7 +323,7 @@ void grid_plane::transmit_data(GLintptr& _offset,const GLuint& theBufferID,
 
 void grid_plane::render_obj(zaytuna::camera const*const activeCam)
 {
-    _widg->glUseProgram(_programID);
+    // _widg->glUseProgram(_programID);
     transformationMat = activeCam->transformationMat;
     _widg->glBindVertexArray(_VAO_ID);
 
@@ -411,7 +411,7 @@ void skybox_obj::transmit_data(GLintptr& _offset,const GLuint& theBufferID,
 void skybox_obj::render_obj(zaytuna::camera const*const activeCam)
 {
     _widg->glDepthFunc(GL_LEQUAL);
-    _widg->glUseProgram(_programID);
+    // _widg->glUseProgram(_programID);
     _widg->glBindVertexArray(_VAO_ID);
     _widg->glBindTexture(GL_TEXTURE_CUBE_MAP, _texID);
     transformationMat = activeCam->transformationMat
@@ -659,7 +659,7 @@ void model_vehicle::render_obj(zaytuna::camera const*const activeCam)
     if(vehicles.size() == 0)
         return;
 
-    _widg->glUseProgram(_programID);
+    // _widg->glUseProgram(_programID);
     _widg->glBindTexture(GL_TEXTURE_2D, _texID);
 
 
@@ -751,6 +751,8 @@ void model_vehicle::render_obj(zaytuna::camera const*const activeCam)
                               reinterpret_cast<void*>(lidar_indOffset));
     }
 
+
+    // render_vectors_state(&vehicles[0], activeCam);
 }
 
 boost::ptr_vector<vehicle_attributes>::iterator
@@ -765,7 +767,7 @@ model_vehicle::find(const std::string& _name)
 
 
 //////------------useful--for--debugging---------------
-void model_vehicle::render_vectors_state(vehicle_attributes* vehicle, camera *activeCam)
+void model_vehicle::render_vectors_state(vehicle_attributes* vehicle, camera const*const activeCam)
 {
     _widg->glUseProgram(0);
     _widg->glLineWidth(5.0f);
@@ -783,9 +785,9 @@ void model_vehicle::render_vectors_state(vehicle_attributes* vehicle, camera *ac
     _widg->glVertex4f(head.x, head.y, head.z, head.w);
 
     _widg->glColor4f(0.3f, 0.8f, 0.3f, 1.f);
-    _widg->glVertex4f(origin.x, origin.y, origin.z, origin.w);
+    _widg->glVertex4f(head.x, head.y, head.z, head.w);
     head = activeCam->transformationMat
-            * glm::vec4(vehicle->frontCam.view_direction,1.f);
+            * glm::vec4(vehicle->frontCam.view_direction+vehicle->frontCam.camera_position,1.f);
     _widg->glVertex4f(head.x, head.y, head.z, head.w);
 
 
@@ -806,9 +808,9 @@ void model_vehicle::render_vectors_state(vehicle_attributes* vehicle, camera *ac
     // // vehic_direction
     // // ------------------------------------------------
     _widg->glColor4f(0.8f, 0.3f, 0.3f, 1.f);
-    _widg->glVertex4f(origin.x, origin.y, origin.z, origin.w);
+    _widg->glVertex4f(head.x, head.y, head.z, head.w);
     head = activeCam->transformationMat
-            * glm::vec4(vehicle->vehic_direction,1.f);
+            * glm::vec4(vehicle->vehic_direction+vehicle->front_ideal_tire,1.f);
     _widg->glVertex4f(head.x, head.y, head.z, head.w);
 
 

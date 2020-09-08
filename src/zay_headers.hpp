@@ -65,7 +65,6 @@
 //#include <QSurfaceFormat>
 #include <QGLFramebufferObject>
 #include <QIcon>
-#include <QDebug>
 #include <QFontDatabase>
 #include <QPixmap>
 

@@ -58,7 +58,6 @@ double _scene_widg::glX, _scene_widg::glY; //, _scene_widg::glZ;
 //_scene_widg::_scene_widg(QWidget* parent): QGL_WIDGET_VERSION(parent),
 _scene_widg::_scene_widg(QGLFormat _format, QWidget* parent):
     QGL_WIDGET_VERSION(_format, parent),
-    fStatus{ FileStatus::UNDEFINED },
     elap_accumulated{0.0}, cam_freq_accumulated{0.0}, elapsed{0.0},
     frame_rate{1.0}, front_cam_freq{FRONT_CAM_FREQUENCY}, 
     imgs_sec{1.0/FRONT_CAM_FREQUENCY}, local_control_speed{6.0},
@@ -94,23 +93,21 @@ void _scene_widg::update_contrl_attribs(void){
 }
 
 _scene_widg::~_scene_widg(){
-    for(std::size_t i = 0; i<PROGRAMS_NUM; ++i)
-        glDeleteProgram(programs[i]);
-    glUseProgram(0);
     cleanUp();
     if(model_vehicles != nullptr)
         delete model_vehicles;
     if(obstacle_objects != nullptr)
         delete obstacle_objects;
+    if(skybox != nullptr)
+        delete skybox;
 }
 
 void _scene_widg::cleanUp(){
     glDeleteBuffers(1, &theBufferID);
-    detachProgram();
 }
 
-void _scene_widg::initializeGL()
-{
+void _scene_widg::initializeGL(){
+
     initializeOpenGLFunctions();
     glClearColor(0.86f, 0.86f, 0.86f, 1.0f);
     glEnable(GL_DEPTH_TEST);
@@ -123,9 +120,16 @@ void _scene_widg::initializeGL()
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     glViewport(0, 0, this->width(), this->height());
-    for(std::size_t i = 0; i<PROGRAMS_NUM; ++i)
-        initShader(ros::package::getPath("zaytuna")+"/programs/source"+std::to_string(i), programs[i], i);
-
+    programs_ = {
+        new static_program(this, 
+                          ZAY_PACKAGE_PATH+"/programs/source0"),
+        new animated_program(this, 
+                          ZAY_PACKAGE_PATH+"/programs/source1"),
+        new basic_program(this, 
+                          ZAY_PACKAGE_PATH+"/programs/source2"),
+        new animated_program(this, 
+                          ZAY_PACKAGE_PATH+"/programs/source3")
+    };
     send_data();
     std::cout << "  Zaytuna Simulator " <<ZAYTUNA_VERSION << "." << ZAYTUNA_MINOR_VERSION << ", "
               << "running with following system specifications:\n" << std::flush;
@@ -144,34 +148,31 @@ void _scene_widg::update_time_interval(uint32_t val){
     timer.setInterval(1000/val);
 }
 
-void _scene_widg::render_local_scene(camera const*const current_cam)
-{
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+void _scene_widg::render_local_scene(camera const*const current_cam){
 
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    programs_[1]->makeUnderUse();
     uint32_t i{0};
 	for(; i<environmental_objects.size(); ++i)
         environmental_objects[i]->render_obj(current_cam);
-    for(i=0; i<lap_objects.size(); ++i)
-        lap_objects[i]->render_obj(current_cam);
+    programs_[2]->makeUnderUse();
+    skybox->render_obj(current_cam);
 
-    obstacle_objects->render_obj(current_cam);
-
-
-     //// disable 'grid' and 'coordinates' from vehicles cam
+////----- disable 'grid' and 'coordinate axes' from vehicles cam--------
 /*
+    programs_[0]->makeUnderUse();
     if(coord_checked)
         basic_objects[0]->render_obj(current_cam);
-
     if(grid_checked)
         basic_objects[1]->render_obj(current_cam);
 */
 
+    programs_[3]->makeUnderUse();
+    obstacle_objects->render_obj(current_cam);
     model_vehicles->render_obj(current_cam);
 }
 
-
-void _scene_widg::paintGL()
-{
+void _scene_widg::paintGL(){
     ros::spinOnce();
     update_contrl_attribs();
     if(activeCam == &mainCam){
@@ -198,7 +199,7 @@ void _scene_widg::paintGL()
         mainCam.updateWorld_to_viewMat();
     render_main_scene(activeCam);
 
-    // frame's rate
+    // frame rate
     elapsed = std::chrono::duration<double,
               std::ratio< 1, 1>>(std::chrono::high_resolution_clock::now()
                                  - start_t).count();
@@ -226,27 +227,26 @@ void _scene_widg::paintGL()
 
 }
 
-void _scene_widg::render_main_scene(camera const*const current_cam)
-{
+void _scene_widg::render_main_scene(camera const*const current_cam){
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    uint32_t i{0};
-	for(; i<environmental_objects.size(); ++i)
-        environmental_objects[i]->render_obj(current_cam);
-    for(i=0; i<lap_objects.size(); ++i)
-        lap_objects[i]->render_obj(current_cam);
-
-    obstacle_objects->render_obj(current_cam);
+    programs_[0]->makeUnderUse();
     if(coord_checked)
         basic_objects[0]->render_obj(current_cam);
     if(grid_checked)
         basic_objects[1]->render_obj(current_cam);
+    programs_[1]->makeUnderUse();
+    uint32_t i{0};
+	for(; i<environmental_objects.size(); ++i)
+        environmental_objects[i]->render_obj(current_cam);
+    programs_[2]->makeUnderUse();
+    skybox->render_obj(current_cam);
+    programs_[3]->makeUnderUse();
+    obstacle_objects->render_obj(current_cam);
     model_vehicles->render_obj(current_cam);
 }
 
-void _scene_widg::resizeGL(int W, int H)
-{
+void _scene_widg::resizeGL(int W, int H){
     glViewport(0, 0, W, H);
     mainCam.updateProjection(W, H);
     for(uint32_t i{0}; i<model_vehicles->vehicles.size(); ++i){
@@ -255,8 +255,7 @@ void _scene_widg::resizeGL(int W, int H)
     repaint();
 }
 
-void _scene_widg::updateProjection()
-{
+void _scene_widg::updateProjection(){
     mainCam.updateProjection(WIDTH, HEIGHT);
     for(uint32_t i{0}; i<model_vehicles->vehicles.size(); ++i){
         model_vehicles->vehicles[i].frontCam.updateProjection
@@ -310,12 +309,10 @@ void _scene_widg::update_cam(){
         mainCam.move_down();
 }
 
-void _scene_widg::keyPressEvent(QKeyEvent* ev)
-{
+void _scene_widg::keyPressEvent(QKeyEvent* ev){
 
     if(activeCam == &mainCam){
-        switch (ev->key())
-        {
+        switch (ev->key()){
             case Qt::Key::Key_W:
                 k_forward=1;
                 return;
@@ -336,8 +333,7 @@ void _scene_widg::keyPressEvent(QKeyEvent* ev)
                 return;
         }
     }
-    switch (ev->key())
-    {
+    switch (ev->key()){
         case Qt::Key::Key_T:
             l_forward=1;
             break;
@@ -352,8 +348,7 @@ void _scene_widg::keyPressEvent(QKeyEvent* ev)
     }
 }
 
-void _scene_widg::wheelEvent(QWheelEvent *ev)
-{
+void _scene_widg::wheelEvent(QWheelEvent *ev){
     if(ev->delta() > 0)
         mainCam.move_forward();
     else mainCam.move_backward();
@@ -361,8 +356,7 @@ void _scene_widg::wheelEvent(QWheelEvent *ev)
 
 void _scene_widg::keyReleaseEvent(QKeyEvent *ev)
 {
-    switch (ev->key())
-    {
+    switch (ev->key()){
         case Qt::Key::Key_W:
             k_forward=0;
             break;
@@ -415,190 +409,14 @@ void _scene_widg::keyReleaseEvent(QKeyEvent *ev)
 //    clicked = false;
 //}
 
-
 void _scene_widg::animate(){
     repaint();
 }
-
-std::string _scene_widg::getShader
-        (const std::string& file_dir)
-{
-    fStatus = FileStatus::FAILED;
-    std::ifstream _stream(file_dir.c_str(), std::ios::in);
-    if (!_stream)
-    {
-        std::cerr << "file could not be opened: "
-                  << file_dir << std::endl;
-        exit(EXIT_FAILURE);
-    }
-    else
-    {
-        std::string program{std::istreambuf_iterator<char>(_stream),
-                            std::istreambuf_iterator<char>()};
-        _stream.close();
-        fStatus = FileStatus::LOADED;
-        return program;
-    }
-
-}
-
-void _scene_widg::checkError
-        (GLuint Object,
-         GLuint ObjectParameter,
-         VarType ObjectType,
-         const std::string& _attachment)
-{
-    // GL error handling
-    int _status{0};
-    if (ObjectType == VarType::PROGRAM)
-        glGetProgramiv(Object, ObjectParameter, &_status);
-    else if (ObjectType == VarType::SHADER)
-        glGetShaderiv(Object, ObjectParameter, &_status);
-
-    if (_status != GL_TRUE)
-    {
-        int len;
-        char* errorMessage{ nullptr };
-        if (ObjectType == VarType::PROGRAM)
-        {
-            glGetProgramiv(Object, GL_INFO_LOG_LENGTH, &len);
-            errorMessage = new char[static_cast<unsigned>(len)];
-            glGetProgramInfoLog(Object, len, nullptr, errorMessage);
-        }
-        else if (ObjectType == VarType::SHADER)
-        {
-            glGetShaderiv(Object, GL_INFO_LOG_LENGTH, &len);
-            errorMessage = new char[static_cast<unsigned>(len)];
-            glGetShaderInfoLog(Object, len, nullptr, errorMessage);
-        }
-
-        std::cout << _attachment << ": "
-                  << errorMessage << std::endl;
-
-        delete[] errorMessage;
-    }
-}
-
-unsigned int
-_scene_widg::compileShader(const std::string& _shaders,
-                           GLenum _type)
-{
-
-    GLuint _SH = glCreateShader(_type);
-
-    if (_SH == 0){
-        std::cerr << "error occurs creating the shader object "
-                  << _type << std::endl;
-        exit(EXIT_FAILURE);
-    }
-    else
-    {
-        const GLchar* adapter =
-                reinterpret_cast<const GLchar*>
-                (_shaders.c_str());
-        const int leng = static_cast<int>
-                (_shaders.length());
-
-        glShaderSource(_SH, 1, &adapter, &leng);
-
-        glCompileShader(_SH);
-        checkError(_SH, GL_COMPILE_STATUS,
-                   VarType::SHADER,
-                   "Shader Compile Error: ");
-    }
-    return _SH;
-}
-
-
-
-void _scene_widg::initShader(const std::string& file_Dir,
-                             GLuint& program_object,
-                             const std::size_t& attrib_location)
-{
-    program_object = glCreateProgram();
-    // load vertex shader
-    std::string _program{ getShader(file_Dir + ".vsh") };
-    if (fStatus == FileStatus::LOADED)
-    {
-        // compile vertex shader
-        _Shaders[0] = compileShader(_program, GL_VERTEX_SHADER);
-        if (_Shaders[0] != 0)
-        {
-            // load fragment shader
-            _program = getShader(file_Dir + ".fsh");
-            if (fStatus == FileStatus::LOADED)
-            {
-                // compile fragment shader
-                _Shaders[1] = compileShader(_program,
-                                            GL_FRAGMENT_SHADER);
-                if (_Shaders[1] != 0)
-                {
-                    // attach the both vertex and
-                    // fragment shaders to one program
-                    for (size_t _ind = 0; _ind != SHADERS_NUM; ++_ind)
-                        glAttachShader(program_object, _Shaders[_ind]);
-
-                    switch (attrib_location) {
-                    case 0:{
-                        glBindAttribLocation(program_object, 0, "vertPos");
-                        glBindAttribLocation(program_object, 1, "vertColor");
-                        break;
-                    }
-                    case 1: case 3:{
-                        glBindAttribLocation(program_object, 0, "vertPos");
-                        glBindAttribLocation(program_object, 1, "vertNorm");
-                        glBindAttribLocation(program_object, 2, "texCoor");
-                        break;
-                    }
-                    case 2:{
-                        glBindAttribLocation(program_object, 0, "vertPos");
-                        break;
-                    }
-                    default:{
-                        std::cout << "program "
-                                  << file_Dir
-                                  << " not initialized!\n";
-                        exit(EXIT_FAILURE);
-                    }
-                    }
-
-                    glLinkProgram(program_object);
-
-                    // check for linker errors
-                    checkError(program_object,
-                               GL_LINK_STATUS,
-                               VarType::PROGRAM,
-                               "Shaders Linking Error: ");
-                    glValidateProgram(program_object);
-                    checkError(program_object,
-                               GL_VALIDATE_STATUS,
-                               VarType::PROGRAM,
-                               "Program Validation Error: ");
-
-                    for (size_t ind = 0; ind != SHADERS_NUM; ++ind)
-                        glDeleteShader(_Shaders[ind]);
-                }
-            }
-        }
-    }
-}
-
-void _scene_widg::makeUnderUse(GLuint& p_linker)
-{
-    glUseProgram(p_linker);
-}
-
-void _scene_widg::detachProgram()
-{
-    // calling this with '0' argument removes the program
-    glUseProgram(0);
-}
-
 void _scene_widg::send_data()
 {
     basic_objects = {
         new coord_sys(this,
-                      programs[0],
+                      programs_[0]->program_handler(),
                       "coord_sys",
                       20.f,
                       1.5f
@@ -606,7 +424,7 @@ void _scene_widg::send_data()
 //                      glm::translate(glm::dvec3(0.0, 0.0, 0.0))
         ),
         new grid_plane(this,
-                      programs[0],
+                      programs_[0]->program_handler(),
                       "grid_plane",
                       150.f,
                       150.f,
@@ -619,7 +437,7 @@ void _scene_widg::send_data()
     //---------------------------
     environmental_objects = {
         new external_obj(this,
-                         programs[1],
+                         programs_[1]->program_handler(),
                          "plane",
                          ZAY_PACKAGE_PATH+"/primitives/zay_plane_300x300_1sub-div",
                          "/tex/plane_grass_1024x1024",
@@ -628,7 +446,7 @@ void _scene_widg::send_data()
 //                         glm::translate(glm::dvec3(0.0, 0.0, 0.0))
         )
         ,new external_obj(this,
-                         programs[1],
+                         programs_[1]->program_handler(),
                          "fence",
                          ZAY_PACKAGE_PATH+"/primitives/zay_fence_300x300_2H_1W",
                          "/tex/fence_brick_1024x1024",
@@ -636,17 +454,8 @@ void _scene_widg::send_data()
 //                         ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
 //                         glm::translate(glm::dvec3(0.0, 0.0, 0.0))
         )
-        ,new skybox_obj(this,
-                       programs[2],
-                       "skybox"
-//                       ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
-//                       glm::translate(glm::dvec3(0.0, 0.0, 0.0))
-        )
-    };
-    //---------------------------------
-    lap_objects = {
-        new external_obj(this,
-                         programs[1],
+        ,new external_obj(this,
+                         programs_[1]->program_handler(),
                          "mini_lap",
                          ZAY_PACKAGE_PATH+"/primitives/zay_mini_lap",
                          "/tex/mini_lap_exemplar",
@@ -655,7 +464,7 @@ void _scene_widg::send_data()
 //                         glm::translate(glm::dvec3(0.0, 0.0, 0.0))
         )
         ,new external_obj(this,
-                         programs[1],
+                         programs_[1]->program_handler(),
                          "lap1",
                          ZAY_PACKAGE_PATH+"/primitives/zay_lap1",
                          "/tex/lap1_exemplar",
@@ -664,7 +473,7 @@ void _scene_widg::send_data()
 //                         glm::translate(glm::dvec3(0.0, 0.0, 0.0))
         )
         ,new external_obj(this,
-                         programs[1],
+                         programs_[1]->program_handler(),
                          "lap2",
                          ZAY_PACKAGE_PATH+"/primitives/zay_lap2",
                          "/tex/lap2_exemplar",
@@ -673,7 +482,7 @@ void _scene_widg::send_data()
 //                         glm::translate(glm::dvec3(0.0, 0.0, 0.0))
         )
         ,new external_obj(this,
-                         programs[1],
+                         programs_[1]->program_handler(),
                          "lap3",
                          ZAY_PACKAGE_PATH+"/primitives/zay_lap3",
                          "/tex/lap3_exemplar",
@@ -681,11 +490,19 @@ void _scene_widg::send_data()
 //                        ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
 //                        glm::translate(glm::dvec3(0.0, 0.0, 0.0))
         )
+
     };
-    //------------------------------
+    //-------------------------
+    skybox = new skybox_obj(this,
+                            programs_[2]->program_handler(),
+                            "skybox"
+//                             ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
+//                             glm::translate(glm::dvec3(0.0, 0.0, 0.0))
+                        );
+    //---------------------------------
     obstacle_objects =
             new obstacle_pack<GLdouble>(this,
-                programs[3],
+                programs_[3]->program_handler(),
                 Obstacle_Type::CARTON_BOX,
                 ZAY_PACKAGE_PATH+"/primitives/zay_carton_box",
                 "/tex/carton_box",
@@ -704,23 +521,20 @@ void _scene_widg::send_data()
     fboFormat.setAttachment
             (QGLFramebufferObject::CombinedDepthStencil);
     model_vehicles = new model_vehicle(this,
-           programs[3],
+           programs_[3]->program_handler(),
            ZAY_PACKAGE_PATH+"/primitives/zaytuna_model",
            "/tex/zaytuna-fragments",
            GL_TRIANGLES );
 
-
     //-------------------------------
-
 
     GLsizeiptr BUF_SIZE{0};
     for(const auto& _obj:basic_objects)
         BUF_SIZE+=_obj->buffer_size();
-    for(const auto& _obj:lap_objects)
-        BUF_SIZE+=_obj->buffer_size();
     for(const auto& _obj:environmental_objects)
         BUF_SIZE+=_obj->buffer_size();
 
+    BUF_SIZE+=skybox->buffer_size();
     BUF_SIZE+=obstacle_objects->buffer_size();
     BUF_SIZE+=model_vehicles->buffer_size();
 
@@ -736,15 +550,13 @@ void _scene_widg::send_data()
         _obj->transmit_data(current_offset,
                             theBufferID,
                             previous_offset);
-    for(auto& _obj:lap_objects)
-        _obj->transmit_data(current_offset,
-                            theBufferID,
-                            previous_offset);
     for(auto& _obj:environmental_objects)
         _obj->transmit_data(current_offset,
                             theBufferID,
                             previous_offset);
-
+    skybox->transmit_data(current_offset,
+                          theBufferID,
+                          previous_offset);
     obstacle_objects->transmit_data(current_offset,
                                     theBufferID,
                                     previous_offset);
@@ -775,12 +587,11 @@ void _scene_widg::update_current_vehicle
     else current_model = &(*it);
 }
 void _scene_widg::add_vehicle
-    (const transform_attribs<GLdouble>& attribs)
-{
+    (const transform_attribs<GLdouble>& attribs){
     model_vehicles->add_vehicle
         (new QGLFramebufferObject(WIDTH,
-             HEIGHT, fboFormat),
-        attribs);
+         HEIGHT, fboFormat),
+         attribs);
 }
 
 void _scene_widg::delete_vehicle

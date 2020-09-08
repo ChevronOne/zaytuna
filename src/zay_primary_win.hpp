@@ -44,7 +44,6 @@
 #include <QtGui/QKeyEvent>
 #include <QTimer>
 #include <QTreeWidget>
-#include <QDebug>
 #include "zay_scene_widg.hpp"
 #include "zay_item_inputs_form.hpp"
 #include "zay_obstacle_inputs_form.hpp"
@@ -68,6 +67,7 @@ public:
     void vehicle_menu(const QPoint&);
     void obstacle_type_menu(const QPoint&);
     void obstacle_menu(const QPoint&);
+    QLabel *coord_ref_lab_;
 
 
 protected:

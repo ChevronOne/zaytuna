@@ -61,16 +61,16 @@ class vehicle_attributes
     void speed_callback(const std_msgs::Float64&);
     void steering_callback(const std_msgs::Float64&);
 
-    zay_vec3<std::allocator<void>> vehicle_pos;
-    geometry_msgs::Vector3_<std::allocator<void>>& pos_ref{vehicle_pos};
-    zay_vec3<std::allocator<void>> vehicle_orientation;
-    geometry_msgs::Vector3_<std::allocator<void>>& orientation_ref{vehicle_orientation};
-    zay_geo_pose<std::allocator<void>> vehicle_geometry;
-    geometry_msgs::Pose_<std::allocator<void>>& vehicle_geometry_ref{vehicle_geometry};
-    zay_uint32<std::allocator<void>> current_ticks;
-    std_msgs::UInt32_<std::allocator<void>>& current_ticks_ref{current_ticks};
+    zay_vec3<void_alloc> vehicle_pos;
+    geometry_msgs::Vector3_<void_alloc>& pos_ref{vehicle_pos};
+    zay_vec3<void_alloc> vehicle_orientation;
+    geometry_msgs::Vector3_<void_alloc>& orientation_ref{vehicle_orientation};
+    zay_geo_pose<void_alloc> vehicle_geometry;
+    geometry_msgs::Pose_<void_alloc>& vehicle_geometry_ref{vehicle_geometry};
+    zay_uint32<void_alloc> current_ticks;
+    std_msgs::UInt32_<void_alloc>& current_ticks_ref{current_ticks};
     
-    sensor_msgs::Image_<std::allocator<void>> local_cam_msg;
+    sensor_msgs::Image_<void_alloc> local_cam_msg;
     QImage local_cam_img{QImage(WIDTH, HEIGHT, QImage::Format_RGB888)};
 
     std::chrono::time_point<std::chrono::high_resolution_clock,

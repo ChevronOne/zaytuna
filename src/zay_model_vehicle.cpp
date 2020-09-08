@@ -105,7 +105,7 @@ void vehicle_attributes::speed_callback
         (const std_msgs::Float64& _val){
     double val{_val.data};
     if(val>1.0 || val<-1.0)
-        ROS_WARN_STREAM("invalid value for speed received: " << val);
+        ROS_WARN_STREAM(attribs.name << ": invalid value for speed received: " << val);
     REMOTE_SPEED = -(val > 1.0? SPEED_SCALAR :
           (val<-1.0? -SPEED_SCALAR : SPEED_SCALAR*val));
 }
@@ -113,7 +113,7 @@ void vehicle_attributes::steering_callback
         (const std_msgs::Float64& _val){
     double val{_val.data};
     if(val>1.0 || val<-1.0)
-        ROS_WARN_STREAM("invalid value for steering received: " << val);
+        ROS_WARN_STREAM(attribs.name << ": invalid value for steering received: " << val);
     REMOTE_STEERING = val == 0.0 ? STEERING_MARGIN_OF_ERROR :
           ((val>1.0? MAX_TURN_ANGLE:
           (val<-1.0? -MAX_TURN_ANGLE: MAX_TURN_ANGLE*val))*M_PI)/180.0;
@@ -184,8 +184,8 @@ void vehicle_attributes::update_attribs(const double frame_rate)
         accumulated_dist = fmod(accumulated_dist, meters_per_tick);
     } else{
         elapsed_t = std::chrono::duration<double,
-        std::ratio< 1, 1>>
-        (std::chrono::high_resolution_clock::now() - timer_t).count();
+                        std::ratio< 1, 1>>
+                        (std::chrono::high_resolution_clock::now() - timer_t).count();
         timer_t = std::chrono::high_resolution_clock::now();
     }
     actuate();
@@ -324,7 +324,7 @@ vehicle_attributes::~vehicle_attributes()
 
 
 //===================================================================
-////-----------Old Approach For Ackerman Rotation----- 
+////-----------Old Approach For Ackerman Rotation. For reference purposes----- 
 glm::dvec3 rotate(glm::dvec3 p, const glm::dvec3 c,
                   const double angle, const bool ccw){
     double _sin = std::sin(angle);

@@ -72,6 +72,7 @@ namespace Parser {
 shape_data<vertexL1_16> obj_parser::extractExternal
     (const std::string& _dir){
 
+////----------replaced memory mapping by iostream due to a failed windows build-------------
 //    boost::iostreams::mapped_file f_mmap(_dir,
 //            boost::iostreams::mapped_file::readonly);
 //    if(!f_mmap.is_open()){
@@ -82,7 +83,7 @@ shape_data<vertexL1_16> obj_parser::extractExternal
 
     std::ifstream f_stream(_dir, std::ios::in);
     if(!f_stream.is_open()){
-            ROS_ERROR_STREAM("could not open file <" << _dir);
+            ROS_ERROR_STREAM("file could not be opened <" << _dir);
             exit(EXIT_FAILURE); }
     boost::spirit::istream_iterator _head(f_stream >> std::noskipws), _tail;
 
@@ -95,7 +96,7 @@ shape_data<vertexL1_16> obj_parser::extractExternal
         exit(EXIT_FAILURE);
     }
     if (_head!=_tail){
-        ROS_WARN_STREAM("WARNING: file did not parsed properly <"
+        ROS_WARN_STREAM("WARNING: file did not parsed completely <"
                         << _dir << ">. object may not be rendered properly!");
         ROS_WARN_STREAM("Unparsed: " << std::distance(_head,_tail)
                         << " characters remained unparsed!");
@@ -124,6 +125,7 @@ namespace zaytuna {
 shape_data<vertexL1_16> obj_parser::extractExternal
     (const std::string& _dir){
 
+////----------replaced memory mapping by iostream due to a failed windows build-------------
 //    boost::iostreams::mapped_file f_mmap(_dir,
 //            boost::iostreams::mapped_file::readonly);
 //    if(!f_mmap.is_open()){
@@ -134,7 +136,7 @@ shape_data<vertexL1_16> obj_parser::extractExternal
 
     std::ifstream f_stream(_dir, std::ios::in);
     if(!f_stream.is_open()){
-            ROS_ERROR_STREAM("could not open file <" << _dir);
+            ROS_ERROR_STREAM("file could not be opened <" << _dir);
             exit(EXIT_FAILURE); }
     boost::spirit::istream_iterator _head(f_stream >> std::noskipws), _tail;
 
@@ -184,7 +186,7 @@ shape_data<vertexL1_16> obj_parser::extractExternal
        exit(EXIT_FAILURE);
    }
    if (_head!=_tail){
-       ROS_WARN_STREAM("WARNING: file did not parsed properly <"
+       ROS_WARN_STREAM("WARNING: file did not parsed completely <"
                        << _dir << ">. object may not be rendered properly!");
        ROS_WARN_STREAM("Unparsed: " << std::distance(_head,_tail)
                        << " characters remained unparsed!");
@@ -327,9 +329,7 @@ void _load_tex(USED_GL_VERSION * const _widg,
 
 }
 
-const char *DebugGLerr(unsigned GL_enum)
-{
-
+const char *DebugGLerr(unsigned GL_enum){
     switch( GL_enum ){
         case 0:      return "GL Error Message: GL_NO_ERROR";
         case 0x0500: return "GL Error Message: GL_INVALID_ENUM";
@@ -343,6 +343,97 @@ const char *DebugGLerr(unsigned GL_enum)
     }
 }
 
+void basic_program::get_source(const std::string& _source, std::string& _dist){
+    std::ifstream f_stream(_source.c_str(), std::ios::in);
+    if (!f_stream){
+        std::cerr << "file could not be opened: "
+                  << _source << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    _dist=std::string(std::istreambuf_iterator<char>(f_stream), {});
+    f_stream.close();
+}
+
+void basic_program::checkErrors(GLuint Object,
+                                GLuint ObjectParameter,
+                                ZAY_GL_OBJECT_TYPE ObjectType,
+                                const std::string& _attachment){
+    int _status{0};
+    if (ObjectType == ZAY_GL_OBJECT_TYPE::PROGRAM)
+        gl_context->glGetProgramiv(Object, ObjectParameter, &_status);
+    else if (ObjectType == ZAY_GL_OBJECT_TYPE::SHADER)
+        gl_context->glGetShaderiv(Object, ObjectParameter, &_status);
+    else{
+        std::cout << "Unkown gl-object type <"
+                  << (int)ObjectType << ">!\n" << std::flush;
+        exit(EXIT_FAILURE);
+    }
+    if (_status != GL_TRUE){
+        int len;
+        char* errorMessage{ nullptr };
+        if (ObjectType == ZAY_GL_OBJECT_TYPE::PROGRAM){
+            gl_context->glGetProgramiv(Object, GL_INFO_LOG_LENGTH, &len);
+            errorMessage = new char[static_cast<unsigned>(len)];
+            gl_context->glGetProgramInfoLog(Object, len, nullptr, errorMessage);
+        }
+        else if (ObjectType == ZAY_GL_OBJECT_TYPE::SHADER){
+            gl_context->glGetShaderiv(Object, GL_INFO_LOG_LENGTH, &len);
+            errorMessage = new char[static_cast<unsigned>(len)];
+            gl_context->glGetShaderInfoLog(Object, len, nullptr, errorMessage);
+        }
+        std::cout << _attachment << ": "
+                  << errorMessage << std::endl;
+        delete[] errorMessage;
+        exit(EXIT_FAILURE);
+    }
+}
+GLuint basic_program::compile_shader(const std::string& _source, GLenum _type){
+    GLuint _SH = gl_context->glCreateShader(_type);
+
+    if (_SH == 0){
+        std::cerr << "error occurred while creating the shader object <"
+                  << _type << ">\n" << std::flush;
+        exit(EXIT_FAILURE);
+    }
+
+    const GLchar* sh_source =
+            reinterpret_cast<const GLchar*>
+            (_source.c_str());
+    const int leng = static_cast<int>
+            (_source.length());
+
+    gl_context->glShaderSource(_SH, 1, &sh_source, &leng);
+
+    gl_context->glCompileShader(_SH);
+    checkErrors(_SH, GL_COMPILE_STATUS,
+                ZAY_GL_OBJECT_TYPE::SHADER,
+                "Shader Compile Error: ");
+    return _SH;
+}
+void basic_program::init(const std::string& _source){
+    GLuint _Shaders[SHADERS_NUM];
+    program_ID = gl_context->glCreateProgram();
+    std::string source_program;
+    get_source(_source+ ".vsh", source_program);
+    _Shaders[0] = compile_shader(source_program, GL_VERTEX_SHADER);
+    get_source(_source+ ".fsh", source_program);
+    _Shaders[1] = compile_shader(source_program, GL_FRAGMENT_SHADER);
+    for (size_t _ind = 0; _ind != SHADERS_NUM; ++_ind)
+        gl_context->glAttachShader(program_ID, _Shaders[_ind]);
+    get_attrib_locations();
+    gl_context->glLinkProgram(program_ID);
+    checkErrors(program_ID,
+                GL_LINK_STATUS,
+                ZAY_GL_OBJECT_TYPE::PROGRAM,
+                "Shaders Linking Error: ");
+    gl_context->glValidateProgram(program_ID);
+    checkErrors(program_ID,
+                GL_VALIDATE_STATUS,
+                ZAY_GL_OBJECT_TYPE::PROGRAM,
+                "Program Validation Error: ");
+    for (size_t ind = 0; ind != SHADERS_NUM; ++ind)
+        gl_context->glDeleteShader(_Shaders[ind]);
+}
 
 
 } // namespace  zaytuna

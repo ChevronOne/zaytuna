@@ -11,7 +11,7 @@
 If you haven't yet, please install a [ROS](https://www.ros.org) version that is supported on your operating system. And make sure that ROS [environment variables](http://wiki.ros.org/ROS/Tutorials/InstallingandConfiguringROSEnvironment#Managing_Your_Environment) are setup properly.
 <br/><br/>
 **Building the package:** If you know how to build a [ROS package](http://wiki.ros.org/ROS/Tutorials/CreatingPackage), you probably don't need to read the rest. Otherwise, it's more convenient to go through these [tutorials](http://wiki.ros.org/ROS/Tutorials) first.  
-To build the package navigate to `src` folder in your [catkin workspace](http://wiki.ros.org/ROS/Tutorials/InstallingandConfiguringROSEnvironment#Create_a_ROS_Workspace), assuming your catkin workspace is named `catkin_ws`, then run the following commands:  
+To build the package open a terminal and navigate to `src` folder in your [catkin workspace](http://wiki.ros.org/ROS/Tutorials/InstallingandConfiguringROSEnvironment#Create_a_ROS_Workspace), assuming your catkin workspace is named `catkin_ws`, then run the following commands:  
 + `:~/catkin_ws/src$ git clone https://github.com/ChevronOne/zaytuna.git`
 + `:~/catkin_ws/src$ cd ..`
 + `:~/catkin_ws$ catkin_make`

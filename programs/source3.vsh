@@ -16,6 +16,7 @@ void main()
     gl_Position = transformMat * vec4(vertPos, 1.0);
     vec3 Norm = vec3(it_transformMat *vec4(vertNorm, 1.0));
     light = vec4(vec3(0.6f, 0.6f, 0.6f) // ambient
-            +(max(dot(normalize(vec3(200.0f, 100.f, -200.f)-vec3(gl_Position)), Norm), 0.f)*vec3(0.6f, .6f, .6f)), 1.f);
+            +(max(dot(normalize(vec3(5000000.0f, 4000000.0f, -5000000.0f) // sun's position
+            -vec3(gl_Position)), Norm), 0.f)*vec3(0.6f, .6f, .6f)), 1.f);
 	TexCoord = texCoor;
 }

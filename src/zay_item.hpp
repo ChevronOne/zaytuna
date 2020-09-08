@@ -313,7 +313,7 @@ public:
 
 
     ////----------useful--for--debugging--------
-    void render_vectors_state(vehicle_attributes*, zaytuna::camera*);
+    void render_vectors_state(vehicle_attributes*, zaytuna::camera const*const);
 };
 
 
@@ -436,7 +436,8 @@ struct obstacle_pack : public scene_object {
             if(begin->attribs.name == _name)
                 return begin;
         }
-        qDebug() << "OBSTACLE NOT FOUND: "<< _name.c_str() << " !!!!!!!!!!\n";
+        ROS_ERROR_STREAM("query was made for a non-existent object: <"<< _name.c_str() <<">, a possible bug! \n");
+        ROS_FATAL_STREAM("Please report this with sufficient information on how the situation came about!");
         exit(EXIT_FAILURE);
         return begin;
     }
@@ -486,7 +487,7 @@ struct obstacle_pack : public scene_object {
 
     virtual void render_obj(zaytuna::camera const*const activeCam) override{
         uint32_t category{0}, instance{0};
-        this->_widg->glUseProgram(_programID);
+        // this->_widg->glUseProgram(_programID);
 
         for(;category<obstacle_categories.size(); ++category){
             _widg->glBindTexture(GL_TEXTURE_2D, obstacle_categories[category]->_texID);

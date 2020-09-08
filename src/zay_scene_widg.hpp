@@ -61,8 +61,6 @@ namespace zaytuna {
 
 
 
-enum class FileStatus { UNDEFINED, LOADED, FAILED };
-enum class VarType { PROGRAM, SHADER };
 class primary_win;
 
 //class _scene_widg : public QOpenGLWidget,
@@ -71,28 +69,20 @@ class _scene_widg : public QGL_WIDGET_VERSION, protected USED_GL_VERSION // QOpe
 {
     Q_OBJECT
 
-    std::string getShader(const std::string&);
-    FileStatus fStatus;
     GLuint programs[PROGRAMS_NUM];
+    ptr_vector<basic_program*> programs_;
 
     ptr_vector<zaytuna::scene_object*> basic_objects;
     zaytuna::model_vehicle* model_vehicles{nullptr};
     vehicle_attributes* current_model{nullptr};
+    skybox_obj* skybox{nullptr};
     zaytuna::obstacle_pack<GLdouble>* obstacle_objects{nullptr};
-    ptr_vector<zaytuna::scene_object*> lap_objects;
+    // ptr_vector<zaytuna::scene_object*> lap_objects;
     ptr_vector<zaytuna::scene_object*> environmental_objects;
     default_settings<GLdouble> default_objects;
-    unsigned int _Shaders[SHADERS_NUM];
-    void checkError(GLuint, GLuint,
-                    VarType, const std::string&);
-    unsigned int compileShader(const std::string&, GLenum);
+
     void update_cam(void);
     void add_default_obj(void);
-
-    void initShader(const std::string&, GLuint&,
-                    const std::size_t&);
-    void makeUnderUse(GLuint&);
-    void detachProgram(void);
     void send_data(void);
     void updateProjection(void);
     void update_time_interval(uint32_t);
