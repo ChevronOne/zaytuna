@@ -551,10 +551,10 @@
       </rect>
      </property>
      <property name="minimum">
-      <double>1.000000000000000</double>
+      <double>0.000000000000000</double>
      </property>
      <property name="maximum">
-      <double>100.000000000000000</double>
+      <double>1000.000000000000000</double>
      </property>
      <property name="value">
       <double>20.000000000000000</double>
@@ -1248,8 +1248,14 @@
     <property name="toolTip">
      <string/>
     </property>
+    <property name="minimum">
+     <number>0</number>
+    </property>
     <property name="maximum">
      <number>1000</number>
+    </property>
+    <property name="value">
+     <number>60</number>
     </property>
    </widget>
    <widget class="QLabel" name="limited_frames_lab">

@@ -58,9 +58,8 @@ double _scene_widg::glX, _scene_widg::glY; //, _scene_widg::glZ;
 //_scene_widg::_scene_widg(QWidget* parent): QGL_WIDGET_VERSION(parent),
 _scene_widg::_scene_widg(QGLFormat _format, QWidget* parent):
     QGL_WIDGET_VERSION(_format, parent),
-    elap_accumulated{0.0}, cam_freq_accumulated{0.0}, elapsed{0.0},
-    frame_rate{1.0}, front_cam_freq{FRONT_CAM_FREQUENCY}, 
-    imgs_sec{1.0/FRONT_CAM_FREQUENCY}, local_control_speed{6.0},
+    elap_accumulated{0.0},
+    frame_rate{1.0}, local_control_speed{6.0},
     local_control_steering{0.39269908}, frames_counter{0},
     limited_frames{60}, activeCam{&mainCam},
     k_forward{0}, k_backward{0}, k_left{0}, k_right{0}, k_up{0}, k_down{0},
@@ -71,11 +70,18 @@ _scene_widg::_scene_widg(QGLFormat _format, QWidget* parent):
     //    setFormat(_format);
 
     mainCam.updateProjection(WIDTH, HEIGHT);
-    connect(&timer, SIGNAL(timeout()), this, SLOT(animate()));
+    main_loop_timer.setTimerType(Qt::PreciseTimer);
+    front_cam_timer.setTimerType(Qt::PreciseTimer);
+    connect(&main_loop_timer, SIGNAL(timeout()), this, SLOT(animate()));
+    connect(&front_cam_timer, SIGNAL(timeout()), this, SLOT(fc_signal()));
     makeCurrent();
     setMouseTracking(true);
     this->setFocusPolicy(Qt::StrongFocus);
-    timer.setTimerType(Qt::PreciseTimer);
+    
+}
+
+void _scene_widg::fc_signal(){
+    front_cam_timeout = true;
 }
 
 void _scene_widg::update_contrl_attribs(void){
@@ -139,13 +145,25 @@ void _scene_widg::initializeGL(){
     ROS_INFO_STREAM("OpenGL Version: " << reinterpret_cast<const char*>(glGetString(GL_VERSION)));
     ROS_INFO_STREAM("GL Shading Language Version: " << reinterpret_cast<const char*>(glGetString(GL_SHADING_LANGUAGE_VERSION)));
 
-    timer.start(1000/limited_frames);
+    main_loop_timer.start(1000/limited_frames);
+    front_cam_timer.start(1000/FRONT_CAM_FREQUENCY);
     start_t = std::chrono::high_resolution_clock::now();
 }
 
 void _scene_widg::update_time_interval(uint32_t val){
     limited_frames = val;
-    timer.setInterval(1000/val);
+    main_loop_timer.stop();
+    if(val!=0)
+        main_loop_timer.start(1000/val);
+    else
+        frame_rate = 0.0;
+    
+}
+
+void _scene_widg::update_fc_time_interval(double val){
+    front_cam_timer.stop();
+    if(val > 0.0)
+        front_cam_timer.start(static_cast<int>(std::floor(1000/val)));
 }
 
 void _scene_widg::render_local_scene(camera const*const current_cam){
@@ -193,36 +211,39 @@ void _scene_widg::paintGL(){
         }
     }
 
-    for(uint32_t i{0}; i<model_vehicles->vehicles.size(); ++i)
-        model_vehicles->vehicles[i].update_attribs(frame_rate);
+    if(frame_rate!=0.0)
+        for(uint32_t i{0}; i<model_vehicles->vehicles.size(); ++i)
+            model_vehicles->vehicles[i].update_attribs(frame_rate);
+
     if(activeCam==&mainCam)
         mainCam.updateWorld_to_viewMat();
     render_main_scene(activeCam);
 
-    // frame rate
-    elapsed = std::chrono::duration<double,
-              std::ratio< 1, 1>>(std::chrono::high_resolution_clock::now()
-                                 - start_t).count();
-    start_t = std::chrono::high_resolution_clock::now();
-
-    elap_accumulated += elapsed;
-    cam_freq_accumulated += elapsed;
-    ++frames_counter;
-
-    if(elap_accumulated>=NUM_SEC_FRAME_RATE) {
-//        std::cout << DebugGLerr(glGetError()) << "\n";
-        frame_rate = 1.0/(elap_accumulated/frames_counter);
-        elap_accumulated = frames_counter = 0;
-    }
-
-    if(cam_freq_accumulated>=imgs_sec){
+    if(front_cam_timeout){
+        front_cam_timeout = false;
         for(uint32_t i{0}; i<model_vehicles->vehicles.size(); ++i){
             model_vehicles->vehicles[i].localView_buffer->bind();
             render_local_scene(&(model_vehicles->vehicles[i].frontCam));
             model_vehicles->vehicles[i].grab_buffer();
         }
         glBindFramebuffer(GL_FRAMEBUFFER,  0);
-        cam_freq_accumulated = 0.0;
+    }
+
+    // frame rate
+    elap_accumulated += std::chrono::duration<double,
+              std::ratio< 1, 1>>(std::chrono::high_resolution_clock::now()
+                                 - start_t).count();
+    start_t = std::chrono::high_resolution_clock::now();
+
+    ++frames_counter;
+
+    if(elap_accumulated>=NUM_SEC_FRAME_RATE) {
+//        std::cout << DebugGLerr(glGetError()) << "\n";
+        if(limited_frames == 0)
+            frame_rate = 0.0;
+        else
+            frame_rate = frames_counter/elap_accumulated;
+        elap_accumulated = frames_counter = 0;
     }
 
 }
@@ -264,6 +285,8 @@ void _scene_widg::updateProjection(){
 }
 
 void _scene_widg::mouseMoveEvent(QMouseEvent *ev){
+    if(limited_frames==0)
+        return;
     if(activeCam == &mainCam){
         if(ev->buttons()==Qt::RightButton){
             delta_sX = sX - ev->pos().x();
@@ -310,6 +333,8 @@ void _scene_widg::update_cam(){
 }
 
 void _scene_widg::keyPressEvent(QKeyEvent* ev){
+    if(limited_frames==0)
+        return;
 
     if(activeCam == &mainCam){
         switch (ev->key()){
@@ -349,9 +374,11 @@ void _scene_widg::keyPressEvent(QKeyEvent* ev){
 }
 
 void _scene_widg::wheelEvent(QWheelEvent *ev){
+    if(limited_frames==0)
+        return;
     if(ev->delta() > 0)
-        mainCam.move_forward();
-    else mainCam.move_backward();
+        mainCam.move_forward(MOUSE_WHEEL_SCALAR);
+    else mainCam.move_backward(MOUSE_WHEEL_SCALAR);
 }
 
 void _scene_widg::keyReleaseEvent(QKeyEvent *ev)

@@ -110,6 +110,7 @@ primary_win::primary_win(QWidget *parent) :
     ui->lcdCamCoordZ->display(_scene_widget->mainCam.camera_position.z);
 
     ui->lcdFrameRate->display(_scene_widget->frame_rate);
+    ui->front_cam_freq_SpinBox->setValue(FRONT_CAM_FREQUENCY);
 
     ui->limited_frames_spinBox->setValue
             (static_cast<int>(_scene_widget->limited_frames));
@@ -389,7 +390,7 @@ void primary_win::update_displays()
     ui->SpinBox_FieldOfView->setValue(_scene_widget->activeCam->FIELD_OF_VIEW);
     ui->SpinBox_Near->setValue(_scene_widget->activeCam->NEAR_PLANE);
     ui->SpinBox_Far->setValue(_scene_widget->activeCam->FAR_PLANE);
-    ui->front_cam_freq_SpinBox->setValue(_scene_widget->front_cam_freq);
+    
 }
 
 void primary_win::on_grid_check_clicked(bool checked){
@@ -466,8 +467,7 @@ void primary_win::on_custom_perspective_radio_clicked()
 }
 
 void primary_win::on_front_cam_freq_SpinBox_valueChanged(double arg){
-    _scene_widget->front_cam_freq = arg;
-    _scene_widget->imgs_sec = 1.0/arg;
+    _scene_widget->update_fc_time_interval(arg);
 }
 void primary_win::on_key_control_radio_clicked(){
     ui->steering_groupBox->setEnabled(0);

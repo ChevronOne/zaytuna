@@ -292,9 +292,10 @@ void _load_tex(USED_GL_VERSION * const _widg,
     }
     case TEX_TYPE::TEX_2D_MIPMAP:{
         _widg->glBindTexture(GL_TEXTURE_2D, _texID);
-        GLfloat max_anisotropic_extention{0};
+        GLfloat max_anisotropic_extention{0.0f};
         _widg->glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT,
                            &max_anisotropic_extention);
+        ROS_ERROR_STREAM_COND(max_anisotropic_extention==0.0f, "No Mipmap/Anisotropic texture filtering support! The scene will not be rendered properly");
         _widg->glTexParameterf(GL_TEXTURE_2D,
                                GL_TEXTURE_MAX_ANISOTROPY_EXT,
                                max_anisotropic_extention);

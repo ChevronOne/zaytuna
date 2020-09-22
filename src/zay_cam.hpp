@@ -56,8 +56,8 @@ public:
     void mouse_update(const glm::dvec2&);
     void mouse_held_update(const glm::dvec2&);
     glm::dvec2 get_mouse_position();
-    void move_forward(void);
-    void move_backward(void);
+    void move_forward(double scalar=1.0);
+    void move_backward(double scalar=1.0);
     void move_up(void);
     void move_down(void);
     void strafe_left(void);

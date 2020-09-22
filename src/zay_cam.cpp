@@ -170,12 +170,12 @@ glm::dvec2 camera::get_mouse_position(){
     return mouse_position;
 }
 
-void camera::move_forward(void){
-    camera_position += MOVEMENT_SPEED * view_direction;
+void camera::move_forward(double scalar){
+    camera_position += MOVEMENT_SPEED * scalar * view_direction;
 }
 
-void camera::move_backward(void){
-    camera_position += -MOVEMENT_SPEED * view_direction;
+void camera::move_backward(double scalar){
+    camera_position += -MOVEMENT_SPEED * scalar * view_direction;
 }
 
 void camera::move_up(void){
