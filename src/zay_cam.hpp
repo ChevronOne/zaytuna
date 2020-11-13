@@ -58,10 +58,12 @@ public:
     glm::dvec2 get_mouse_position();
     void move_forward(double scalar=1.0);
     void move_backward(double scalar=1.0);
-    void move_up(void);
-    void move_down(void);
-    void strafe_left(void);
-    void strafe_right(void);
+    void move_horizontal_forward(double scalar=1.0);
+    void move_horizontal_backward(double scalar=1.0);
+    void move_up(double scalar=1.0);
+    void move_down(double scalar=1.0);
+    void strafe_left(double scalar=1.0);
+    void strafe_right(double scalar=1.0);
 
 
     double ROTATION_SPEED;

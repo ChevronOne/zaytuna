@@ -54,14 +54,14 @@ glm::dvec3 intersect(const glm::dvec3 p1, const glm::dvec3 p2,
                      const glm::dvec3 p3, const glm::dvec3 p4);
 
 zaytuna::vehicle_attributes::vehicle_attributes
-            (USED_GL_VERSION* _widg,
+            (ZAY_USED_GL_VERSION* _widg,
              QGLFramebufferObject *const FBO_,
              const transform_attribs<GLdouble> attribs):
         _widg{_widg}, attribs{attribs},
         localView_buffer{FBO_}, elapsed_t{0.0},
-        AMOUNT_OF_ROTATION(0.0), MOVEMENT_SPEED(0.0), DESIRED_SPEED{0.0},
-        REMOTE_SPEED{0.0}, STEERING_WHEEL(STEERING_MARGIN_OF_ERROR), DESIRED_STEERING{0.0},
-        REMOTE_STEERING(STEERING_MARGIN_OF_ERROR), accumulated_dist(0.0),
+        AMOUNT_OF_ROTATION{0.0}, MOVEMENT_SPEED{0.0}, DESIRED_SPEED{0.0},
+        REMOTE_SPEED{0.0}, STEERING_WHEEL(ZAY_STEERING_MARGIN_OF_ERROR), DESIRED_STEERING{0.0},
+        REMOTE_STEERING{ZAY_STEERING_MARGIN_OF_ERROR}, accumulated_dist(0.0),
         traveled_dist(0.0), ticks_counter(0),
         radius_of_rotation(0.0),
         center_of_rotation(glm::dvec3(0.0,0.0,0.0)){
@@ -94,29 +94,29 @@ zaytuna::vehicle_attributes::vehicle_attributes
              &vehicle_attributes::steering_callback, this);
 
     local_cam_msg.header = std_msgs::Header();
-    local_cam_msg.width = WIDTH;
-    local_cam_msg.height = HEIGHT;
+    local_cam_msg.width = ZAY_SCENE_WIDTH;
+    local_cam_msg.height = ZAY_SCENE_HEIGHT;
     local_cam_msg.encoding = "rgb8";
-    local_cam_msg.step = WIDTH * NUM_OF_CHANNELS;
+    local_cam_msg.step = ZAY_SCENE_WIDTH * ZAY_NUM_OF_CHANNELS;
     local_cam_msg.is_bigendian = 0;
-    local_cam_msg.data.resize(FRONT_IMG_SIZE);
+    local_cam_msg.data.resize(ZAY_FRONT_IMG_SIZE);
 }
 void vehicle_attributes::speed_callback
         (const std_msgs::Float64& _val){
     double val{_val.data};
     if(val>1.0 || val<-1.0)
         ROS_WARN_STREAM(attribs.name << ": invalid value for speed received: " << val);
-    REMOTE_SPEED = -(val > 1.0? SPEED_SCALAR :
-          (val<-1.0? -SPEED_SCALAR : SPEED_SCALAR*val));
+    REMOTE_SPEED = -(val > 1.0? ZAY_SPEED_SCALAR :
+          (val<-1.0? -ZAY_SPEED_SCALAR : ZAY_SPEED_SCALAR*val));
 }
 void vehicle_attributes::steering_callback
         (const std_msgs::Float64& _val){
     double val{_val.data};
     if(val>1.0 || val<-1.0)
         ROS_WARN_STREAM(attribs.name << ": invalid value for steering received: " << val);
-    REMOTE_STEERING = val == 0.0 ? STEERING_MARGIN_OF_ERROR :
-          ((val>1.0? MAX_TURN_ANGLE:
-          (val<-1.0? -MAX_TURN_ANGLE: MAX_TURN_ANGLE*val))*M_PI)/180.0;
+    REMOTE_STEERING = val == 0.0 ? ZAY_STEERING_MARGIN_OF_ERROR :
+          ((val>1.0? ZAY_MAX_TURN_ANGLE:
+          (val<-1.0? -ZAY_MAX_TURN_ANGLE: ZAY_MAX_TURN_ANGLE*val))*M_PI)/180.0;
 }
 
 void vehicle_attributes::update_positional_attributes
@@ -150,7 +150,7 @@ void vehicle_attributes::update_positional_attributes
                                   glm::dvec3(0.0, 0.0, 1.0));
     front_tires_vRotation = glm::rotate(STEERING_WHEEL,
                                         glm::dvec3(0.0, 1.0, 0.0));
-    frontCam.updateProjection(WIDTH, HEIGHT);
+    frontCam.updateProjection(ZAY_SCENE_WIDTH, ZAY_SCENE_HEIGHT);
 
     vehicle_geometry.update(back_ideal_tire, vehic_direction);
 }
@@ -166,12 +166,12 @@ void vehicle_attributes::update_attribs(const double frame_rate)
         DESIRED_STEERING = GLOBAL_STEERING_WHEEL;
     }
 
-    if(std::abs(MOVEMENT_SPEED-DESIRED_SPEED)>DELAY_MARGIN_OF_ERROR)
+    if(std::abs(MOVEMENT_SPEED-DESIRED_SPEED)>ZAY_DELAY_MARGIN_OF_ERROR)
         MOVEMENT_SPEED+= (DESIRED_SPEED-MOVEMENT_SPEED)/(frame_rate*speed_delay);
     else
         MOVEMENT_SPEED = DESIRED_SPEED;
     
-    if(std::abs(DESIRED_STEERING-STEERING_WHEEL)>DELAY_MARGIN_OF_ERROR)
+    if(std::abs(DESIRED_STEERING-STEERING_WHEEL)>ZAY_DELAY_MARGIN_OF_ERROR)
         STEERING_WHEEL+= (DESIRED_STEERING-STEERING_WHEEL)/(frame_rate*steering_delay);
     else
         STEERING_WHEEL=DESIRED_STEERING;

@@ -52,21 +52,21 @@ primary_win::primary_win(QWidget *parent) :
 {
     ui->setupUi(this);
     QGLFormat _format;
-    _format.setSamples(NUM_SAMPLES_PER_PIXEL);
+    _format.setSamples(ZAY_NUM_SAMPLES_PER_PIXEL);
 
     _scene_widget = new _scene_widg(_format, this);
 
     ////////////////////////////////////
     _scene_widget->setObjectName(QStringLiteral("_scene_widget"));
     _scene_widget->setEnabled(true);
-    _scene_widget->setGeometry(QRect(630, 25, WIDTH, HEIGHT));
+    _scene_widget->setGeometry(QRect(630, 25, ZAY_SCENE_WIDTH, ZAY_SCENE_HEIGHT));
     QSizePolicy sizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     sizePolicy.setHorizontalStretch(0);
     sizePolicy.setVerticalStretch(0);
     sizePolicy.setHeightForWidth(_scene_widget->sizePolicy().hasHeightForWidth());
     _scene_widget->setSizePolicy(sizePolicy);
-    _scene_widget->setMinimumSize(QSize(WIDTH, HEIGHT));
-    _scene_widget->setMaximumSize(QSize(WIDTH, HEIGHT));
+    _scene_widget->setMinimumSize(QSize(ZAY_SCENE_WIDTH, ZAY_SCENE_HEIGHT));
+    _scene_widget->setMaximumSize(QSize(ZAY_SCENE_WIDTH, ZAY_SCENE_HEIGHT));
 
     ///////////////////////////////////////
 
@@ -98,8 +98,8 @@ primary_win::primary_win(QWidget *parent) :
     menus_popups["Obstacles"]=&primary_win::obstacle_type_menu;
 
     /////////////////////////////////////////
-    ui->max_speed_SpinBox->setValue(_scene_widget->local_control_speed/SPEED_SCALAR);
-    ui->max_steering_SpinBox->setValue(glm::degrees(_scene_widget->local_control_steering)/MAX_TURN_ANGLE);
+    ui->max_speed_SpinBox->setValue(_scene_widget->local_control_speed/ZAY_SPEED_SCALAR);
+    ui->max_steering_SpinBox->setValue(glm::degrees(_scene_widget->local_control_steering)/ZAY_MAX_TURN_ANGLE);
 
     ui->lcdCamViewX->display(_scene_widget->mainCam.view_direction.x);
     ui->lcdCamViewY->display(_scene_widget->mainCam.view_direction.y);
@@ -110,7 +110,7 @@ primary_win::primary_win(QWidget *parent) :
     ui->lcdCamCoordZ->display(_scene_widget->mainCam.camera_position.z);
 
     ui->lcdFrameRate->display(_scene_widget->frame_rate);
-    ui->front_cam_freq_SpinBox->setValue(FRONT_CAM_FREQUENCY);
+    ui->front_cam_freq_SpinBox->setValue(ZAY_DEFAULT_FRONT_CAM_FREQUENCY);
 
     ui->limited_frames_spinBox->setValue
             (static_cast<int>(_scene_widget->limited_frames));
@@ -441,9 +441,9 @@ void primary_win::on_radioButton_Local_clicked()
 
 void primary_win::on_steeringV_valueChanged(int value){
     ui->steeringDis->setText(QString::number
-          (static_cast<double>(value)/MAX_TURN_ANGLE, 'f', 3));
+          (static_cast<double>(value)/ZAY_MAX_TURN_ANGLE, 'f', 3));
     if(value == 0){
-        SLIDER_STEERING_WHEEL = STEERING_MARGIN_OF_ERROR;
+        SLIDER_STEERING_WHEEL = ZAY_STEERING_MARGIN_OF_ERROR;
     }else{
         SLIDER_STEERING_WHEEL = (static_cast<double>(value)*M_PI) /180.0;
     }
@@ -451,7 +451,7 @@ void primary_win::on_steeringV_valueChanged(int value){
 
 void primary_win::on_speedV_valueChanged(int value){
     ui->speedDis->setText(QString::number
-         (static_cast<double>(value)/SPEED_SCALAR, 'f', 3));
+         (static_cast<double>(value)/ZAY_SPEED_SCALAR, 'f', 3));
     SLIDER_MOVEMENT_SPEED = static_cast<double>(-value);
 }
 
@@ -484,11 +484,11 @@ void primary_win::on_slider_control_radio_clicked(){
     _scene_widget->key_control=0;
 }
 void primary_win::on_max_steering_SpinBox_valueChanged(double val){
-    _scene_widget->local_control_steering = val==0.0? STEERING_MARGIN_OF_ERROR :
-            (glm::radians(val*MAX_TURN_ANGLE));
+    _scene_widget->local_control_steering = val==0.0? ZAY_STEERING_MARGIN_OF_ERROR :
+            (glm::radians(val*ZAY_MAX_TURN_ANGLE));
 }
 void primary_win::on_max_speed_SpinBox_valueChanged(double val){
-    _scene_widget->local_control_speed = SPEED_SCALAR*val;
+    _scene_widget->local_control_speed = ZAY_SPEED_SCALAR*val;
 }
 void zaytuna::primary_win::on_limited_frames_spinBox_valueChanged
         (int val){

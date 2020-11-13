@@ -61,22 +61,24 @@ class vehicle_attributes
     void speed_callback(const std_msgs::Float64&);
     void steering_callback(const std_msgs::Float64&);
 
-    zay_vec3<void_alloc> vehicle_pos;
+    zaytuna::vec3<void_alloc> vehicle_pos;
     geometry_msgs::Vector3_<void_alloc>& pos_ref{vehicle_pos};
-    zay_vec3<void_alloc> vehicle_orientation;
+    zaytuna::vec3<void_alloc> vehicle_orientation;
     geometry_msgs::Vector3_<void_alloc>& orientation_ref{vehicle_orientation};
-    zay_geo_pose<void_alloc> vehicle_geometry;
+    zaytuna::geo_pose<void_alloc> vehicle_geometry;
     geometry_msgs::Pose_<void_alloc>& vehicle_geometry_ref{vehicle_geometry};
-    zay_uint32<void_alloc> current_ticks;
+    zaytuna::uint32<void_alloc> current_ticks;
     std_msgs::UInt32_<void_alloc>& current_ticks_ref{current_ticks};
     
     sensor_msgs::Image_<void_alloc> local_cam_msg;
-    QImage local_cam_img{QImage(WIDTH, HEIGHT, QImage::Format_RGB888)};
+    QImage local_cam_img{QImage(ZAY_SCENE_WIDTH, 
+                                ZAY_SCENE_HEIGHT, 
+                                QImage::Format_RGB888)};
 
     std::chrono::time_point<std::chrono::high_resolution_clock,
                     std::chrono::nanoseconds> timer_t;
     
-    USED_GL_VERSION* _widg{nullptr};
+    ZAY_USED_GL_VERSION* _widg{nullptr};
     transform_attribs<GLdouble> attribs;
     QGLFramebufferObject* localView_buffer{nullptr};
 
@@ -90,7 +92,7 @@ class vehicle_attributes
 public:
     vehicle_attributes() = default;
     explicit vehicle_attributes
-            (USED_GL_VERSION*,
+            (ZAY_USED_GL_VERSION*,
              QGLFramebufferObject *const,
              const transform_attribs<GLdouble>);
     ~vehicle_attributes();
@@ -171,7 +173,7 @@ void vehicle_attributes::grab_buffer(){
     local_cam_img = localView_buffer->toImage().convertToFormat(QImage::Format_RGB888);
     memcpy((char*)local_cam_msg.data.data(), 
            local_cam_img.bits(), 
-           FRONT_IMG_SIZE);
+           ZAY_FRONT_IMG_SIZE);
     cam_pub.publish(local_cam_msg);
     // local_cam_img.save((attribs.name+".jpg").c_str());
 }

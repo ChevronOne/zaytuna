@@ -156,10 +156,10 @@ shape_data<VERT> shape_maker<VERT>::makeLap()
         glm::vec3(+0.0f, +1.0f, +0.0f),  // normal
         glm::vec2(+0.0f, +1.0f),         // texcoor
     };
-    rectangle.verNum = NUM_OF(vertsT);
+    rectangle.verNum = ZAY_NUM_OF(vertsT);
     rectangle.verts = new VERT[rectangle.verNum];
     memcpy(rectangle.verts, vertsT, sizeof(vertsT));
-    rectangle.indNum = NUM_OF(indices);
+    rectangle.indNum = ZAY_NUM_OF(indices);
     rectangle.indices = new unsigned int[rectangle.indNum];
     memcpy(rectangle.indices, indices, sizeof(indices));
     return rectangle;
@@ -278,10 +278,10 @@ shape_data<VERT> shape_maker<VERT>::makePyramid()
         4, 5, 7, 5, 6, 7, // bottom
     };
 
-    pyramid.verNum = NUM_OF(verts);
+    pyramid.verNum = ZAY_NUM_OF(verts);
     pyramid.verts = new VERT[pyramid.verNum];
     memcpy(pyramid.verts, verts, sizeof(verts));
-    pyramid.indNum = NUM_OF(indices);
+    pyramid.indNum = ZAY_NUM_OF(indices);
     pyramid.indices = new unsigned int[pyramid.indNum];
     memcpy(pyramid.indices, indices, sizeof(indices));
 
@@ -383,10 +383,10 @@ shape_data<VERT> shape_maker<VERT>::makeCube() {
         16, 17, 18, 16, 18, 19, // Back
         20, 22, 21, 20, 23, 22, // Bottom
     };
-    cube.verNum = NUM_OF(verts);
+    cube.verNum = ZAY_NUM_OF(verts);
     cube.verts = new VERT[cube.verNum];
     memcpy(cube.verts, verts, sizeof(verts));
-    cube.indNum = NUM_OF(indices);
+    cube.indNum = ZAY_NUM_OF(indices);
     cube.indices = new unsigned int[cube.indNum];
     memcpy(cube.indices, indices, sizeof(indices));
 
@@ -442,10 +442,10 @@ shape_data<VERT> shape_maker<VERT>::makeCubemap() {
         20, 22, 21, 20, 23, 22, // Bottom
     };
 
-    cube.verNum = NUM_OF(verts);
+    cube.verNum = ZAY_NUM_OF(verts);
     cube.verts = new VERT[cube.verNum];
     memcpy(cube.verts, verts, sizeof(verts));
-    cube.indNum = NUM_OF(indices);
+    cube.indNum = ZAY_NUM_OF(indices);
     cube.indices = new unsigned int[cube.indNum];
     memcpy(cube.indices, indices, sizeof(indices));
 

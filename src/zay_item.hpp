@@ -59,7 +59,7 @@ class scene_object
 {
 protected:
 
-    USED_GL_VERSION* _widg{nullptr};
+    ZAY_USED_GL_VERSION* _widg{nullptr};
     GLuint _programID;
     GLuint _VAO_ID;
     GLuint inds_offset;
@@ -80,7 +80,7 @@ protected:
 public:
 
     scene_object() = default;
-    scene_object(USED_GL_VERSION * const,
+    scene_object(ZAY_USED_GL_VERSION * const,
                  const GLuint,
                  const glm::dmat4 _rotaion =
                         glm::rotate(0.0, glm::dvec3(0.0, 1.0, 0.0)),
@@ -117,7 +117,7 @@ private:
 public:
 
     external_obj() = default;
-    external_obj(USED_GL_VERSION * const,
+    external_obj(ZAY_USED_GL_VERSION * const,
                  const GLuint,
                  const std::string&,
                  const std::string&,
@@ -153,7 +153,7 @@ private:
 public:
 
     coord_sys() = default;
-    coord_sys(USED_GL_VERSION * const,
+    coord_sys(ZAY_USED_GL_VERSION * const,
                  const GLuint,
                  const std::string&,
                  const GLfloat axes_length = 10.f,
@@ -188,7 +188,7 @@ private:
 public:
 
     grid_plane() = default;
-    grid_plane(USED_GL_VERSION * const,
+    grid_plane(ZAY_USED_GL_VERSION * const,
                  const GLuint,
                  const std::string&,
                  const GLfloat length = 150.f,
@@ -227,7 +227,7 @@ private:
 public:
 
     skybox_obj() = default;
-    skybox_obj(USED_GL_VERSION * const,
+    skybox_obj(ZAY_USED_GL_VERSION * const,
                  const GLuint,
                  const std::string&,
                  const GLenum MODE = GL_TRIANGLES,
@@ -294,7 +294,7 @@ class model_vehicle : public scene_object
 
 public:
     model_vehicle() = default;
-    explicit model_vehicle(USED_GL_VERSION * const,
+    explicit model_vehicle(ZAY_USED_GL_VERSION * const,
                  const GLuint,
                  const std::string&,
                  const std::string&,
@@ -339,7 +339,7 @@ struct obstacle_instance{
 
 template<class T>
 struct obstacle_wrapper{
-    USED_GL_VERSION * _widg;
+    ZAY_USED_GL_VERSION * _widg;
     Obstacle_Type type;
     shape_data<zaytuna::vertexL1_16> primitives;
     std::string prims_dir, tex_dir;
@@ -349,7 +349,7 @@ struct obstacle_wrapper{
     GLsizei num_indices;
     std::vector<obstacle_instance<T>> instances;
     obstacle_wrapper() = default;
-    obstacle_wrapper(USED_GL_VERSION * const _widg,
+    obstacle_wrapper(ZAY_USED_GL_VERSION * const _widg,
                      Obstacle_Type type,
                      std::string prims_dir,
                      std::string tex_dir):
@@ -358,7 +358,7 @@ struct obstacle_wrapper{
             prims_dir{prims_dir},
             tex_dir{tex_dir}{
         primitives = obj_parser::extractExternal(prims_dir);
-        _load_tex(_widg, _texID, tex_dir, TEX_TYPE::TEX_2D_MIPMAP,
+        _load_tex(_widg, _texID, tex_dir, ZAY_TEX_TYPE::TEX_2D_MIPMAP,
                   "JPG", 0,0);
     }
 
@@ -392,14 +392,14 @@ struct obstacle_wrapper{
         _widg->glEnableVertexAttribArray(2);
         _widg->glBindBuffer(GL_ARRAY_BUFFER, theBufferID);
         _widg->glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE,
-                                     VERTEX_BYTE_SIZE_1,
+                                     ZAY_VERTEX_BYTE_SIZE_1,
                                      reinterpret_cast<void*>(off_set));
         _widg->glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE,
-                                     VERTEX_BYTE_SIZE_1,
-                                     reinterpret_cast<void*>(off_set + TYPE_SIZE * NORMALS_STRIDE));
+                                     ZAY_VERTEX_BYTE_SIZE_1,
+                                     reinterpret_cast<void*>(off_set + ZAY_TYPE_SIZE * ZAY_NORMALS_STRIDE));
         _widg->glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE,
-                                     VERTEX_BYTE_SIZE_1,
-                                     reinterpret_cast<void*>(off_set + TYPE_SIZE * TEXTURE_STRIDE));
+                                     ZAY_VERTEX_BYTE_SIZE_1,
+                                     reinterpret_cast<void*>(off_set + ZAY_TYPE_SIZE * ZAY_TEXTURE_STRIDE));
         _widg->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, theBufferID);
         off_set += primitives.verBufSize()
                 + primitives.indBufSize();
@@ -455,7 +455,7 @@ struct obstacle_pack : public scene_object {
         categories[category[_name]]->instances.erase(find(_name));
 #endif
     }
-    obstacle_pack(USED_GL_VERSION * const _widg,
+    obstacle_pack(ZAY_USED_GL_VERSION * const _widg,
                   const GLuint programID,
                   Obstacle_Type type,
                   const std::string& prims_dir,

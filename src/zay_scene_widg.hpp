@@ -62,23 +62,20 @@ namespace zaytuna {
 
 
 class primary_win;
-
-//class _scene_widg : public QOpenGLWidget,
-//                    protected USED_GL_VERSION // QOpenGLExtraFunctions
-class _scene_widg : public QGL_WIDGET_VERSION, protected USED_GL_VERSION // QOpenGLExtraFunctions
+class _scene_widg : public ZAY_QGL_WIDGET_VERSION, protected ZAY_USED_GL_VERSION
 {
     Q_OBJECT
 
-    GLuint programs[PROGRAMS_NUM];
-    ptr_vector<basic_program*> programs_;
+    GLuint programs[ZAY_PROGRAMS_NUM];
+    zaytuna::ptr_vector<basic_program*> programs_;
 
-    ptr_vector<zaytuna::scene_object*> basic_objects;
+    zaytuna::ptr_vector<zaytuna::scene_object*> basic_objects;
     zaytuna::model_vehicle* model_vehicles{nullptr};
     vehicle_attributes* current_model{nullptr};
     skybox_obj* skybox{nullptr};
     zaytuna::obstacle_pack<GLdouble>* obstacle_objects{nullptr};
-    // ptr_vector<zaytuna::scene_object*> lap_objects;
-    ptr_vector<zaytuna::scene_object*> environmental_objects;
+    // zaytuna::ptr_vector<zaytuna::scene_object*> lap_objects;
+    zaytuna::ptr_vector<zaytuna::scene_object*> environmental_objects;
     default_settings<GLdouble> default_objects;
 
     void update_cam(void);
@@ -100,10 +97,12 @@ class _scene_widg : public QGL_WIDGET_VERSION, protected USED_GL_VERSION // QOpe
     void update_current_vehicle(const std::string&);
     obstacle_attribs<GLdouble> get_obstacle(const std::string&);
     zaytuna::vehicle_attributes* getOtherVeh(const std::string&);
-    double elap_accumulated{0.0};  // nanSec
-    double frame_rate{1.0};  // f/Sec
+    double elap_accumulated{0.0}, cam_freq_accumulated{0.0}, elapsed{0.0};  // nanSec
+    double frame_rate{0.0};  // f/Sec
+    double front_cam_freq{ZAY_DEFAULT_FRONT_CAM_FREQUENCY}; // Hz
+    double imgs_sec{1.0/ZAY_DEFAULT_FRONT_CAM_FREQUENCY};
     double local_control_speed{0.0},
-           local_control_steering{STEERING_MARGIN_OF_ERROR};
+           local_control_steering{ZAY_STEERING_MARGIN_OF_ERROR};
     uint32_t frames_counter{0};
     uint32_t limited_frames{100};
     std::chrono::time_point<std::chrono::high_resolution_clock,
@@ -112,8 +111,7 @@ class _scene_widg : public QGL_WIDGET_VERSION, protected USED_GL_VERSION // QOpe
     camera* activeCam{&mainCam};
     QGLFramebufferObjectFormat fboFormat;
     bool coord_checked{true}, grid_checked{true};
-    QTimer main_loop_timer, front_cam_timer;
-    bool front_cam_timeout{false};
+    QTimer main_loop_timer;
     bool key_control{0};
     bool k_forward, k_backward,
          k_left, k_right,
@@ -144,7 +142,6 @@ public:
 
 public slots:
         void animate();
-        void fc_signal();
 
 
 };

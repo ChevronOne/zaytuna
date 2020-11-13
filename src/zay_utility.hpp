@@ -50,14 +50,14 @@
 //#include "boost/spirit/include/support_iso8859_1.hpp"
 namespace x3 = boost::spirit::x3;
 
-#ifndef BOOST_SPIRIT_X3_SEMANTIC_ACTION
+#ifndef ZAY_BOOST_SPIRIT_X3_SEMANTIC_ACTION
 
 #include <boost/fusion/adapted/struct.hpp>
 #include <boost/fusion/include/as_vector.hpp>
 #endif
 
 namespace zaytuna {
-enum class TEX_TYPE { TEX_CUBE_MAP, TEX_2D, TEX_2D_MIPMAP};
+enum class ZAY_TEX_TYPE { TEX_CUBE_MAP, TEX_2D, TEX_2D_MIPMAP};
 enum class ZAY_GL_OBJECT_TYPE { PROGRAM, SHADER };
 struct obj_parser{
     static shape_data<zaytuna::vertexL1_16> 
@@ -88,8 +88,8 @@ public:
     }
 };
 template <class allocator>
-struct zay_vec3 : public geometry_msgs::Vector3_<allocator>{
-    inline zay_vec3<allocator>& operator=(const glm::dvec3& glm_vec){
+struct vec3 : public geometry_msgs::Vector3_<allocator>{
+    inline vec3<allocator>& operator=(const glm::dvec3& glm_vec){
         this->x = glm_vec.x;
         this->y = glm_vec.y;
         this->z = glm_vec.z;
@@ -97,14 +97,14 @@ struct zay_vec3 : public geometry_msgs::Vector3_<allocator>{
 };
 
 template <class allocator>
-struct zay_uint32 : public std_msgs::UInt32_<allocator>{
-    inline zay_uint32<allocator>& operator=(const uint32_t& val){
+struct uint32 : public std_msgs::UInt32_<allocator>{
+    inline uint32<allocator>& operator=(const uint32_t& val){
         this->data = val;
         return *this; }
 };
 
 template<class allocator>
-struct zay_geo_pose : public geometry_msgs::Pose_<allocator> {
+struct geo_pose : public geometry_msgs::Pose_<allocator> {
     void update(const glm::dvec3& pos,
                 const glm::dvec3& dir){
         this->position.x = pos.x;
@@ -174,11 +174,11 @@ struct default_settings{
 class basic_program
 {
 protected:
-    USED_GL_VERSION* gl_context{nullptr};
+    ZAY_USED_GL_VERSION* gl_context{nullptr};
     GLuint program_ID;
 
 public:
-  basic_program(USED_GL_VERSION* const context,
+  basic_program(ZAY_USED_GL_VERSION* const context,
                 const std::string& _source): gl_context{context}
                 {init(_source);}
   virtual ~basic_program(){
@@ -207,7 +207,7 @@ public:
 
 class static_program : public basic_program{
 public:
-    static_program(USED_GL_VERSION* const context,
+    static_program(ZAY_USED_GL_VERSION* const context,
                    const std::string& _source):
         basic_program(context, _source){}
     virtual ~static_program() override {};
@@ -219,7 +219,7 @@ public:
 
 class animated_program : public basic_program{
 public:
-    animated_program(USED_GL_VERSION* const context,
+    animated_program(ZAY_USED_GL_VERSION* const context,
                      const std::string& _source):
         basic_program(context, _source){}
     virtual ~animated_program() override {};
@@ -250,10 +250,10 @@ struct OBJ {
     std::vector<uint32_t> faces;
 };
 
-void _load_tex(USED_GL_VERSION * const _widg,
+void _load_tex(ZAY_USED_GL_VERSION * const _widg,
               GLuint&,
               const std::string&,
-              TEX_TYPE,
+              ZAY_TEX_TYPE,
               const char* _format=nullptr,
               bool h_mirroring=0,
               bool v_mirroring=0);

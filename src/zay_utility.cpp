@@ -37,7 +37,7 @@
 
 #include "zay_utility.hpp"
 
-#ifndef BOOST_SPIRIT_X3_SEMANTIC_ACTION
+#ifndef ZAY_BOOST_SPIRIT_X3_SEMANTIC_ACTION
 
 
 BOOST_FUSION_ADAPT_STRUCT(glm::vec3, x,y,z)
@@ -217,10 +217,10 @@ void _read_tex(QImage& buff,
     }
 }
 
-void _load_tex(USED_GL_VERSION * const _widg,
+void _load_tex(ZAY_USED_GL_VERSION * const _widg,
               GLuint& _texID,
               const std::string& _dir,
-              TEX_TYPE tex_type,
+              ZAY_TEX_TYPE tex_type,
               const char* _format,
               bool h_mirroring,
               bool v_mirroring){
@@ -229,7 +229,7 @@ void _load_tex(USED_GL_VERSION * const _widg,
     _widg->glGenTextures(1, &_texID);
     QImage tex_buffer;
     switch(tex_type){
-    case TEX_TYPE::TEX_CUBE_MAP:{
+    case ZAY_TEX_TYPE::TEX_CUBE_MAP:{
         std::vector<std::string> faces={
             _dir+"/right",
             _dir+"/left",
@@ -269,7 +269,7 @@ void _load_tex(USED_GL_VERSION * const _widg,
         }
         break;
     }
-    case TEX_TYPE::TEX_2D:{
+    case ZAY_TEX_TYPE::TEX_2D:{
         _widg->glBindTexture(GL_TEXTURE_2D, _texID);
         _widg->glTexParameteri(GL_TEXTURE_2D,
                                GL_TEXTURE_WRAP_S,
@@ -290,7 +290,7 @@ void _load_tex(USED_GL_VERSION * const _widg,
                      GL_UNSIGNED_BYTE, tex_buffer.bits());
         break;
     }
-    case TEX_TYPE::TEX_2D_MIPMAP:{
+    case ZAY_TEX_TYPE::TEX_2D_MIPMAP:{
         _widg->glBindTexture(GL_TEXTURE_2D, _texID);
         GLfloat max_anisotropic_extention{0.0f};
         _widg->glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT,
@@ -412,14 +412,14 @@ GLuint basic_program::compile_shader(const std::string& _source, GLenum _type){
     return _SH;
 }
 void basic_program::init(const std::string& _source){
-    GLuint _Shaders[SHADERS_NUM];
+    GLuint _Shaders[ZAY_SHADERS_NUM];
     program_ID = gl_context->glCreateProgram();
     std::string source_program;
     get_source(_source+ ".vsh", source_program);
     _Shaders[0] = compile_shader(source_program, GL_VERTEX_SHADER);
     get_source(_source+ ".fsh", source_program);
     _Shaders[1] = compile_shader(source_program, GL_FRAGMENT_SHADER);
-    for (size_t _ind = 0; _ind != SHADERS_NUM; ++_ind)
+    for (size_t _ind = 0; _ind != ZAY_SHADERS_NUM; ++_ind)
         gl_context->glAttachShader(program_ID, _Shaders[_ind]);
     get_attrib_locations();
     gl_context->glLinkProgram(program_ID);
@@ -432,7 +432,7 @@ void basic_program::init(const std::string& _source){
                 GL_VALIDATE_STATUS,
                 ZAY_GL_OBJECT_TYPE::PROGRAM,
                 "Program Validation Error: ");
-    for (size_t ind = 0; ind != SHADERS_NUM; ++ind)
+    for (size_t ind = 0; ind != ZAY_SHADERS_NUM; ++ind)
         gl_context->glDeleteShader(_Shaders[ind]);
 }
 

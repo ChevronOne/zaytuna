@@ -57,11 +57,12 @@ double _scene_widg::glX, _scene_widg::glY; //, _scene_widg::glZ;
 
 //_scene_widg::_scene_widg(QWidget* parent): QGL_WIDGET_VERSION(parent),
 _scene_widg::_scene_widg(QGLFormat _format, QWidget* parent):
-    QGL_WIDGET_VERSION(_format, parent),
-    elap_accumulated{0.0},
-    frame_rate{1.0}, local_control_speed{6.0},
+    ZAY_QGL_WIDGET_VERSION(_format, parent),
+    elap_accumulated{0.0}, cam_freq_accumulated{0.0}, elapsed{0.0},
+    frame_rate{0.0}, front_cam_freq{ZAY_DEFAULT_FRONT_CAM_FREQUENCY}, 
+    imgs_sec{1.0/ZAY_DEFAULT_FRONT_CAM_FREQUENCY}, local_control_speed{6.0},
     local_control_steering{0.39269908}, frames_counter{0},
-    limited_frames{60}, activeCam{&mainCam},
+    limited_frames{ZAY_DEFAULT_FRAM_RATE}, activeCam{&mainCam},
     k_forward{0}, k_backward{0}, k_left{0}, k_right{0}, k_up{0}, k_down{0},
     l_forward{0}, l_backward{0}, l_left{0}, l_right{0}
 {
@@ -69,19 +70,13 @@ _scene_widg::_scene_widg(QGLFormat _format, QWidget* parent):
     //    _format.setSamples(NUM_SAMPLES_PER_PIXEL); 
     //    setFormat(_format);
 
-    mainCam.updateProjection(WIDTH, HEIGHT);
+    mainCam.updateProjection(ZAY_SCENE_WIDTH, ZAY_SCENE_HEIGHT);
     main_loop_timer.setTimerType(Qt::PreciseTimer);
-    front_cam_timer.setTimerType(Qt::PreciseTimer);
     connect(&main_loop_timer, SIGNAL(timeout()), this, SLOT(animate()));
-    connect(&front_cam_timer, SIGNAL(timeout()), this, SLOT(fc_signal()));
     makeCurrent();
     setMouseTracking(true);
     this->setFocusPolicy(Qt::StrongFocus);
     
-}
-
-void _scene_widg::fc_signal(){
-    front_cam_timeout = true;
 }
 
 void _scene_widg::update_contrl_attribs(void){
@@ -90,7 +85,7 @@ void _scene_widg::update_contrl_attribs(void){
           (l_backward? local_control_speed:0.0);
 
         GLOBAL_STEERING_WHEEL = l_right? local_control_steering:
-          (l_left? -local_control_steering:STEERING_MARGIN_OF_ERROR);
+          (l_left? -local_control_steering:ZAY_STEERING_MARGIN_OF_ERROR);
 
     }else{
         GLOBAL_MOVEMENT_SPEED = SLIDER_MOVEMENT_SPEED;
@@ -146,7 +141,6 @@ void _scene_widg::initializeGL(){
     ROS_INFO_STREAM("GL Shading Language Version: " << reinterpret_cast<const char*>(glGetString(GL_SHADING_LANGUAGE_VERSION)));
 
     main_loop_timer.start(1000/limited_frames);
-    front_cam_timer.start(1000/FRONT_CAM_FREQUENCY);
     start_t = std::chrono::high_resolution_clock::now();
 }
 
@@ -161,9 +155,14 @@ void _scene_widg::update_time_interval(uint32_t val){
 }
 
 void _scene_widg::update_fc_time_interval(double val){
-    front_cam_timer.stop();
-    if(val > 0.0)
-        front_cam_timer.start(static_cast<int>(std::floor(1000/val)));
+    front_cam_freq = val;
+    if(val>0.0){
+        cam_freq_accumulated=imgs_sec = 1.0/val;
+    }
+    else{
+        imgs_sec = std::numeric_limits<decltype(imgs_sec)>::max();
+        cam_freq_accumulated=0;
+    }
 }
 
 void _scene_widg::render_local_scene(camera const*const current_cam){
@@ -219,31 +218,35 @@ void _scene_widg::paintGL(){
         mainCam.updateWorld_to_viewMat();
     render_main_scene(activeCam);
 
-    if(front_cam_timeout){
-        front_cam_timeout = false;
-        for(uint32_t i{0}; i<model_vehicles->vehicles.size(); ++i){
-            model_vehicles->vehicles[i].localView_buffer->bind();
-            render_local_scene(&(model_vehicles->vehicles[i].frontCam));
-            model_vehicles->vehicles[i].grab_buffer();
-        }
-        glBindFramebuffer(GL_FRAMEBUFFER,  0);
-    }
-
     // frame rate
-    elap_accumulated += std::chrono::duration<double,
+    elapsed = std::chrono::duration<double,
               std::ratio< 1, 1>>(std::chrono::high_resolution_clock::now()
                                  - start_t).count();
     start_t = std::chrono::high_resolution_clock::now();
 
+    elap_accumulated += elapsed;
+    cam_freq_accumulated += elapsed;
     ++frames_counter;
 
-    if(elap_accumulated>=NUM_SEC_FRAME_RATE) {
+    if(elap_accumulated>=ZAY_NUM_SEC_FRAME_RATE) {
 //        std::cout << DebugGLerr(glGetError()) << "\n";
         if(limited_frames == 0)
             frame_rate = 0.0;
         else
             frame_rate = frames_counter/elap_accumulated;
         elap_accumulated = frames_counter = 0;
+        if(front_cam_freq > 0.0 && cam_freq_accumulated > 2*imgs_sec)
+            cam_freq_accumulated=2*imgs_sec;
+    }
+
+    if(cam_freq_accumulated>=imgs_sec){
+        for(uint32_t i{0}; i<model_vehicles->vehicles.size(); ++i){
+            model_vehicles->vehicles[i].localView_buffer->bind();
+            render_local_scene(&(model_vehicles->vehicles[i].frontCam));
+            model_vehicles->vehicles[i].grab_buffer();
+        }
+        glBindFramebuffer(GL_FRAMEBUFFER,  0);
+        cam_freq_accumulated-=imgs_sec;
     }
 
 }
@@ -277,10 +280,10 @@ void _scene_widg::resizeGL(int W, int H){
 }
 
 void _scene_widg::updateProjection(){
-    mainCam.updateProjection(WIDTH, HEIGHT);
+    mainCam.updateProjection(ZAY_SCENE_WIDTH, ZAY_SCENE_HEIGHT);
     for(uint32_t i{0}; i<model_vehicles->vehicles.size(); ++i){
         model_vehicles->vehicles[i].frontCam.updateProjection
-                (WIDTH, HEIGHT);
+                (ZAY_SCENE_WIDTH, ZAY_SCENE_HEIGHT);
     }
 }
 
@@ -292,13 +295,13 @@ void _scene_widg::mouseMoveEvent(QMouseEvent *ev){
             delta_sX = sX - ev->pos().x();
             delta_sY = sY - ev->pos().y();
             if( delta_sX > 0.0)
-                mainCam.strafe_right();
-            if(delta_sX < 0.0)
-                mainCam.strafe_left();
+                mainCam.strafe_right(delta_sX);
+            else if(delta_sX < 0.0)
+                mainCam.strafe_left(-delta_sX);
             if(delta_sY > 0.0)
-                mainCam.move_backward();
-            if(delta_sY < 0.0)
-                mainCam.move_forward();
+                mainCam.move_horizontal_backward(delta_sY);
+            else if(delta_sY < 0.0)
+                mainCam.move_horizontal_forward(-delta_sY);
             sX = static_cast<double>(ev->x());
             sY = static_cast<double>(ev->y());
         }
@@ -377,8 +380,8 @@ void _scene_widg::wheelEvent(QWheelEvent *ev){
     if(limited_frames==0)
         return;
     if(ev->delta() > 0)
-        mainCam.move_forward(MOUSE_WHEEL_SCALAR);
-    else mainCam.move_backward(MOUSE_WHEEL_SCALAR);
+        mainCam.move_forward(ZAY_MOUSE_WHEEL_SCALAR);
+    else mainCam.move_backward(ZAY_MOUSE_WHEEL_SCALAR);
 }
 
 void _scene_widg::keyReleaseEvent(QKeyEvent *ev)
@@ -544,7 +547,7 @@ void _scene_widg::send_data()
              "/tex/stone_wall_1");
     //------------------------------
 
-    fboFormat.setSamples(NUM_SAMPLES_PER_PIXEL);
+    fboFormat.setSamples(ZAY_NUM_SAMPLES_PER_PIXEL);
     fboFormat.setAttachment
             (QGLFramebufferObject::CombinedDepthStencil);
     model_vehicles = new model_vehicle(this,
@@ -596,8 +599,9 @@ void _scene_widg::send_data()
 void _scene_widg::add_default_obj(){
     for(uint32_t i{0}; i<default_objects.vehicles.size(); ++i)
         model_vehicles->add_vehicle
-                (new QGLFramebufferObject(WIDTH,
-                                          HEIGHT, fboFormat),
+                (new QGLFramebufferObject(ZAY_SCENE_WIDTH,
+                                          ZAY_SCENE_HEIGHT, 
+                                          fboFormat),
                  default_objects.vehicles[i]);
 
     update_current_vehicle("any_vehicle");
@@ -616,9 +620,10 @@ void _scene_widg::update_current_vehicle
 void _scene_widg::add_vehicle
     (const transform_attribs<GLdouble>& attribs){
     model_vehicles->add_vehicle
-        (new QGLFramebufferObject(WIDTH,
-         HEIGHT, fboFormat),
-         attribs);
+        (new QGLFramebufferObject(ZAY_SCENE_WIDTH,
+         ZAY_SCENE_HEIGHT, fboFormat), attribs);
+    if(model_vehicles->vehicles.size()==1)
+        current_model = &model_vehicles->vehicles[0];
 }
 
 void _scene_widg::delete_vehicle

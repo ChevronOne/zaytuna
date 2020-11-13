@@ -49,7 +49,7 @@ camera::camera() : ROTATION_SPEED{0.3}, MOVEMENT_SPEED{0.024},
             view_point{glm::dvec3(0.0, 0.0, 0.0)},
             mouse_position{glm::dvec2(0.0, 0.0)},
             projectionMat{glm::perspective(glm::radians(FIELD_OF_VIEW),
-                                           static_cast<double>(WIDTH) / HEIGHT,
+                                           static_cast<double>(ZAY_SCENE_WIDTH) / ZAY_SCENE_HEIGHT,
                                            NEAR_PLANE,
                                            FAR_PLANE)},
             world_to_viewMat{glm::lookAt(camera_position,
@@ -112,7 +112,7 @@ camera::~camera(){}
 void camera::mouse_update(const glm::dvec2& new_mouse_position)
 {
     glm::dvec2 mouse_delta = new_mouse_position - mouse_position;
-    if (glm::length(mouse_delta) > MOUSE_DELTA_IGNORE)
+    if (glm::length(mouse_delta) > ZAY_MOUSE_DELTA_IGNORE)
     {
         mouse_position = new_mouse_position;
         return;
@@ -134,7 +134,7 @@ void camera::mouse_update(const glm::dvec2& new_mouse_position)
 
 void camera::mouse_held_update(const glm::dvec2& new_mouse_position){
     glm::dvec2 mouse_delta = new_mouse_position - mouse_position;
-    if (glm::length(mouse_delta) > MOUSE_DELTA_IGNORE || view_direction.y == 0.0)
+    if (glm::length(mouse_delta) > ZAY_MOUSE_DELTA_IGNORE || view_direction.y == 0.0)
     {
         mouse_position = new_mouse_position;
         return;
@@ -178,23 +178,33 @@ void camera::move_backward(double scalar){
     camera_position += -MOVEMENT_SPEED * scalar * view_direction;
 }
 
-void camera::move_up(void){
-    camera_position += MOVEMENT_SPEED * up_direction;
+void camera::move_horizontal_forward(double scalar){
+    camera_position += MOVEMENT_SPEED * scalar 
+            * glm::normalize(glm::dvec3(view_direction.x, 0.0, view_direction.z));
 }
 
-void camera::move_down(void){
-    camera_position += -MOVEMENT_SPEED * up_direction;
+void camera::move_horizontal_backward(double scalar){
+    camera_position += -MOVEMENT_SPEED * scalar 
+            * glm::normalize(glm::dvec3(view_direction.x, 0.0, view_direction.z));
 }
 
-void camera::strafe_right(void){
+void camera::move_up(double scalar){
+    camera_position += MOVEMENT_SPEED * scalar * up_direction;
+}
+
+void camera::move_down(double scalar){
+    camera_position += -MOVEMENT_SPEED * scalar * up_direction;
+}
+
+void camera::strafe_right(double scalar){
     glm::dvec3 strafe_direction = glm::cross(view_direction, up_direction);
-    camera_position += MOVEMENT_SPEED * strafe_direction;
+    camera_position += MOVEMENT_SPEED * scalar * strafe_direction;
 }
 
-void camera::strafe_left(void)
+void camera::strafe_left(double scalar)
 {
     glm::dvec3 strafe_direction = glm::cross(view_direction, up_direction);
-    camera_position += -MOVEMENT_SPEED * strafe_direction;
+    camera_position += -MOVEMENT_SPEED * scalar * strafe_direction;
 }
 
 } // namespace  zaytuna
