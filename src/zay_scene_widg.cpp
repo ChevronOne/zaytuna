@@ -20,7 +20,7 @@
 //  General Public License for more details.
 
 /*
- * Copyright Abbas Mohammed Murrey 2019-20
+ * Copyright Abbas Mohammed Murrey 2019-21
  *
  * Permission to use, copy, modify, distribute and sell this software
  * for any purpose is hereby granted without fee, provided that the
@@ -38,74 +38,101 @@
 
 
 #include "zay_scene_widg.hpp"
-#include "zay_primary_win.hpp"
 
 
 namespace zaytuna {
 
 
-//// for debugging
-double GLOBAL_MOVEMENT_SPEED{0.0};
-double GLOBAL_STEERING_WHEEL{0.00000001};
-extern double SLIDER_MOVEMENT_SPEED;
-extern double SLIDER_STEERING_WHEEL;
-
-double _scene_widg::sX, _scene_widg::sY; //, _scene_widg::sZ;
-double _scene_widg::delta_sX, _scene_widg::delta_sY;
-double _scene_widg::glX, _scene_widg::glY; //, _scene_widg::glZ;
+double _scene_widg::sX{0}, _scene_widg::sY{0}; //, _scene_widg::sZ;
+double _scene_widg::delta_sX{0}, _scene_widg::delta_sY{0};
+double _scene_widg::glX{-1}, _scene_widg::glY{1}; //, _scene_widg::glZ;
 
 
-//_scene_widg::_scene_widg(QWidget* parent): QGL_WIDGET_VERSION(parent),
-_scene_widg::_scene_widg(QGLFormat _format, QWidget* parent):
-    ZAY_QGL_WIDGET_VERSION(_format, parent),
+// _scene_widg::_scene_widg(ZAY_MSG_LOGGER* msg_log, QWidget* parent):
+//     ZAY_QGL_WIDGET_VERSION(parent), message_logger{msg_log},
+//     elap_accumulated{0.0}, cam_freq_accumulated{0.0}, elapsed{0.0},
+//     frame_rate{0.0}, front_cam_freq{ZAY_DEFAULT_FRONT_CAM_FREQUENCY}, 
+//     imgs_sec{1.0/ZAY_DEFAULT_FRONT_CAM_FREQUENCY}, local_control_speed{ZAY_DEFAULT_LOCAL_CONTROL_SPEED},
+//     local_control_steering{ZAY_DEFAULT_LOCAL_CONTROL_STEERING}, frames_counter{0},
+//     limited_frames{ZAY_DEFAULT_FRAME_RATE}, activeCam{&mainCam},
+//     k_forward{0}, k_backward{0}, k_left{0}, k_right{0}, k_up{0}, k_down{0},
+//     l_forward{0}, l_backward{0}, l_left{0}, l_right{0}
+// { 
+//     if(std::is_same<ZAY_QGL_WIDGET_VERSION, ZAY_Q_OPEN_GL_W>::value){
+//         QSurfaceFormat format_;
+//         format_.setSamples(ZAY_NUM_SAMPLES_PER_PIXEL); 
+//         ((ZAY_Q_OPEN_GL_W*)(this))->setFormat(format_);
+//     }
+
+//     set_up();
+// }
+
+_scene_widg::_scene_widg(ZAY_MSG_LOGGER* msg_log, QGLFormat format_, QWidget* parent):
+    ZAY_QGL_WIDGET_VERSION(format_, parent), message_logger{msg_log},
     elap_accumulated{0.0}, cam_freq_accumulated{0.0}, elapsed{0.0},
     frame_rate{0.0}, front_cam_freq{ZAY_DEFAULT_FRONT_CAM_FREQUENCY}, 
-    imgs_sec{1.0/ZAY_DEFAULT_FRONT_CAM_FREQUENCY}, local_control_speed{6.0},
-    local_control_steering{0.39269908}, frames_counter{0},
-    limited_frames{ZAY_DEFAULT_FRAM_RATE}, activeCam{&mainCam},
+    imgs_sec{1.0/ZAY_DEFAULT_FRONT_CAM_FREQUENCY}, local_control_speed{ZAY_DEFAULT_LOCAL_CONTROL_SPEED},
+    local_control_steering{ZAY_DEFAULT_LOCAL_CONTROL_STEERING}, frames_counter{0},
+    limited_frames{ZAY_DEFAULT_FRAME_RATE}, activeCam{&mainCam},
     k_forward{0}, k_backward{0}, k_left{0}, k_right{0}, k_up{0}, k_down{0},
     l_forward{0}, l_backward{0}, l_left{0}, l_right{0}
-{
-    //    QSurfaceFormat _format;
-    //    _format.setSamples(NUM_SAMPLES_PER_PIXEL); 
-    //    setFormat(_format);
+{ set_up();}
+
+
+void _scene_widg::set_up(){
 
     mainCam.updateProjection(ZAY_SCENE_WIDTH, ZAY_SCENE_HEIGHT);
+
     main_loop_timer.setTimerType(Qt::PreciseTimer);
     connect(&main_loop_timer, SIGNAL(timeout()), this, SLOT(animate()));
+
     makeCurrent();
     setMouseTracking(true);
     this->setFocusPolicy(Qt::StrongFocus);
-    
+
 }
 
+
+
 void _scene_widg::update_contrl_attribs(void){
+
     if(key_control){
-        GLOBAL_MOVEMENT_SPEED = l_forward? -local_control_speed:
+        v_state.MOVEMENT_SPEED = l_forward? -local_control_speed:
           (l_backward? local_control_speed:0.0);
 
-        GLOBAL_STEERING_WHEEL = l_right? local_control_steering:
+        v_state.STEERING_WHEEL = l_right? local_control_steering:
           (l_left? -local_control_steering:ZAY_STEERING_MARGIN_OF_ERROR);
 
     }else{
-        GLOBAL_MOVEMENT_SPEED = SLIDER_MOVEMENT_SPEED;
-        GLOBAL_STEERING_WHEEL = SLIDER_STEERING_WHEEL;
+        v_state.MOVEMENT_SPEED = SLIDER_MOVEMENT_SPEED;
+        v_state.STEERING_WHEEL = SLIDER_STEERING_WHEEL;
     }
+
 }
 
+
+
 _scene_widg::~_scene_widg(){
+
     cleanUp();
     if(model_vehicles != nullptr)
         delete model_vehicles;
+    
     if(obstacle_objects != nullptr)
         delete obstacle_objects;
+    
     if(skybox != nullptr)
         delete skybox;
+    
 }
+
+
 
 void _scene_widg::cleanUp(){
     glDeleteBuffers(1, &theBufferID);
 }
+
+
 
 void _scene_widg::initializeGL(){
 
@@ -121,6 +148,7 @@ void _scene_widg::initializeGL(){
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     glViewport(0, 0, this->width(), this->height());
+    const std::string ZAY_PACKAGE_PATH{ros::package::getPath(ZAY_PACKAGE_NAME)};
     programs_ = {
         new static_program(this, 
                           ZAY_PACKAGE_PATH+"/programs/source0"),
@@ -131,6 +159,7 @@ void _scene_widg::initializeGL(){
         new animated_program(this, 
                           ZAY_PACKAGE_PATH+"/programs/source3")
     };
+
     send_data();
     std::cout << "  Zaytuna Simulator " <<ZAYTUNA_VERSION << "." << ZAYTUNA_MINOR_VERSION << ", "
               << "running with following system specifications:\n" << std::flush;
@@ -142,11 +171,16 @@ void _scene_widg::initializeGL(){
 
     main_loop_timer.start(1000/limited_frames);
     start_t = std::chrono::high_resolution_clock::now();
+
 }
 
+
+
 void _scene_widg::update_time_interval(uint32_t val){
+
     limited_frames = val;
     main_loop_timer.stop();
+
     if(val!=0)
         main_loop_timer.start(1000/val);
     else
@@ -154,24 +188,32 @@ void _scene_widg::update_time_interval(uint32_t val){
     
 }
 
+
+
 void _scene_widg::update_fc_time_interval(double val){
+
     front_cam_freq = val;
     if(val>0.0){
         cam_freq_accumulated=imgs_sec = 1.0/val;
-    }
-    else{
+
+    }else{
         imgs_sec = std::numeric_limits<decltype(imgs_sec)>::max();
         cam_freq_accumulated=0;
     }
+
 }
+
+
 
 void _scene_widg::render_local_scene(camera const*const current_cam){
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     programs_[1]->makeUnderUse();
     uint32_t i{0};
 	for(; i<environmental_objects.size(); ++i)
         environmental_objects[i]->render_obj(current_cam);
+    
     programs_[2]->makeUnderUse();
     skybox->render_obj(current_cam);
 
@@ -189,7 +231,10 @@ void _scene_widg::render_local_scene(camera const*const current_cam){
     model_vehicles->render_obj(current_cam);
 }
 
+
+
 void _scene_widg::paintGL(){
+
     ros::spinOnce();
     update_contrl_attribs();
     if(activeCam == &mainCam){
@@ -216,6 +261,7 @@ void _scene_widg::paintGL(){
 
     if(activeCam==&mainCam)
         mainCam.updateWorld_to_viewMat();
+
     render_main_scene(activeCam);
 
     // frame rate
@@ -230,97 +276,144 @@ void _scene_widg::paintGL(){
 
     if(elap_accumulated>=ZAY_NUM_SEC_FRAME_RATE) {
 //        std::cout << DebugGLerr(glGetError()) << "\n";
+
         if(limited_frames == 0)
             frame_rate = 0.0;
         else
             frame_rate = frames_counter/elap_accumulated;
+        
         elap_accumulated = frames_counter = 0;
         if(front_cam_freq > 0.0 && cam_freq_accumulated > 2*imgs_sec)
             cam_freq_accumulated=2*imgs_sec;
+        
     }
 
     if(cam_freq_accumulated>=imgs_sec){
+
         for(uint32_t i{0}; i<model_vehicles->vehicles.size(); ++i){
-            model_vehicles->vehicles[i].localView_buffer->bind();
+
+            model_vehicles->vehicles[i].bind();
             render_local_scene(&(model_vehicles->vehicles[i].frontCam));
-            model_vehicles->vehicles[i].grab_buffer();
+
+            model_vehicles->vehicles[i].advertise_frontCam();
+
         }
+
         glBindFramebuffer(GL_FRAMEBUFFER,  0);
         cam_freq_accumulated-=imgs_sec;
+
     }
 
 }
+
+
 
 void _scene_widg::render_main_scene(camera const*const current_cam){
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     programs_[0]->makeUnderUse();
     if(coord_checked)
         basic_objects[0]->render_obj(current_cam);
+    
     if(grid_checked)
         basic_objects[1]->render_obj(current_cam);
+    
+
     programs_[1]->makeUnderUse();
     uint32_t i{0};
 	for(; i<environmental_objects.size(); ++i)
         environmental_objects[i]->render_obj(current_cam);
+    
     programs_[2]->makeUnderUse();
     skybox->render_obj(current_cam);
+
     programs_[3]->makeUnderUse();
     obstacle_objects->render_obj(current_cam);
     model_vehicles->render_obj(current_cam);
+
 }
 
+
+
 void _scene_widg::resizeGL(int W, int H){
+
     glViewport(0, 0, W, H);
     mainCam.updateProjection(W, H);
+
     for(uint32_t i{0}; i<model_vehicles->vehicles.size(); ++i){
         model_vehicles->vehicles[i].frontCam.updateProjection(W, H);
     }
+
     repaint();
+
 }
 
+
+
 void _scene_widg::updateProjection(){
+
     mainCam.updateProjection(ZAY_SCENE_WIDTH, ZAY_SCENE_HEIGHT);
     for(uint32_t i{0}; i<model_vehicles->vehicles.size(); ++i){
         model_vehicles->vehicles[i].frontCam.updateProjection
                 (ZAY_SCENE_WIDTH, ZAY_SCENE_HEIGHT);
     }
+
 }
 
+
+
 void _scene_widg::mouseMoveEvent(QMouseEvent *ev){
+
     if(limited_frames==0)
         return;
+
     if(activeCam == &mainCam){
+
         if(ev->buttons()==Qt::RightButton){
+
             delta_sX = sX - ev->pos().x();
             delta_sY = sY - ev->pos().y();
+
+
             if( delta_sX > 0.0)
                 mainCam.strafe_right(delta_sX);
             else if(delta_sX < 0.0)
                 mainCam.strafe_left(-delta_sX);
+            
+
             if(delta_sY > 0.0)
                 mainCam.move_horizontal_backward(delta_sY);
             else if(delta_sY < 0.0)
                 mainCam.move_horizontal_forward(-delta_sY);
+            
             sX = static_cast<double>(ev->x());
             sY = static_cast<double>(ev->y());
-        }
-        else{
+
+        }else{
+
             sX = static_cast<double>(ev->x());
             sY = static_cast<double>(ev->y());
+
             glX =  (sX/ (static_cast<double>
                          (this->width())/2.0) ) -1;
             glY =  -((sY/ (static_cast<double>
                            (this->height())/2.0) ) -1);
+            
             if(ev->buttons()==Qt::LeftButton)
-                mainCam.mouse_held_update(glm::vec2(ev->x(),ev->y()));
+                mainCam.mouse_held_update(glm::vec2(ev->x(),ev->y()), frame_rate);
             else
-                mainCam.mouse_update(glm::vec2(ev->x(),ev->y()));
+                mainCam.mouse_update(glm::vec2(ev->x(),ev->y()), frame_rate);
+            
         }
     }
+
 }
 
+
+
 void _scene_widg::update_cam(){
+
     if(k_forward)
         mainCam.move_forward();
     else if(k_backward)
@@ -333,9 +426,13 @@ void _scene_widg::update_cam(){
         mainCam.move_up();
     else if(k_down)
         mainCam.move_down();
+
 }
 
+
+
 void _scene_widg::keyPressEvent(QKeyEvent* ev){
+
     if(limited_frames==0)
         return;
 
@@ -361,6 +458,7 @@ void _scene_widg::keyPressEvent(QKeyEvent* ev){
                 return;
         }
     }
+
     switch (ev->key()){
         case Qt::Key::Key_T:
             l_forward=1;
@@ -374,15 +472,24 @@ void _scene_widg::keyPressEvent(QKeyEvent* ev){
         case Qt::Key::Key_H:
             l_right=1;
     }
+
 }
 
+
+
 void _scene_widg::wheelEvent(QWheelEvent *ev){
+
     if(limited_frames==0)
         return;
+
     if(ev->delta() > 0)
         mainCam.move_forward(ZAY_MOUSE_WHEEL_SCALAR);
+
     else mainCam.move_backward(ZAY_MOUSE_WHEEL_SCALAR);
+
 }
+
+
 
 void _scene_widg::keyReleaseEvent(QKeyEvent *ev)
 {
@@ -393,10 +500,10 @@ void _scene_widg::keyReleaseEvent(QKeyEvent *ev)
         case Qt::Key::Key_S:
             k_backward=0;
             break;
-        case Qt::Key::Key_Left:
+        case Qt::Key::Key_Left: case Qt::Key::Key_A:
             k_left=0;
             break;
-        case Qt::Key::Key_Right:
+        case Qt::Key::Key_Right: case Qt::Key::Key_D:
             k_right=0;
             break;
         case Qt::Key::Key_Up:
@@ -404,12 +511,6 @@ void _scene_widg::keyReleaseEvent(QKeyEvent *ev)
             break;
         case Qt::Key::Key_Down:
             k_down=0;
-            break;
-        case Qt::Key::Key_A:
-            k_left=0;
-            break;
-        case Qt::Key::Key_D:
-            k_right=0;
             break;
         case Qt::Key::Key_T:
             l_forward=0;
@@ -423,7 +524,10 @@ void _scene_widg::keyReleaseEvent(QKeyEvent *ev)
         case Qt::Key::Key_H:
             l_right=0;
     }
+
 }
+
+
 
 //void _scene_widg::mousePressEvent(QMouseEvent *ev)
 //{
@@ -434,16 +538,25 @@ void _scene_widg::keyReleaseEvent(QKeyEvent *ev)
 ////    }
 //}
 
+
+
 //void _scene_widg::mouseReleaseEvent(QMouseEvent *ev)
 //{
 //    clicked = false;
 //}
 
+
+
 void _scene_widg::animate(){
     repaint();
 }
+
+
+
 void _scene_widg::send_data()
 {
+
+    const std::string ZAY_PACKAGE_PATH{ros::package::getPath(ZAY_PACKAGE_NAME)};
     basic_objects = {
         new coord_sys(this,
                       programs_[0]->program_handler(),
@@ -464,6 +577,8 @@ void _scene_widg::send_data()
 //                      glm::translate(glm::dvec3(0.0, 0.0, 0.0))
         )
     };
+
+
     //---------------------------
     environmental_objects = {
         new external_obj(this,
@@ -522,6 +637,8 @@ void _scene_widg::send_data()
         )
 
     };
+
+
     //-------------------------
     skybox = new skybox_obj(this,
                             programs_[2]->program_handler(),
@@ -529,31 +646,42 @@ void _scene_widg::send_data()
 //                             ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
 //                             glm::translate(glm::dvec3(0.0, 0.0, 0.0))
                         );
+    
+
+
     //---------------------------------
     obstacle_objects =
             new obstacle_pack<GLdouble>(this,
                 programs_[3]->program_handler(),
                 Obstacle_Type::CARTON_BOX,
                 ZAY_PACKAGE_PATH+"/primitives/zay_carton_box",
+                ZAY_PACKAGE_PATH+"/primitives/zay_carton_box_projection",
                 "/tex/carton_box",
                 GL_QUADS);
+    
     obstacle_objects->add_category
             (Obstacle_Type::BRICK_WALL,
              ZAY_PACKAGE_PATH+"/primitives/zay_brick_wall",
+             ZAY_PACKAGE_PATH+"/primitives/zay_brick_wall_projection",
              "/tex/brick_wall");
+    
     obstacle_objects->add_category
             (Obstacle_Type::STONE_WALL,
              ZAY_PACKAGE_PATH+"/primitives/zay_stone_wall",
+             ZAY_PACKAGE_PATH+"/primitives/zay_stone_wall_projection",
              "/tex/stone_wall_1");
     //------------------------------
 
     fboFormat.setSamples(ZAY_NUM_SAMPLES_PER_PIXEL);
     fboFormat.setAttachment
             (QGLFramebufferObject::CombinedDepthStencil);
+    
     model_vehicles = new model_vehicle(this,
            programs_[3]->program_handler(),
            ZAY_PACKAGE_PATH+"/primitives/zaytuna_model",
+           ZAY_PACKAGE_PATH+"/primitives/zaytuna_model_projection",
            "/tex/zaytuna-fragments",
+           &coll_pack,
            GL_TRIANGLES );
 
     //-------------------------------
@@ -561,8 +689,11 @@ void _scene_widg::send_data()
     GLsizeiptr BUF_SIZE{0};
     for(const auto& _obj:basic_objects)
         BUF_SIZE+=_obj->buffer_size();
+
     for(const auto& _obj:environmental_objects)
         BUF_SIZE+=_obj->buffer_size();
+
+
 
     BUF_SIZE+=skybox->buffer_size();
     BUF_SIZE+=obstacle_objects->buffer_size();
@@ -574,95 +705,210 @@ void _scene_widg::send_data()
                  BUF_SIZE, nullptr,
                  GL_STATIC_DRAW);
 
+
+
     GLintptr current_offset{0};
     GLuint previous_offset{0};
     for(auto& _obj:basic_objects)
         _obj->transmit_data(current_offset,
                             theBufferID,
                             previous_offset);
+
     for(auto& _obj:environmental_objects)
         _obj->transmit_data(current_offset,
                             theBufferID,
                             previous_offset);
+
     skybox->transmit_data(current_offset,
                           theBufferID,
                           previous_offset);
+
     obstacle_objects->transmit_data(current_offset,
                                     theBufferID,
                                     previous_offset);
+    
     model_vehicles->transmit_data(current_offset,
                                   theBufferID,
                                   previous_offset);
 
     add_default_obj();
+
 }
+
+
+
 void _scene_widg::add_default_obj(){
-    for(uint32_t i{0}; i<default_objects.vehicles.size(); ++i)
+
+    const std::string ZAY_PACKAGE_PATH{ros::package::getPath(ZAY_PACKAGE_NAME)};
+    load_external_collition_object(ZAY_PACKAGE_PATH+"/primitives/zay_fence-front_projection", "front_fence");
+    load_external_collition_object(ZAY_PACKAGE_PATH+"/primitives/zay_fence-back_projection", "back_fence");
+    load_external_collition_object(ZAY_PACKAGE_PATH+"/primitives/zay_fence-right_projection", "right_fence");
+    load_external_collition_object(ZAY_PACKAGE_PATH+"/primitives/zay_fence-left_projection", "left_fence");
+
+    for(uint32_t i{0}; i<default_objects.vehicles.size(); ++i){
         model_vehicles->add_vehicle
                 (new QGLFramebufferObject(ZAY_SCENE_WIDTH,
                                           ZAY_SCENE_HEIGHT, 
                                           fboFormat),
-                 default_objects.vehicles[i]);
+                 default_objects.vehicles[i], &v_state, message_logger);
+
+        coll_pack.dyn_objs.emplace_back(&(model_vehicles->vehicles.back().coll_rect));
+    }
 
     update_current_vehicle("any_vehicle");
     for(uint32_t i{0}; i<default_objects.obstacles.size(); ++i)
         add_obstacle(default_objects.obstacles[i]);
+
+    default_objects.clear();
+
 }
+
+
+
 void _scene_widg::update_current_vehicle
     (const std::string& _name){
+
     auto it = model_vehicles->find(_name);
     if(it == model_vehicles->vehicles.end())
         if(model_vehicles->vehicles.size() != 0)
             current_model = &model_vehicles->vehicles[0];
         else current_model = nullptr;
+
+
     else current_model = &(*it);
+
 }
+
+
+
 void _scene_widg::add_vehicle
     (const transform_attribs<GLdouble>& attribs){
+
     model_vehicles->add_vehicle
         (new QGLFramebufferObject(ZAY_SCENE_WIDTH,
-         ZAY_SCENE_HEIGHT, fboFormat), attribs);
+         ZAY_SCENE_HEIGHT, fboFormat), attribs, &v_state, message_logger);
+
     if(model_vehicles->vehicles.size()==1)
         current_model = &model_vehicles->vehicles[0];
+
+    coll_pack.dyn_objs.emplace_back(&(model_vehicles->vehicles.back().coll_rect));
+
 }
+
+
 
 void _scene_widg::delete_vehicle
     (const std::string& _name){
+
+    coll_pack.erase_veh(_name);
+
     auto it = model_vehicles->find(_name);
     model_vehicles->vehicles.erase(it);
+
 }
+
+
+
 zaytuna::vehicle_attributes*
 _scene_widg::getOtherVeh(const std::string& _name){
+
     zaytuna::vehicle_attributes* other{nullptr};
+
     for(uint32_t i{0}; i<model_vehicles->vehicles.size(); ++i)
         if(model_vehicles->vehicles[i].attribs.name != _name)
             return &model_vehicles->vehicles[i];
+
     return other;
+
 }
+
+
+
 void _scene_widg::add_obstacle
     (const obstacle_attribs<GLdouble>& attribs){
+
     obstacle_objects->categories
             [attribs.type]->instances.push_back(attribs);
     obstacle_objects->category[attribs.name] = attribs.type;
+
+    add_static_collition_object(attribs);
+
 }
+
+
+
 void _scene_widg::delete_obstacle
     (const std::string& _name){
+
     obstacle_objects->delete_obstacle(_name);
     obstacle_objects->category.erase(_name);
+
+    coll_pack.erase_obs(_name);
+
 }
+
+
+
 obstacle_attribs<GLdouble>
 _scene_widg::get_obstacle(const std::string& _name){
     return obstacle_objects->get_attribs(_name);
 }
 
-void _scene_widg::edit_obstacle
-    (const obstacle_attribs<GLdouble>& attribs){
-    auto it = obstacle_objects->find(attribs.name);
-    it->edit(attribs);
+
+
+void _scene_widg::load_external_collition_object
+            (const std::string& _dir, const std::string& _name){
+
+    rect_collistion_object<GLdouble> coll_obj;
+    obj_parser::extractProjectionRect(_dir, coll_obj.points);
+
+    coll_obj.ID = _name;
+    coll_obj.uniqueV[0]=coll_obj.points[1]-coll_obj.points[0];
+    coll_obj.uniqueV[1]=coll_obj.points[2]-coll_obj.points[1];
+
+    coll_pack.static_objs.emplace_back(coll_obj);
+
 }
 
 
+
+void _scene_widg::add_static_collition_object
+        (const obstacle_attribs<GLdouble>& attribs){
+
+    rect_collistion_object<GLdouble> coll_obj;
+
+    coll_obj.ID = attribs.name;
+    coll_obj.points = obstacle_objects->rect_projections[attribs.type].points;
+
+    glm::dmat4 M{attribs.transformMat()};
+    for(glm::dvec3& vec:coll_obj.points)
+        vec = M*glm::dvec4(vec, 1.0);
+
+    coll_obj.uniqueV[0]=coll_obj.points[1]-coll_obj.points[0];
+    coll_obj.uniqueV[1]=coll_obj.points[2]-coll_obj.points[1];
+
+    coll_pack.static_objs.emplace_back(coll_obj);
+
+}
+
+
+
+/*****simply just delete the obstacle and add new one*****/
+// void _scene_widg::edit_obstacle
+//     (const obstacle_attribs<GLdouble>& attribs){
+//     auto it = obstacle_objects->find(attribs.name);
+//     it->edit(attribs);
+
+//     ////==================================
+//     coll_pack.edit_obs(attribs);
+// }
+
+
+
 } // namespace  zaytuna
+
+
+
 
 
 

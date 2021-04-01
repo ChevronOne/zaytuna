@@ -20,7 +20,7 @@
 //  General Public License for more details.
 
 /*
- * Copyright Abbas Mohammed Murrey 2019-20
+ * Copyright Abbas Mohammed Murrey 2019-21
  *
  * Permission to use, copy, modify, distribute and sell this software
  * for any purpose is hereby granted without fee, provided that the
@@ -434,7 +434,7 @@ shape_data<VERT> shape_maker<VERT>::makeCubemap() {
 
 
     unsigned int indices[] = {
-       0,   1,  2,  0,  2,  3,  // Top
+        0,   1,  2,  0,  2,  3,  // Top
         4,   5,  6,  4,  6,  7, // Front
         8,   9, 10,  8, 10, 11, // Right
         12, 13, 14, 12, 14, 15, // Left
@@ -450,6 +450,8 @@ shape_data<VERT> shape_maker<VERT>::makeCubemap() {
     memcpy(cube.indices, indices, sizeof(indices));
 
     return cube;
+
+    
 }
 
 

@@ -20,7 +20,7 @@
 //  General Public License for more details.
 
 /*
- * Copyright Abbas Mohammed Murrey 2019-20
+ * Copyright Abbas Mohammed Murrey 2019-21
  *
  * Permission to use, copy, modify, distribute and sell this software
  * for any purpose is hereby granted without fee, provided that the
@@ -38,12 +38,17 @@
 #ifndef ZAY_MODEL_VEHICLE_HPP
 #define ZAY_MODEL_VEHICLE_HPP
 
-#include "zay_headers.hpp"
-#include "zay_utility.hpp"
-#include "zay_cam.hpp"
-#include "zay_shape_data.hpp"
+
+#include "zay_topics.hpp"
+
+
+
+
 
 namespace zaytuna {
+
+
+
 
 class model_vehicle;
 class _scene_widg;
@@ -53,51 +58,46 @@ typedef std::allocator<void> void_alloc;
 
 class vehicle_attributes
 {
+    typedef std::chrono::time_point<std::chrono::high_resolution_clock,
+                    std::chrono::nanoseconds> nanSec;
+    typedef std::chrono::duration<double,
+                        std::ratio< 1, 1>> durSec;
 
-    ros::NodeHandle node_handle;
-    ros::Publisher gps_pub, ticks_pub, orientation_pub, cam_pub, geo_pub;
-    ros::Subscriber speed_sub, steering_sub;
 
-    void speed_callback(const std_msgs::Float64&);
-    void steering_callback(const std_msgs::Float64&);
+    std::unique_ptr<vehicle_topics<double, void_alloc>> topics{nullptr};
+    inline void bind(){
+        topics->localView_buffer->bind();
+    }
 
-    zaytuna::vec3<void_alloc> vehicle_pos;
-    geometry_msgs::Vector3_<void_alloc>& pos_ref{vehicle_pos};
-    zaytuna::vec3<void_alloc> vehicle_orientation;
-    geometry_msgs::Vector3_<void_alloc>& orientation_ref{vehicle_orientation};
-    zaytuna::geo_pose<void_alloc> vehicle_geometry;
-    geometry_msgs::Pose_<void_alloc>& vehicle_geometry_ref{vehicle_geometry};
-    zaytuna::uint32<void_alloc> current_ticks;
-    std_msgs::UInt32_<void_alloc>& current_ticks_ref{current_ticks};
-    
-    sensor_msgs::Image_<void_alloc> local_cam_msg;
-    QImage local_cam_img{QImage(ZAY_SCENE_WIDTH, 
-                                ZAY_SCENE_HEIGHT, 
-                                QImage::Format_RGB888)};
+    inline void advertise_frontCam(){
+        topics->grab_buffer();
+    }
 
-    std::chrono::time_point<std::chrono::high_resolution_clock,
-                    std::chrono::nanoseconds> timer_t;
+
+    nanSec timer_t;
     
     ZAY_USED_GL_VERSION* _widg{nullptr};
     transform_attribs<GLdouble> attribs;
-    QGLFramebufferObject* localView_buffer{nullptr};
+    rect_collistion_object<GLdouble> const *coll_rect_orig;
+    rect_collistion_object<GLdouble> coll_rect;
+    rect_collistion_pack<GLdouble>* coll_pack;
+    zaytuna::vehicle_state<GLdouble> *v_state{nullptr};
+    ZAY_MSG_LOGGER* zay_msg_logger;
+
 
     double elapsed_t;
+    bool is_collided{0}, collision_msg{0};
+    std::string collided_object{"unkown_collision_object_name"};
+    std::unique_ptr<std::thread> collision_tester{nullptr};
+    
 
     friend class model_vehicle;
     friend class _scene_widg;
     friend class primary_win;
 
 
-public:
-    vehicle_attributes() = default;
-    explicit vehicle_attributes
-            (ZAY_USED_GL_VERSION*,
-             QGLFramebufferObject *const,
-             const transform_attribs<GLdouble>);
-    ~vehicle_attributes();
 
-    void actuate();
+protected:
 
     glm::dvec3 vehic_direction;
     const glm::dvec3 up_direction{0.0, 1.0, 0.0};
@@ -109,8 +109,8 @@ public:
     glm::dmat4 rotationMat; // rotation matrix of model vehicle;
 
     double AMOUNT_OF_ROTATION; // amount of rotation of the model vehicle 'per frame'
-    double MOVEMENT_SPEED, DESIRED_SPEED,  REMOTE_SPEED;
-    double STEERING_WHEEL, DESIRED_STEERING, REMOTE_STEERING;
+    double MOVEMENT_SPEED, DESIRED_SPEED; 
+    double STEERING_WHEEL, DESIRED_STEERING; 
     double amount_of_hRotation{0.0}; // amount of horizontal rotation of the wheels
     double amount_of_rotation_Lidar{0.0}; // amount of rotation of lidar
     const double lidar_spin_speed{750.0}; // constant scalar 'affects only rendering'
@@ -127,12 +127,12 @@ public:
     glm::dvec3 center_of_rotation; // center of rotation of the model vehicle
 
     void update_attribs(const double);
+    inline void update_actuators_commands(const double);
+    inline void actuate();
     void update_rotation_att();
-    void update_cent(void);
+    // void update_cent(void);
     void update_positional_attributes(const transform_attribs<GLdouble>);
 
-    inline void pubFront_img(void);
-    inline void grab_buffer(void);
     transform_attribs<GLdouble> current_state(void);
 
 
@@ -165,18 +165,34 @@ public:
     const double speed_delay{0.3}; // sec
 
 
+    
+    inline void update_projection_rect(void);
+
+    // for debugging purposes
+    typedef glm::vec<ZAY_POINT_D, GLdouble, glm::qualifier::packed_highp> coll_vert;
+    inline void collision_test(rect_collistion_pack<GLdouble> const * const);
+    inline bool axis_inter(const coll_vert, 
+                           const boost::array<coll_vert, ZAY_RECTANGLE_P>&) const;
+
+
+
+
+public:
+
+    vehicle_attributes() = default;
+    explicit vehicle_attributes
+            (ZAY_USED_GL_VERSION*,
+             QGLFramebufferObject *const,
+             const transform_attribs<GLdouble>,
+             rect_collistion_object<GLdouble> const*const,
+             rect_collistion_pack<GLdouble>*,
+             zaytuna::vehicle_state<GLdouble>*,
+             ZAY_MSG_LOGGER*);
+    // ~vehicle_attributes() = default;
+    ~vehicle_attributes();
+
 
 };
-
-
-void vehicle_attributes::grab_buffer(){
-    local_cam_img = localView_buffer->toImage().convertToFormat(QImage::Format_RGB888);
-    memcpy((char*)local_cam_msg.data.data(), 
-           local_cam_img.bits(), 
-           ZAY_FRONT_IMG_SIZE);
-    cam_pub.publish(local_cam_msg);
-    // local_cam_img.save((attribs.name+".jpg").c_str());
-}
 
 
 

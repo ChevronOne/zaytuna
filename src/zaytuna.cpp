@@ -20,7 +20,7 @@
 //  General Public License for more details.
 
 /*
- * Copyright Abbas Mohammed Murrey 2019-20
+ * Copyright Abbas Mohammed Murrey 2019-21
  *
  * Permission to use, copy, modify, distribute and sell this software
  * for any purpose is hereby granted without fee, provided that the
@@ -32,64 +32,22 @@
  */
 
 
-
-
-#include "zay_primary_win.hpp"
-#include <QApplication>
-#include <QScreen>
-#include <iostream>
+#include "zay_app.hpp"
 
 int main(int argc, char *argv[])
 {
-    ros::init(argc, argv, "zaytuna");
+    zaytuna::ZaytunaApp zayApp(argc, argv);
+    if(zayApp.ok())
+        return zayApp.run();
         
-    while(!ros::master::check()){
-        std::this_thread::sleep_for(2s);
-        ROS_ERROR_STREAM("Zaytuna: connection to master at ["
-                         << ros::master::getHost()<<":"<<ros::master::getPort() 
-                         << "] yet to be established..");
-    }
-
-    QApplication a(argc, argv);
-    if (!QGLFormat::hasOpenGL() || !QGLFramebufferObject::hasOpenGLFramebufferObjects()) {
-        QMessageBox::warning(nullptr, "OpenGL FrameBuffer Object",
-                                 "This system does not support OpenGL/FrameBuffer Object!");
-        ROS_FATAL_STREAM("This system does not support OpenGL/FrameBuffer Object!");
-        return -1;
-    }
-
-    std::string fontPath{ZAY_PACKAGE_PATH+"/fonts/OpenSans-Light.ttf"};
-    int fontId = QFontDatabase::addApplicationFont(fontPath.c_str());
-    if (fontId != -1)
-    {
-        QFont font("OpenSans-Regular");
-        a.setFont(font);
-    }else{
-        ROS_WARN_STREAM("WARNING: default fonts did not load!");
-        if(!(QMessageBox::warning(nullptr, "warning",
-                                "Failed to load default fonts! Do you want to proceed?",
-                                QMessageBox::StandardButtons(QMessageBox::Yes | QMessageBox::No),
-                                QMessageBox::No)==QMessageBox::Yes))
-        {
-            return -1;
-        }
-    }
-    zaytuna::primary_win w;
-    QIcon icon((ZAY_PACKAGE_PATH+"/tex/zaytuna").c_str());
-    if(icon.isNull()){
-        ROS_ERROR_STREAM("Failed to load zaytuna icon!");
-    }else{
-        w.setWindowIcon(icon);
-    }
-    w.setWindowTitle("Zaytuna");
-    w.show();
-    int stat = a.exec();
-    QFontDatabase::removeApplicationFont(fontId);
-    return stat;
+    
+    else return -1;
 
     
     
 }
+
+
 
 
 

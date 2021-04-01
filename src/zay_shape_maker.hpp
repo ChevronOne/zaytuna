@@ -20,7 +20,7 @@
 //  General Public License for more details.
 
 /*
- * Copyright Abbas Mohammed Murrey 2019-20
+ * Copyright Abbas Mohammed Murrey 2019-21
  *
  * Permission to use, copy, modify, distribute and sell this software
  * for any purpose is hereby granted without fee, provided that the
@@ -38,18 +38,19 @@
 #define ZAY_SHAPE_MAKER_HPP
 
 
-#include <iterator>
-#include "zay_headers.hpp"
-#include "zay_vertex.hpp"
 #include "zay_shape_data.hpp"
 
 
 namespace zaytuna {
 
+
+
 template <typename VERT>
 class shape_maker
 {
+
 public:
+
     static shape_data<VERT>
     makeSphere(GLfloat PERS = 0.1f,
                GLfloat RAD = 1,
@@ -71,9 +72,14 @@ public:
 
 
 
+
+
 #include "zay_shape_maker.inl"
 
+
+
 } // namespace zaytuna
+
 
 
 #endif // ZAY_SHAPE_MAKER_HPP

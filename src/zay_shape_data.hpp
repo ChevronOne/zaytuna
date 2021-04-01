@@ -20,7 +20,7 @@
 //  General Public License for more details.
 
 /*
- * Copyright Abbas Mohammed Murrey 2019-20
+ * Copyright Abbas Mohammed Murrey 2019-21
  *
  * Permission to use, copy, modify, distribute and sell this software
  * for any purpose is hereby granted without fee, provided that the
@@ -38,7 +38,7 @@
 #ifndef ZAY_SHAPE_DATA_HPP
 #define ZAY_SHAPE_DATA_HPP
 
-#include "zay_headers.hpp"
+
 #include "zay_vertex.hpp"
 
 
@@ -49,8 +49,10 @@ namespace zaytuna {
 template <typename VERT>
 struct shape_data
 {
+
     shape_data() : verts(nullptr), verNum(0),
         indices(nullptr), indNum(0) {}
+    
     VERT* verts;
     GLuint verNum;
     GLuint* indices;
@@ -60,6 +62,7 @@ struct shape_data
     {
         return verNum * sizeof(VERT);
     }
+
     GLsizeiptr indBufSize() const
     {
         return indNum * sizeof(unsigned int);
@@ -79,7 +82,12 @@ struct shape_data
     }
 };
 
+
+
 } // namespace zaytuna
+
+
+
 
 #endif // ZAY_SHAPE_DATA_HPP
 

@@ -20,7 +20,7 @@
 //  General Public License for more details.
 
 /*
- * Copyright Abbas Mohammed Murrey 2019-20
+ * Copyright Abbas Mohammed Murrey 2019-21
  *
  * Permission to use, copy, modify, distribute and sell this software
  * for any purpose is hereby granted without fee, provided that the
@@ -36,94 +36,49 @@
 
 
 #include "zay_model_vehicle.hpp"
-#include "zay_scene_widg.hpp"
+
 
 namespace zaytuna {
 
 
-////-----for--debugging-----
-extern double GLOBAL_MOVEMENT_SPEED;
-extern double GLOBAL_STEERING_WHEEL;
 
-
-
-glm::dvec3 rotate(glm::dvec3 p, const glm::dvec3 c,
-                  const double angle, const bool ccw);
-
-glm::dvec3 intersect(const glm::dvec3 p1, const glm::dvec3 p2,
-                     const glm::dvec3 p3, const glm::dvec3 p4);
-
-zaytuna::vehicle_attributes::vehicle_attributes
+vehicle_attributes::vehicle_attributes
             (ZAY_USED_GL_VERSION* _widg,
              QGLFramebufferObject *const FBO_,
-             const transform_attribs<GLdouble> attribs):
-        _widg{_widg}, attribs{attribs},
-        localView_buffer{FBO_}, elapsed_t{0.0},
+             const transform_attribs<GLdouble> attribs,
+             rect_collistion_object<GLdouble> const*const proj_rect,
+             rect_collistion_pack<GLdouble>* coll_objs,
+             zaytuna::vehicle_state<GLdouble>* v_state,
+             ZAY_MSG_LOGGER* message_logger):
+        _widg{_widg}, attribs{attribs}, coll_rect_orig{proj_rect}, coll_rect{*proj_rect}, 
+        coll_pack{coll_objs}, v_state{v_state}, zay_msg_logger{message_logger}, elapsed_t{0.0},
         AMOUNT_OF_ROTATION{0.0}, MOVEMENT_SPEED{0.0}, DESIRED_SPEED{0.0},
-        REMOTE_SPEED{0.0}, STEERING_WHEEL(ZAY_STEERING_MARGIN_OF_ERROR), DESIRED_STEERING{0.0},
-        REMOTE_STEERING{ZAY_STEERING_MARGIN_OF_ERROR}, accumulated_dist(0.0),
+        STEERING_WHEEL(ZAY_STEERING_MARGIN_OF_ERROR), DESIRED_STEERING{0.0}, 
+        accumulated_dist(0.0),
         traveled_dist(0.0), ticks_counter(0),
         radius_of_rotation(0.0),
         center_of_rotation(glm::dvec3(0.0,0.0,0.0)){
 
-    frontCam.FIELD_OF_VIEW = 55.0; // should be adjusted!
-    update_positional_attributes(attribs);
+    frontCam.FIELD_OF_VIEW = ZAY_DEFAULT_FIELD_OF_VIEW; // should be adjusted!
+    topics.reset(new vehicle_topics<double, void_alloc>(attribs.name, FBO_));
 
+    coll_rect.ID = attribs.name;
+    update_positional_attributes(attribs);
+    
     transformationMats[1] = f_rightT;
     transformationMats[2] = f_leftT;
     transformationMats[3] = backT;
     transformationMats[4] = lidar;
-
-    gps_pub = node_handle.advertise<geometry_msgs::Vector3>
-            ("zaytuna/"+attribs.name+"/gps/localization",5);
-    orientation_pub = node_handle.advertise<geometry_msgs::Vector3>
-            ("zaytuna/"+attribs.name+"/compass/orientation",5);
-    geo_pub = node_handle.advertise<geometry_msgs::Pose>
-            ("zaytuna/"+attribs.name+"/geometry/pose",5);
-    ticks_pub = node_handle.advertise<std_msgs::UInt32>
-            ("zaytuna/"+attribs.name+"/sensors/ticks",10);
-
-    cam_pub = node_handle.advertise<sensor_msgs::Image>
-            ("zaytuna/"+attribs.name+"/sensors/front_cam/image_raw",0);
-
-    speed_sub = node_handle.subscribe
-            ("zaytuna/"+attribs.name+"/controller/speed", 1,
-             &vehicle_attributes::speed_callback, this);
-    steering_sub = node_handle.subscribe
-            ("zaytuna/"+attribs.name+"/controller/steering", 1,
-             &vehicle_attributes::steering_callback, this);
-
-    local_cam_msg.header = std_msgs::Header();
-    local_cam_msg.width = ZAY_SCENE_WIDTH;
-    local_cam_msg.height = ZAY_SCENE_HEIGHT;
-    local_cam_msg.encoding = "rgb8";
-    local_cam_msg.step = ZAY_SCENE_WIDTH * ZAY_NUM_OF_CHANNELS;
-    local_cam_msg.is_bigendian = 0;
-    local_cam_msg.data.resize(ZAY_FRONT_IMG_SIZE);
 }
-void vehicle_attributes::speed_callback
-        (const std_msgs::Float64& _val){
-    double val{_val.data};
-    if(val>1.0 || val<-1.0)
-        ROS_WARN_STREAM(attribs.name << ": invalid value for speed received: " << val);
-    REMOTE_SPEED = -(val > 1.0? ZAY_SPEED_SCALAR :
-          (val<-1.0? -ZAY_SPEED_SCALAR : ZAY_SPEED_SCALAR*val));
-}
-void vehicle_attributes::steering_callback
-        (const std_msgs::Float64& _val){
-    double val{_val.data};
-    if(val>1.0 || val<-1.0)
-        ROS_WARN_STREAM(attribs.name << ": invalid value for steering received: " << val);
-    REMOTE_STEERING = val == 0.0 ? ZAY_STEERING_MARGIN_OF_ERROR :
-          ((val>1.0? ZAY_MAX_TURN_ANGLE:
-          (val<-1.0? -ZAY_MAX_TURN_ANGLE: ZAY_MAX_TURN_ANGLE*val))*M_PI)/180.0;
-}
+
+
+
 
 void vehicle_attributes::update_positional_attributes
-        (const transform_attribs<GLdouble> attribs){
+        (const transform_attribs<GLdouble> attribs_){
 
-    this->attribs = attribs;
-    transformationMats[0] = attribs.transformMat();
+    this->attribs = attribs_;
+    transformationMats[0] = attribs_.transformMat();
 
     vehic_direction = glm::dvec3(1.0, 0.0, 0.0);
     back_ideal_tire = old_back_ideal_tire = glm::dvec3(0.0, 0.0, 0.0);
@@ -131,10 +86,10 @@ void vehicle_attributes::update_positional_attributes
 
     rotationMat = glm::rotate(0.0, up_direction);
 
-    vehicle_orientation = vehic_direction =
-            glm::dmat3(attribs.rotationMat()) * vehic_direction;
+    topics->vehicle_orientation = vehic_direction =
+            glm::dmat3(attribs_.rotationMat()) * vehic_direction;
 
-    vehicle_pos = back_ideal_tire =
+    topics->vehicle_pos = back_ideal_tire =
             old_back_ideal_tire = transformationMats[0]
             * glm::vec4(back_ideal_tire, 1.0);
 
@@ -142,7 +97,7 @@ void vehicle_attributes::update_positional_attributes
                         * glm::vec4(front_ideal_tire, 1.0);
 
     frontCam.camera_position = transformationMats[0] * camPos;
-    frontCam.view_direction  = attribs.rotationMat()
+    frontCam.view_direction  = attribs_.rotationMat()
                             * (frontCamViewDirection - camPos);
     frontCam.updateWorld_to_viewMat();
 
@@ -152,18 +107,33 @@ void vehicle_attributes::update_positional_attributes
                                         glm::dvec3(0.0, 1.0, 0.0));
     frontCam.updateProjection(ZAY_SCENE_WIDTH, ZAY_SCENE_HEIGHT);
 
-    vehicle_geometry.update(back_ideal_tire, vehic_direction);
+    topics->vehicle_geometry.update(back_ideal_tire, vehic_direction);
+
+
+    coll_rect.points = coll_rect_orig->points;
+    // coll_rect.ID = attribs_.name;
+    for(glm::dvec3& vec:coll_rect.points)
+        vec = transformationMats[0]*glm::dvec4(vec,1.0);
+    coll_rect.uniqueV[0] = coll_rect.points[1]-coll_rect.points[0];
+    coll_rect.uniqueV[1] = coll_rect.points[2]-coll_rect.points[1];
+
+    is_collided = 0;
+    if(collision_tester == nullptr){
+        collision_tester = std::make_unique<std::thread>(&vehicle_attributes::collision_test, this, coll_pack);
+        collision_tester->detach();
+    }
+
 }
 
 
-void vehicle_attributes::update_attribs(const double frame_rate)
-{
+void vehicle_attributes::update_actuators_commands(const double frame_rate){
+    
     if(is_detached){
-        DESIRED_SPEED = REMOTE_SPEED;
-        DESIRED_STEERING = REMOTE_STEERING;
+        DESIRED_SPEED = topics->REMOTE_SPEED;
+        DESIRED_STEERING = topics->REMOTE_STEERING;
     }else{
-        DESIRED_SPEED = GLOBAL_MOVEMENT_SPEED;
-        DESIRED_STEERING = GLOBAL_STEERING_WHEEL;
+        DESIRED_SPEED =  v_state->MOVEMENT_SPEED;
+        DESIRED_STEERING = v_state->STEERING_WHEEL;
     }
 
     if(std::abs(MOVEMENT_SPEED-DESIRED_SPEED)>ZAY_DELAY_MARGIN_OF_ERROR)
@@ -176,20 +146,47 @@ void vehicle_attributes::update_attribs(const double frame_rate)
     else
         STEERING_WHEEL=DESIRED_STEERING;
 
+    if((MOVEMENT_SPEED == 0.0) & collision_msg)
+        collision_msg^=1;
+    if(is_collided &(MOVEMENT_SPEED != 0.0)){
+        MOVEMENT_SPEED = 0.0;
+        if(!collision_msg){
+            std::string warn_msg{attribs.name + " is/was collided with "+collided_object+"! relocate the vehicle first"};
+            zay_msg_logger->setStyleSheet("color:red");
+            zay_msg_logger->showMessage(warn_msg.c_str(), 5000);
+            ROS_WARN_STREAM(warn_msg);
+            collision_msg^=1;
+        }
+
+    }
+}
+
+
+void vehicle_attributes::update_attribs(const double frame_rate)
+{
+
+    update_actuators_commands(frame_rate);
+
     if(MOVEMENT_SPEED != 0.0){
 
         update_rotation_att();
         accumulated_dist = traveled_dist + accumulated_dist;
-        current_ticks = ticks_counter = static_cast<uint32_t>(accumulated_dist/meters_per_tick);
+        topics->current_ticks = ticks_counter = static_cast<uint32_t>(accumulated_dist/meters_per_tick);
         accumulated_dist = fmod(accumulated_dist, meters_per_tick);
-    } else{
-        elapsed_t = std::chrono::duration<double,
-                        std::ratio< 1, 1>>
-                        (std::chrono::high_resolution_clock::now() - timer_t).count();
+        if(collision_tester == nullptr){
+            collision_tester = std::make_unique<std::thread>(&vehicle_attributes::collision_test, this, coll_pack);
+            collision_tester->detach();
+        }
+
+    }else{
+        if(collision_tester != nullptr)
+            collision_tester = nullptr;
+        elapsed_t = durSec(std::chrono::high_resolution_clock::now() - timer_t).count();
         timer_t = std::chrono::high_resolution_clock::now();
     }
     actuate();
 }
+
 
 void vehicle_attributes::update_rotation_att()
 {
@@ -197,7 +194,7 @@ void vehicle_attributes::update_rotation_att()
     radius_of_rotation = std::abs( front_back_distance/std::tan(STEERING_WHEEL));
 
     // center of rotaion
-    if(STEERING_WHEEL > 0)
+    if(STEERING_WHEEL > 0.0)
         center_of_rotation =
                 (glm::normalize(glm::cross(vehic_direction, up_direction))
                  * radius_of_rotation)
@@ -226,53 +223,158 @@ void vehicle_attributes::update_rotation_att()
 
     old_back_ideal_tire = back_ideal_tire;
 
-    vehicle_pos = back_ideal_tire =  rotationMat * glm::dvec4(back_ideal_tire, 1.0);
+    topics->vehicle_pos = back_ideal_tire =  rotationMat * glm::dvec4(back_ideal_tire, 1.0);
     front_ideal_tire =  rotationMat * glm::dvec4(front_ideal_tire, 1.0);
+
+    update_projection_rect();
 
     traveled_dist = glm::radians(std::abs(AMOUNT_OF_ROTATION))
                     * radius_of_rotation;
 
     frontCam.camera_position = transformationMats[0] * camPos;
 
-    vehicle_orientation = vehic_direction = glm::mat3(glm::rotate(glm::radians(AMOUNT_OF_ROTATION),
+    topics->vehicle_orientation = vehic_direction = glm::mat3(glm::rotate(glm::radians(AMOUNT_OF_ROTATION),
                                             up_direction))
                       * vehic_direction;
     frontCam.view_direction = glm::mat3(glm::rotate(glm::radians(AMOUNT_OF_ROTATION),
                                                     up_direction))
                               * frontCam.view_direction;
+
 }
+
+
+void vehicle_attributes::update_projection_rect(void){
+    for(glm::dvec3& vec:coll_rect.points)
+        vec = rotationMat*glm::dvec4(vec,1.0);
+    coll_rect.uniqueV[0] = coll_rect.points[1]-coll_rect.points[0];
+    coll_rect.uniqueV[1] = coll_rect.points[2]-coll_rect.points[1];
+}
+
+
+void vehicle_attributes::collision_test(rect_collistion_pack<GLdouble> const * const _pack){
+
+    nanSec local_timer_t;
+
+    double local_elapsed_t{std::numeric_limits<double>::max()}, glob_elapsed_t{0};
+    do{
+
+        local_timer_t = std::chrono::high_resolution_clock::now();
+
+        for(uint32_t i{0}; i<_pack->static_objs.size(); ++i){
+
+            if(axis_inter(coll_rect.uniqueV[0], _pack->static_objs[i].points) |
+               axis_inter(coll_rect.uniqueV[1], _pack->static_objs[i].points) |
+               axis_inter(_pack->static_objs[i].uniqueV[0], _pack->static_objs[i].points) |
+               axis_inter(_pack->static_objs[i].uniqueV[1], _pack->static_objs[i].points))
+                continue;
+
+            collided_object = _pack->static_objs[i].ID;
+            ROS_WARN_STREAM("Collistion! " << attribs.name << " > " << collided_object);
+            
+            is_collided = 1;
+            break;
+        }
+        if((_pack->dyn_objs.size()>1)& !is_collided ){
+
+            for(uint32_t i{0}; i<_pack->dyn_objs.size(); ++i){
+
+                if((_pack->dyn_objs[i]->ID == attribs.name) |
+                    axis_inter(coll_rect.uniqueV[0], _pack->dyn_objs[i]->points) |
+                    axis_inter(coll_rect.uniqueV[1], _pack->dyn_objs[i]->points) |
+                    axis_inter(_pack->dyn_objs[i]->uniqueV[0], _pack->dyn_objs[i]->points) |
+                    axis_inter(_pack->dyn_objs[i]->uniqueV[1], _pack->dyn_objs[i]->points))
+                    continue;
+
+                collided_object = _pack->dyn_objs[i]->ID;
+                ROS_WARN_STREAM("Collistion! " << attribs.name << " > " << collided_object);
+
+                is_collided = 1;
+                break;
+            }
+        }
+
+        local_elapsed_t = durSec(std::chrono::high_resolution_clock::now() - local_timer_t).count();
+        glob_elapsed_t = elapsed_t;
+
+        if(local_elapsed_t<glob_elapsed_t)
+            std::this_thread::sleep_for(std::chrono::nanoseconds( int((glob_elapsed_t-local_elapsed_t)*1000000000) ));
+        
+    }while((MOVEMENT_SPEED!=0.0) & !is_collided);
+
+}
+
+
+bool vehicle_attributes::axis_inter(const glm::dvec3 axis, 
+                                    const boost::array<coll_vert, ZAY_RECTANGLE_P>& _points) const{
+
+    std::multiset<projection_1d<GLdouble>> order; 
+    
+    coll_vert proj;
+    for(const coll_vert& vec:_points){
+        proj = glm::proj(vec, axis);
+        order.insert(projection_1d<GLdouble>(proj.x+proj.z, zaytuna::Collider_type::COUNTERPART));
+
+    }
+
+    for(const coll_vert& vec:coll_rect.points){
+        proj = glm::proj(vec, axis);
+        order.insert(projection_1d<GLdouble>(proj.x+proj.z));
+
+    }
+
+    auto it{order.begin()};
+    zaytuna::Collider_type _t = it->c_type;
+    for(uint32_t i{1}; i<ZAY_RECTANGLE_P; ++i){
+        ++it;
+
+        if(_t != it->c_type)
+            return 0;
+    }
+
+    return 1;
+}
+
 
 void vehicle_attributes::actuate()
 {
+
     if(std::abs(STEERING_WHEEL) < 0.0001){
+
         transformationMats[1] =  transformationMats[0] * f_rightT;
         transformationMats[2] = transformationMats[0] * f_leftT;
+
     }else{
+
         front_tires_vRotation = glm::rotate(-STEERING_WHEEL,
                                             glm::dvec3(0.0, 1.0, 0.0));
         transformationMats[1] =  transformationMats[0]
                                  * f_rightT * front_tires_vRotation;
         transformationMats[2] = transformationMats[0]
                                 * f_leftT * front_tires_vRotation;
+        
     }
 
     transformationMats[3] = transformationMats[0]  * backT;
 
     if(MOVEMENT_SPEED != 0.0){
+
         if(MOVEMENT_SPEED < 0.0)
             amount_of_hRotation -= traveled_dist/tires_radius;
         else
             amount_of_hRotation += traveled_dist/tires_radius;
+
 
         if(amount_of_hRotation>PI2)
             amount_of_hRotation -= PI2;
         else if (amount_of_hRotation< -PI2)
             amount_of_hRotation+=PI2;
 
+
         tires_hRotation = glm::rotate(amount_of_hRotation,
                                       glm::dvec3(0.0, 0.0, 1.0));
 
     }
+
     transformationMats[1] = glm::dmat4(transformationMats[1]) * tires_hRotation;
     transformationMats[2] = glm::dmat4(transformationMats[2]) * tires_hRotation;
     transformationMats[3] = glm::dmat4(transformationMats[3]) * tires_hRotation;
@@ -283,98 +385,38 @@ void vehicle_attributes::actuate()
                 : amount_of_rotation_Lidar -= (lidar_spin_speed*elapsed_t)),
                   glm::dvec3(0.0, 1.0, 0.0));
 
-    frontCam.updateWorld_to_viewMat();
 
-    vehicle_geometry.update(back_ideal_tire, vehic_direction);
-    geo_pub.publish(vehicle_geometry_ref);
-    gps_pub.publish(pos_ref);
-    orientation_pub.publish(orientation_ref);
-    ticks_pub.publish(current_ticks_ref);
+    frontCam.updateWorld_to_viewMat();
+    topics->is_collided = is_collided;
+    topics->advertise_current_state(back_ideal_tire, vehic_direction);
+
 }
+
+
+vehicle_attributes::~vehicle_attributes(){
+    topics->shutdown();
+    MOVEMENT_SPEED=0.0;
+    while(topics->ok()){
+        std::this_thread::sleep_for(10ms);
+    }
+}
+
 
 transform_attribs<GLdouble>
 vehicle_attributes::current_state(void){
+
     GLdouble angle{glm::degrees
                 (glm::angle(glm::dvec3(1.0, 0.0, 0.0),
                  vehic_direction))};
+
     attribs.angle = vehic_direction.z < 0.0 ? angle:-angle;
     attribs.translation_vec = back_ideal_tire;
+
     return attribs;
+
 }
 
-vehicle_attributes::~vehicle_attributes()
-{
-    if(localView_buffer!=nullptr)
-        delete localView_buffer;
-}
 
-/////-----------removed OpenCV dependency-----------
-// void vehicle_attributes::pubFront_img()
-// {
-//     // local_cam_img_reformed = local_cam_img.convertToFormat(QImage::Format_RGB888);
-//     // cv::Mat mat(local_cam_img.height(), 
-//     //             local_cam_img.width(), 
-//     //             CV_8UC3, 
-//     //             local_cam_img.bits(), 
-//     //             local_cam_img.bytesPerLine());
-//     // local_cam_msg = cv_bridge::CvImage(std_msgs::Header(), "rgb8", mat).toImageMsg();
-//     // cam_pub.publish(local_cam_msg);
-//     //// local_cam_img.save((attribs.name+".jpg").c_str());
-// }
-
-
-//===================================================================
-////-----------Old Approach For Ackerman Rotation. For reference purposes----- 
-glm::dvec3 rotate(glm::dvec3 p, const glm::dvec3 c,
-                  const double angle, const bool ccw){
-    double _sin = std::sin(angle);
-    double _cos = std::cos(angle);
-    p -= c;
-
-    if(ccw)// ccw: counter clockwise rotation
-        p = glm::dvec3(  p.x * _cos + p.z * _sin, 0.0f,
-                         p.z * _cos - p.x * _sin);
-
-    else // cw: clockwise rotation
-        p = glm::dvec3(  p.x * _cos - p.z * _sin, 0.0f,
-                         p.z * _cos + p.x * _sin);
-    return p+c;
-}
-
-glm::dvec3 intersect(const glm::dvec3 p1,
-                     const glm::dvec3 p2,
-                     const glm::dvec3 p3,
-                     const glm::dvec3 p4){
-    double temp = ( (p4.x - p3.x)*(p1.z-p3.z) - (p4.z-p3.z)*(p1.x-p3.x) ) /
-            ((p4.z - p3.z) * (p2.x - p1.x) - (p4.x - p3.x) * (p2.z - p1.z));
-
-    return glm::dvec3{ p1.x + temp * (p2.x - p1.x), 0.0f, p1.z + temp * (p2.z - p1.z) };
-}
-
-void vehicle_attributes::update_cent()
-{
-        glm::dvec3 p1, p2;
-
-        if(STEERING_WHEEL > 0){
-            p1 = rotate(front_ideal_tire,
-                        back_ideal_tire,
-                        -M_PI_2, true);
-            p2 = rotate(back_ideal_tire,
-                        front_ideal_tire,
-                        -(M_PI_2-STEERING_WHEEL), false);
-        }else{
-            p1 = rotate(front_ideal_tire,
-                        back_ideal_tire,
-                        M_PI_2, false);
-            p2 = rotate(back_ideal_tire,
-                        front_ideal_tire,
-                        M_PI_2-STEERING_WHEEL, true);
-        }
-
-        // center of rotaion
-        center_of_rotation = intersect(back_ideal_tire, p1,
-                                       front_ideal_tire, p2);
-}
 
 
 

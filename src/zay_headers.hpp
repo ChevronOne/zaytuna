@@ -20,7 +20,7 @@
 //  General Public License for more details.
 
 /*
- * Copyright Abbas Mohammed Murrey 2019-20
+ * Copyright Abbas Mohammed Murrey 2019-21
  *
  * Permission to use, copy, modify, distribute and sell this software
  * for any purpose is hereby granted without fee, provided that the
@@ -34,10 +34,10 @@
 
 
 
-
-
 #ifndef ZAY_HEADERS_HPP
 #define ZAY_HEADERS_HPP
+
+
 
 #include <fstream>
 #include <iostream>
@@ -53,20 +53,40 @@
 #include <iomanip>
 #include <math.h>
 #include <map>
+#include <iterator>
+#include <ostream>
+#include <limits>
+#include <type_traits>
+#include <functional>
+#include <utility>
+#include <memory>
+#include <set>
 
+#include <QMainWindow>
+#include <QWidget>
+#include <QTreeWidget>
+#include <QString>
 #include <QOpenGLFunctions>
 #include <QGLWidget>
+#include <QOpenGLWidget>
 #include <QOpenGLFunctions_3_0>
 #include <QTimer>
 #include <QGL>
 #include <QImage>
 #include <QMessageBox>
 #include <QGLFormat>
-//#include <QSurfaceFormat>
+#include <QSurfaceFormat>
 #include <QGLFramebufferObject>
 #include <QIcon>
 #include <QFontDatabase>
 #include <QPixmap>
+#include <QApplication>
+#include <QScreen>
+#include <QDialog>
+#include <QtGui/QMouseEvent>
+#include <QtGui/QKeyEvent>
+#include <QtGui/QWheelEvent>
+#include <QStatusBar>
 
 #include "ros/ros.h"
 #include "geometry_msgs/Vector3.h"
@@ -75,6 +95,7 @@
 #include "std_msgs/UInt64.h"
 #include "std_msgs/Float32.h"
 #include "std_msgs/Float64.h"
+#include "std_msgs/Bool.h"
 #include "sensor_msgs/Image.h"
 #include "ros/package.h"
 #include "ros/console.h"
@@ -86,7 +107,14 @@
 
 typedef GLfloat ZAY_DATA_TYPE;
 typedef QOpenGLFunctions_3_0 ZAY_USED_GL_VERSION;
-typedef QGLWidget ZAY_QGL_WIDGET_VERSION;
+typedef QOpenGLWidget ZAY_Q_OPEN_GL_W;
+typedef QGLWidget ZAY_QGL_W;
+typedef QStatusBar ZAY_MSG_LOGGER;
+
+typedef ZAY_QGL_W ZAY_QGL_WIDGET_VERSION;
+// typedef ZAY_Q_OPEN_GL_W ZAY_QGL_WIDGET_VERSION;  /***Needs to be reworked on, as a Q_OBJECT class cannot be templated!***/
+
+
 
 #if !(ZAY_BOOST_MAJOR_VERSION==0x1 && ((ZAY_BOOST_MINOR_VERSION==0x41 && \
         (ZAY_BOOST_PATCH_LEVEL==0x0 || ZAY_BOOST_PATCH_LEVEL==0x1)) || \
@@ -128,25 +156,59 @@ typedef QGLWidget ZAY_QGL_WIDGET_VERSION;
 #define ZAY_VERTEX_BYTE_SIZE_0 ZAY_NUM_FLOATS_PER_VERTEX_0 * ZAY_TYPE_SIZE
 #define ZAY_VERTEX_BYTE_SIZE_1 ZAY_NUM_FLOATS_PER_VERTEX_1 * ZAY_TYPE_SIZE
 #define ZAY_VERTEX_BYTE_SIZE_2 ZAY_NUM_FLOATS_PER_VERTEX_2 * ZAY_TYPE_SIZE
-#define ZAY_MOUSE_DELTA_IGNORE 7
+#define ZAY_MOUSE_DELTA_IGNORE 7.0
 #define ZAY_NUM_SEC_FRAME_RATE 1.0
 #define ZAY_SCENE_WIDTH 800
 #define ZAY_SCENE_HEIGHT 500
+#define ZAY_ACCESSIBLE_MIN_X -149.0
+#define ZAY_ACCESSIBLE_MAX_X 149.0
+#define ZAY_ACCESSIBLE_MIN_Z -149.0
+#define ZAY_ACCESSIBLE_MAX_Z 149.0
+#define ZAY_ANGLE_DEGREE_MIN -360.0
+#define ZAY_ANGLE_DEGREE_MAX 360.0
+#define ZAY_FIELD_WIDTH 300
+#define ZAY_FIELD_HEIGHT 300
+#define ZAY_FIELD_DIAMETER 424.265
+#define ZAY_ACCESSIBLE_FIELD_WIDTH 298
+#define ZAY_ACCESSIBLE_FIELD_HEIGHT 298
+#define ZAY_ACCESSIBLE_FIELD_DIAMETER 421.4356
+#define ZAY_CAM_ACCESSIBLE_MIN_Y 0.011
+#define ZAY_CAM_ACCESSIBLE_MAX_Y 100.0
+#define ZAY_CAM_ACCESSIBLE_MIN_X -148.9
+#define ZAY_CAM_ACCESSIBLE_MAX_X 148.9
+#define ZAY_CAM_ACCESSIBLE_MIN_Z -148.9
+#define ZAY_CAM_ACCESSIBLE_MAX_Z 148.9
+#define ZAY_CAM_DEFAULT_ROTATION_SPEED 0.3
+#define ZAY_CAM_DEFAULT_MOVEMENT_SPEED 0.024
+#define ZAY_FRAMES_STABLE_SCALAR 420.0
+#define ZAY_MIN_FRAMES_STABLE 27.0
 #define ZAY_NUM_SAMPLES_PER_PIXEL 8
 #define ZAY_MOUSE_WHEEL_SCALAR 5
 #define ZAY_SPEED_SCALAR 600.0
 #define ZAY_MAX_TURN_ANGLE 25.0
+#define ZAY_RADIAN M_PI/180.0
+#define ZAY_MAX_TURN_ANGLE_RAD ZAY_MAX_TURN_ANGLE*ZAY_RADIAN
 #define ZAY_STEERING_MARGIN_OF_ERROR 0.00000001
 #define ZAY_DELAY_MARGIN_OF_ERROR 0.01
 #define ZAY_NUM_OF_CHANNELS 3
 #define ZAY_FRONT_IMG_SIZE ZAY_SCENE_WIDTH*ZAY_SCENE_HEIGHT*ZAY_NUM_OF_CHANNELS
 #define ZAY_DEFAULT_FRONT_CAM_FREQUENCY 20
-#define ZAY_DEFAULT_FRAM_RATE 60
+#define ZAY_DEFAULT_LOCAL_CONTROL_SPEED 6.0
+#define ZAY_DEFAULT_LOCAL_CONTROL_STEERING 0.39269908
+#define ZAY_DEFAULT_FRAME_RATE 30
+#define ZAY_DEFAULT_FIELD_OF_VIEW 55.0
 #define ZAY_NORMALS_STRIDE 3 
 #define ZAY_TEXTURE_STRIDE 6
 #define ZAY_COLOR_STRIDE 3
+#define ZAY_POINT_D 3
+#define ZAY_RECTANGLE_P 4
+#define ZAY_RECT_LIN_INDEPENDENT_V 2
+#define ZAY_PUBLISHERS 6
+#define ZAY_SUBSCRIBERS 2
+#define ZAY_LIMITED_VEH_NUM 10
+#define ZAY_LIMITED_OBS_NUM 5000
 #define ZAYTUNA_VERSION 0x0001
-#define ZAYTUNA_MINOR_VERSION 0x0000
+#define ZAYTUNA_MINOR_VERSION 0x0003
 
 
 
@@ -160,13 +222,23 @@ typedef QGLWidget ZAY_QGL_WIDGET_VERSION;
 #define GLM_ENABLE_EXPERIMENTAL
 #include "glm/gtx/transform.hpp"
 #include "glm/gtx/vector_angle.hpp"
-
+#include "glm/gtx/projection.hpp"
 #include "glm/gtc/quaternion.hpp"
+
+const glm::dvec3 ZAY_GLOB_CAM_DEFAULT_VIEW_DIR{glm::dvec3(-0.41, -0.6, -0.68)};
+const glm::dvec3 ZAY_CAM_UP_DIR{glm::dvec3(0.0, 1.0, 0.0)};
+const glm::dvec3 ZAY_GLOB_CAM_DEFAULT_POS{glm::dvec3(8.55, 3.26, 3.5)};
+const glm::dvec2 ZAY_ORIG_2{glm::dvec2(0.0, 0.0)};
+const glm::dvec3 ZAY_ORIG_3{glm::dvec3(0.0, 0.0, 0.0)};
+const glm::dvec4 ZAY_ORIG_4{glm::dvec4(0.0, 0.0, 0.0, 1.0)};
+
+
 
 
 using namespace std::chrono_literals;
-const std::string ZAY_PACKAGE_PATH
-    {ros::package::getPath("zaytuna")};
+const std::string ZAY_PACKAGE_NAME{"zaytuna"};
+
+
 
 #endif // ZAY_HEADERS_HPP
 

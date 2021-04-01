@@ -20,7 +20,7 @@
 //  General Public License for more details.
 
 /*
- * Copyright Abbas Mohammed Murrey 2019-20
+ * Copyright Abbas Mohammed Murrey 2019-21
  *
  * Permission to use, copy, modify, distribute and sell this software
  * for any purpose is hereby granted without fee, provided that the
@@ -38,12 +38,7 @@
 #ifndef ZAY_PRIMARY_WIN_HPP
 #define ZAY_PRIMARY_WIN_HPP
 
-#include <QMainWindow>
-#include <QWidget>
-#include <QtGui/QMouseEvent>
-#include <QtGui/QKeyEvent>
-#include <QTimer>
-#include <QTreeWidget>
+
 #include "zay_scene_widg.hpp"
 #include "zay_item_inputs_form.hpp"
 #include "zay_obstacle_inputs_form.hpp"
@@ -53,22 +48,16 @@ namespace Ui {
 class primary_win;
 }
 
+
 namespace zaytuna {
 
+class primary_win;
+
+typedef std::unique_ptr<primary_win> primary_winPtr;
 
 class primary_win : public QMainWindow
 {
     Q_OBJECT
-
-public:
-    explicit primary_win(QWidget *parent = nullptr);
-    virtual ~primary_win() override;
-    void vehicle_type_menu(const QPoint&);
-    void vehicle_menu(const QPoint&);
-    void obstacle_type_menu(const QPoint&);
-    void obstacle_menu(const QPoint&);
-    QLabel *coord_ref_lab_;
-
 
 protected:
     virtual void closeEvent(QCloseEvent*) override;
@@ -120,13 +109,31 @@ private:
     std::map<QString, QTreeWidgetItem*> vehicles, obstacles;
     uint32_t vehicle_counter{1};
     std::map<zaytuna::Obstacle_Type, obstacle_tracker> obstacle_counter;
+
+    void vehicle_type_menu(const QPoint&);
+    void vehicle_menu(const QPoint&);
+    void obstacle_type_menu(const QPoint&);
+    void obstacle_menu(const QPoint&);
+    QLabel *coord_ref_lab_;
+    QIcon zay_icon;
+
+
+
+
+public:
+
+    explicit primary_win(const QString&, const QIcon&, QWidget *parent = nullptr);
+    virtual ~primary_win() override;
+
 };
+
+
 
 
 } // namespace  zaytuna
 
 
-#endif // ZAY_WIN_MAINLINER_HPP
+#endif // ZAY_PRIMARY_WIN_HPP
 
 
 

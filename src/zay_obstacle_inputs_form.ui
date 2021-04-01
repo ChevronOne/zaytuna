@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>440</width>
-    <height>540</height>
+    <width>433</width>
+    <height>560</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,8 +16,8 @@
   <widget class="QDialogButtonBox" name="decision_tools">
    <property name="geometry">
     <rect>
-     <x>70</x>
-     <y>495</y>
+     <x>80</x>
+     <y>520</y>
      <width>341</width>
      <height>32</height>
     </rect>
@@ -35,7 +35,7 @@
      <x>10</x>
      <y>200</y>
      <width>411</width>
-     <height>291</height>
+     <height>311</height>
     </rect>
    </property>
    <property name="title">
@@ -214,7 +214,7 @@
       <x>10</x>
       <y>170</y>
       <width>391</width>
-      <height>111</height>
+      <height>131</height>
      </rect>
     </property>
     <property name="title">
@@ -226,17 +226,17 @@
      </property>
      <property name="geometry">
       <rect>
-       <x>210</x>
+       <x>190</x>
        <y>62</y>
        <width>69</width>
        <height>26</height>
       </rect>
      </property>
      <property name="minimum">
-      <double>-999999999999999.000000000000000</double>
+      <double>-149.000000000000000</double>
      </property>
      <property name="maximum">
-      <double>999999999999999.000000000000000</double>
+      <double>149.000000000000000</double>
      </property>
      <property name="value">
       <double>0.000000000000000</double>
@@ -245,7 +245,7 @@
     <widget class="QLabel" name="T_X_lab">
      <property name="geometry">
       <rect>
-       <x>90</x>
+       <x>60</x>
        <y>60</y>
        <width>21</width>
        <height>31</height>
@@ -261,23 +261,23 @@
      </property>
      <property name="geometry">
       <rect>
-       <x>110</x>
+       <x>80</x>
        <y>62</y>
-       <width>69</width>
+       <width>80</width>
        <height>26</height>
       </rect>
      </property>
      <property name="minimum">
-      <double>-999999999999999.000000000000000</double>
+      <double>-149.000000000000000</double>
      </property>
      <property name="maximum">
-      <double>999999999999999.000000000000000</double>
+      <double>149.000000000000000</double>
      </property>
     </widget>
     <widget class="QLabel" name="T_Z_lab">
      <property name="geometry">
       <rect>
-       <x>290</x>
+       <x>270</x>
        <y>60</y>
        <width>21</width>
        <height>31</height>
@@ -293,23 +293,23 @@
      </property>
      <property name="geometry">
       <rect>
-       <x>310</x>
+       <x>290</x>
        <y>62</y>
-       <width>69</width>
+       <width>80</width>
        <height>26</height>
       </rect>
      </property>
      <property name="minimum">
-      <double>-999999999999999.000000000000000</double>
+      <double>-149.000000000000000</double>
      </property>
      <property name="maximum">
-      <double>999999999999999.000000000000000</double>
+      <double>149.000000000000000</double>
      </property>
     </widget>
     <widget class="QLabel" name="T_Y_lab">
      <property name="geometry">
       <rect>
-       <x>190</x>
+       <x>170</x>
        <y>60</y>
        <width>21</width>
        <height>31</height>
@@ -330,6 +330,24 @@
      </property>
      <property name="text">
       <string>Amount of translation:</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>100</y>
+       <width>231</width>
+       <height>30</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>8</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>Field dimensions: 298x298</string>
      </property>
     </widget>
    </widget>

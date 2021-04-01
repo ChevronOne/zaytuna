@@ -33,65 +33,45 @@
 
 
 
-#include "zay_item_inputs_form.hpp"
-#include "ui_zay_item_inputs_form.h"
+
+
+#ifndef ZAY_APP_HPP
+#define ZAY_APP_HPP
+
+#include "zay_primary_win.hpp"
 
 namespace zaytuna {
 
+class ZaytunaApp final: public QApplication{
 
-item_inputs_form::item_inputs_form(QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::item_inputs_form){
+    static primary_winPtr zay_simu;
+    static bool ok_;
+    static int fontId_;
+    std::string ZAY_PACKAGE_PATH;
+    QIcon zay_icon;
+    
 
-    ui->setupUi(this);
-    set_tool_tips();
+    void checkForMaster();
+    bool glSupported();
+    bool use_shippedFonts();
+    bool is_running();
 
-}
+public:
+    ZaytunaApp() = delete;
+    ZaytunaApp(int&, char**);
+    virtual ~ZaytunaApp();
+    bool ok();
+    int run();
 
-
-item_inputs_form::item_inputs_form
-(transform_attribs<GLdouble> attribs, QWidget *parent) :
-    QDialog(parent), ui(new Ui::item_inputs_form)
-{
-
-    this->attribs = attribs;
-
-    ui->setupUi(this);
-    set_tool_tips();
-    ui->angle->setValue(attribs.angle);
-    ui->T_X->setValue(attribs.translation_vec.x);
-    ui->T_Z->setValue(attribs.translation_vec.z);
-
-}
-
-
-item_inputs_form::~item_inputs_form(){
-    delete ui;
-}
-
-
-void item_inputs_form::on_decision_tools_accepted(){
-
-    this->attribs.angle = ui->angle->value();
-    this->attribs.translation_vec.x = ui->T_X->value();
-    this->attribs.translation_vec.z = ui->T_Z->value();
-
-}
-
-
-void item_inputs_form::set_tool_tips(){
-
-    ui->T_X->setToolTip("[" + QString::number(ZAY_ACCESSIBLE_MIN_X) + ", +" +QString::number(ZAY_ACCESSIBLE_MAX_X)+"]");
-    ui->T_Z->setToolTip("[" + QString::number(ZAY_ACCESSIBLE_MIN_Z) + ", +" +QString::number(ZAY_ACCESSIBLE_MAX_Z)+"]");
-    ui->angle->setToolTip("[" + QString::number(ZAY_ANGLE_DEGREE_MIN) + ", +" +QString::number(ZAY_ANGLE_DEGREE_MAX)+"]");
-
-}
+};
 
 
 
 
-} // namespace  zaytuna
+} // namespace zaytuna
 
+
+#endif  // ZAY_APP_HPP
 
 
 

@@ -20,7 +20,7 @@
 //  General Public License for more details.
 
 /*
- * Copyright Abbas Mohammed Murrey 2019-20
+ * Copyright Abbas Mohammed Murrey 2019-21
  *
  * Permission to use, copy, modify, distribute and sell this software
  * for any purpose is hereby granted without fee, provided that the
@@ -33,16 +33,14 @@
 
 
 
-#ifndef ZAY_UTILITY_HPP
-#define ZAY_UTILITY_HPP
+#ifndef ZAY_UTILITIES_HPP
+#define ZAY_UTILITIES_HPP
 
 
-#include "zay_headers.hpp"
-#include "zay_shape_data.hpp"
 
-#include <vector>
+#include "zay_shape_maker.hpp"
+
 #include <boost/assign/list_of.hpp>
-#include <QImage>
 
 #include <boost/spirit/home/x3.hpp>
 #include <boost/spirit/include/support_istream_iterator.hpp>
@@ -60,9 +58,14 @@ namespace zaytuna {
 enum class ZAY_TEX_TYPE { TEX_CUBE_MAP, TEX_2D, TEX_2D_MIPMAP};
 enum class ZAY_GL_OBJECT_TYPE { PROGRAM, SHADER };
 struct obj_parser{
+    typedef glm::vec<ZAY_POINT_D, GLdouble, glm::qualifier::packed_highp> vert;
+
     static shape_data<zaytuna::vertexL1_16> 
         extractExternal(const std::string&);
+    static void extractProjectionRect(const std::string&, 
+                                      boost::array<vert, ZAY_RECTANGLE_P>&);
 };
+
 
 template<class T>
 class ptr_vector : public std::vector<T>
@@ -70,6 +73,7 @@ class ptr_vector : public std::vector<T>
 public:
     virtual ~ptr_vector() {}
 };
+
 
 template<class T>
 class ptr_vector<T*> : public std::vector<T*>
@@ -87,14 +91,20 @@ public:
             delete *it;
     }
 };
+
+
+
 template <class allocator>
 struct vec3 : public geometry_msgs::Vector3_<allocator>{
-    inline vec3<allocator>& operator=(const glm::dvec3& glm_vec){
-        this->x = glm_vec.x;
-        this->y = glm_vec.y;
-        this->z = glm_vec.z;
+
+    template<class v_type>
+    inline vec3<allocator>& operator=(const glm::vec<ZAY_POINT_D, v_type, glm::qualifier::packed_highp>& vec_){
+        this->x = vec_.x;
+        this->y = vec_.y;
+        this->z = vec_.z;
         return *this; }
 };
+
 
 template <class allocator>
 struct uint32 : public std_msgs::UInt32_<allocator>{
@@ -103,14 +113,24 @@ struct uint32 : public std_msgs::UInt32_<allocator>{
         return *this; }
 };
 
+
+template <class allocator>
+struct Bool : public std_msgs::Bool_<allocator>{
+    inline Bool<allocator>& operator=(const bool& val){
+        this->data = val;
+        return *this; }
+};
+
+
 template<class allocator>
 struct geo_pose : public geometry_msgs::Pose_<allocator> {
-    void update(const glm::dvec3& pos,
-                const glm::dvec3& dir){
-        this->position.x = pos.x;
-        this->position.y = pos.y;
-        this->position.z = pos.z;
-        double h_angle{atan2(dir.x, dir.z)/2.0};
+    template<class v_type>
+    void update(const glm::vec<ZAY_POINT_D, v_type, glm::qualifier::packed_highp>& pos_,
+                const glm::vec<ZAY_POINT_D, v_type, glm::qualifier::packed_highp>& dir_){
+        this->position.x = pos_.x;
+        this->position.y = pos_.y;
+        this->position.z = pos_.z;
+        double h_angle{atan2(dir_.x, dir_.z)/2.0};
         this->orientation.y = sin(h_angle);
         this->orientation.w = cos(h_angle);
     }
@@ -151,6 +171,7 @@ struct transform_attribs
     }
 };
 
+
 template<class T>
 struct obstacle_attribs : public transform_attribs<T>
 {
@@ -165,10 +186,82 @@ struct obstacle_attribs : public transform_attribs<T>
         type{type}{}
 };
 
+
 template<class T>
 struct default_settings{
     std::vector<transform_attribs<T>> vehicles;
     std::vector<obstacle_attribs<T>> obstacles;
+    void clear(){
+        this->vehicles.clear();
+        this->obstacles.clear();
+    }
+};
+
+
+template<class T> 
+struct rect_collistion_object{
+    typedef glm::vec<ZAY_POINT_D, T, glm::qualifier::packed_highp> coll_vert;
+    std::string ID{"uninitialized_collistion_object_name"};
+    boost::array<coll_vert, ZAY_RECTANGLE_P> points;
+    boost::array<coll_vert, ZAY_RECT_LIN_INDEPENDENT_V> uniqueV;
+
+};
+
+
+template<class T> 
+struct rect_collistion_pack{
+    typedef std::reference_wrapper<rect_collistion_object<T>> _ref_Obj;
+    std::vector<rect_collistion_object<T>> static_objs;
+    // std::vector<_ref_Obj> dyn_objs;
+    std::vector<rect_collistion_object<T>*> dyn_objs;
+    
+    
+    inline void erase_obs(const std::string& _name){
+        static_objs.erase(find_obs(_name));
+    }
+
+    inline void erase_veh(const std::string& _name){
+        auto it = dyn_objs.begin();
+        for(;it!=dyn_objs.end();++it)
+            if((*it)->ID ==_name){
+                dyn_objs.erase(it);
+                break;
+            }
+    }
+
+    inline class std::vector<rect_collistion_object<T>>::iterator 
+    find_obs(const std::string& _name){
+        auto it = static_objs.begin();
+        for(;it!=static_objs.end();++it)
+            if(it->ID ==_name)
+                return it;
+        return it;
+    }
+
+    inline void edit_obs(const obstacle_attribs<GLdouble>& attribs){
+        auto it = find_obs(attribs.name);
+        if(it==static_objs.end())
+            return;
+        glm::dmat4 _M{attribs.transformMat()};
+        for(glm::dvec3& vec:it->points)
+            vec = _M*glm::dvec4(vec, 1.0);
+        
+        it->uniqueV[0]=it->points[1]-it->points[0];
+        it->uniqueV[1]=it->points[2]-it->points[1];
+    }
+
+};
+
+enum class Collider_type{COLLIDER, COUNTERPART};
+template<class T>
+struct projection_1d{
+    T proj_1d;
+    zaytuna::Collider_type c_type;
+    projection_1d(T p): proj_1d{p}, c_type{zaytuna::Collider_type::COLLIDER}{}
+    projection_1d(T p, zaytuna::Collider_type t):proj_1d{p}, c_type{t}{}
+    inline bool operator<(const projection_1d<T> &_other) const{
+        return proj_1d < _other.proj_1d;
+    }
 };
 
 class basic_program
@@ -205,6 +298,7 @@ public:
   }
 };
 
+
 class static_program : public basic_program{
 public:
     static_program(ZAY_USED_GL_VERSION* const context,
@@ -216,6 +310,7 @@ public:
         gl_context->glBindAttribLocation(program_ID, 1, "vertColor");
     }
 };
+
 
 class animated_program : public basic_program{
 public:
@@ -230,6 +325,7 @@ public:
     }
 };
 
+
 template<class T>
 std::ostream& operator<<(std::ostream&out, const glm::tvec3<T>&vec){
     unsigned def_per = out.precision();
@@ -241,6 +337,13 @@ std::ostream& operator<<(std::ostream&out, const glm::tvec3<T>&vec){
     out.precision(def_per);
 }
 
+
+template<class T> struct vehicle_state{
+    T MOVEMENT_SPEED{0.0};
+    T STEERING_WHEEL{ZAY_STEERING_MARGIN_OF_ERROR};
+};
+
+
 void _read_tex(QImage&, const std::string&, const char*, bool, bool);
 const char* DebugGLerr(unsigned);
 
@@ -249,6 +352,7 @@ struct OBJ {
     std::vector<glm::vec2> texCoords;
     std::vector<uint32_t> faces;
 };
+
 
 void _load_tex(ZAY_USED_GL_VERSION * const _widg,
               GLuint&,
@@ -264,10 +368,11 @@ struct obstacle_tracker{
 };
 
 
+
 } // namespace zaytuna
 
 
-#endif // ZAY_UTILITY_HPP
+#endif // ZAY_UTILITIES_HPP
 
 
 

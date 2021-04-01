@@ -20,7 +20,7 @@
 //  General Public License for more details.
 
 /*
- * Copyright Abbas Mohammed Murrey 2019-20
+ * Copyright Abbas Mohammed Murrey 2019-21
  *
  * Permission to use, copy, modify, distribute and sell this software
  * for any purpose is hereby granted without fee, provided that the
@@ -39,23 +39,20 @@
 #define ZAY_CAM_HPP
 
 
+#include "zay_utilities.hpp"
 
-#include "zay_headers.hpp"
-#include "zay_utility.hpp"
 namespace zaytuna {
 
 
 class camera
 {
+
 public:
     camera();
-    glm::dmat4 getWorld_to_view_Mat();
-    glm::dmat4 getProjection();
-    void updateProjection(const double&, const double&);
+    void updateProjection(const double, const double);
     void updateWorld_to_viewMat();
-    void mouse_update(const glm::dvec2&);
-    void mouse_held_update(const glm::dvec2&);
-    glm::dvec2 get_mouse_position();
+    void mouse_update(const glm::dvec2&, const double);
+    void mouse_held_update(const glm::dvec2&, const double);
     void move_forward(double scalar=1.0);
     void move_backward(double scalar=1.0);
     void move_horizontal_forward(double scalar=1.0);
@@ -65,9 +62,13 @@ public:
     void strafe_left(double scalar=1.0);
     void strafe_right(double scalar=1.0);
 
+    void set_rotation_scalar(const double);
+    void set_movement_scalar(const double);
+    double get_rotation_scalar(void) const;
+    double get_movement_scalar(void) const;
 
-    double ROTATION_SPEED;
-    double MOVEMENT_SPEED;
+
+    
     double FIELD_OF_VIEW;
     double NEAR_PLANE;
     double FAR_PLANE;
@@ -75,20 +76,34 @@ public:
 
 
     glm::dvec3 view_direction;
-    glm::dvec3 up_direction;
     glm::dvec3 camera_position;
+    
+    glm::dmat4 transformationMat;
+
+
+    ~camera()=default;
+
+
+private:
+
+    double ROTATION_SPEED;
+    double MOVEMENT_SPEED;
+
+    const glm::dvec3 up_direction{ZAY_CAM_UP_DIR};
     glm::dvec3 view_point;
 
     glm::dvec2 mouse_position;
     glm::dmat4 projectionMat;
     glm::dmat4 world_to_viewMat;
-    glm::dmat4 transformationMat;
 
 
-    ~camera();
 };
 
+
+
 } // namespace zaytuna
+
+
 
 #endif // ZAY_CAM_HPP
 

@@ -20,7 +20,7 @@
 //  General Public License for more details.
 
 /*
- * Copyright Abbas Mohammed Murrey 2019-20
+ * Copyright Abbas Mohammed Murrey 2019-21
  *
  * Permission to use, copy, modify, distribute and sell this software
  * for any purpose is hereby granted without fee, provided that the
@@ -42,21 +42,20 @@
 
 
 
-#include "zay_headers.hpp"
-#include "zay_vertex.hpp"
-#include "zay_shape_maker.hpp"
-#include "zay_utility.hpp"
-#include "zay_cam.hpp"
 #include "zay_model_vehicle.hpp"
 #include <boost/ptr_container/ptr_vector.hpp>
 
 
 namespace zaytuna{
 
+
+
 class primary_win;
 
 class scene_object
 {
+
+
 protected:
 
     ZAY_USED_GL_VERSION* _widg{nullptr};
@@ -77,6 +76,8 @@ protected:
 
     virtual void clean_up(void) = 0;
 
+
+
 public:
 
     scene_object() = default;
@@ -94,7 +95,13 @@ public:
                             GLuint&) = 0;
     virtual void render_obj(zaytuna::camera const*const) = 0;
     virtual ~scene_object() = default;
+
+
 };
+
+
+
+
 
 
 
@@ -114,6 +121,8 @@ private:
     static GLint transformMatLocation;
 
     virtual void clean_up(void) override;
+
+
 public:
 
     external_obj() = default;
@@ -137,11 +146,17 @@ public:
 };
 
 
+
+
+
+
+
 /////////////////////////////////
 class coord_sys : public scene_object
 {
 
 private:
+
     std::string name{"uninitialized_object_name"};
     shape_data<zaytuna::vertexL1_1> primitives;
     glm::mat4 transformationMat{
@@ -150,6 +165,8 @@ private:
     static GLint transformMatLocation;
     GLfloat LINE_WIDTH;
     virtual void clean_up(void) override;
+
+
 public:
 
     coord_sys() = default;
@@ -172,11 +189,16 @@ public:
 };
 
 
+
+
+
+
 ///////////////////////////////////
 class grid_plane : public scene_object
 {
 
 private:
+
     std::string name{"uninitialized_object_name"};
     shape_data<zaytuna::vertexL1_1> primitives;
     glm::mat4 transformationMat{
@@ -185,6 +207,8 @@ private:
     static GLint transformMatLocation;
     GLfloat LINE_WIDTH;
     virtual void clean_up(void) override;
+
+
 public:
 
     grid_plane() = default;
@@ -206,7 +230,11 @@ public:
     virtual void render_obj(zaytuna::camera const*const) override;
     virtual GLsizeiptr buffer_size(void) const override;
 
+
+
 };
+
+
 
 
 /////////////////////////////
@@ -214,6 +242,7 @@ class skybox_obj : public scene_object
 {
 
 private:
+
     std::string name{"uninitialized_object_name"};
     shape_data<zaytuna::vertexL1_0> primitives;
     GLuint _texID;
@@ -223,6 +252,7 @@ private:
     };
     static GLint transformMatLocation;
     virtual void clean_up(void) override;
+
 
 public:
 
@@ -244,22 +274,33 @@ public:
 
 };
 
+
+
+
+
+
+
 ///////////////////////////
 class model_vehicle : public scene_object
 {
+
     shape_data<zaytuna::vertexL1_16> model_primitives;
     shape_data<zaytuna::vertexL1_16> fronttires_primitives;
     shape_data<zaytuna::vertexL1_16> backtires_primitives;
     shape_data<zaytuna::vertexL1_16> lidar_primitives;
+    rect_collistion_object<GLdouble>  coll_obj;
+    rect_collistion_pack<GLdouble>* coll_pack;
 
 
     // model transformation matrix
     glm::mat4 modeltransformMat{
+
         glm::translate(glm::dvec3(0.0, 0.0, 0.0))
     };
 
     // the inverse of the transposed transformation matrix
     glm::mat4 inverse_transpose_transformMat{
+
         glm::translate(glm::dvec3(0.0, 0.0, 0.0))
     };
 
@@ -292,53 +333,81 @@ class model_vehicle : public scene_object
     friend class _scene_widg;
     friend class primary_win;
 
+
+
 public:
+
     model_vehicle() = default;
     explicit model_vehicle(ZAY_USED_GL_VERSION * const,
                  const GLuint,
                  const std::string&,
                  const std::string&,
+                 const std::string&,
+                 rect_collistion_pack<GLdouble>*,
                  const GLenum PRIMITIVES_TYPE = GL_TRIANGLES);
 
     virtual ~model_vehicle() override;
 
     virtual void transmit_data(GLintptr&, const GLuint&,
                             GLuint&) override;
+
     virtual void render_obj(zaytuna::camera const*const) override;
     virtual GLsizeiptr buffer_size(void) const override;
+
     void add_vehicle(QGLFramebufferObject *const,
-                     const transform_attribs<GLdouble>);
+                     const transform_attribs<GLdouble>,
+                     zaytuna::vehicle_state<GLdouble>*,
+                     ZAY_MSG_LOGGER*);
+
     void delete_vehicle(void*);
 
 
 
     ////----------useful--for--debugging--------
     void render_vectors_state(vehicle_attributes*, zaytuna::camera const*const);
+
 };
+
+
+
+
 
 
 ////////////////////////////////////////
 template<class T>
 struct obstacle_instance{
+
+
     obstacle_attribs<T> attribs;
+
     glm::tmat4x4<T> transformMat{
         glm::translate(glm::dvec3(0.0, 0.0, 0.0))
     };
+
     glm::mat4 inverse_transpose_transformMat{
         glm::translate(glm::dvec3(0.0, 0.0, 0.0))
     };
+
     obstacle_instance
-        (const obstacle_attribs<T>& attribs){
-            edit(attribs);}
-    void edit(const obstacle_attribs<T>& attribs){
-        this->attribs = attribs;
-        this->transformMat = attribs.transformMat();
+        (const obstacle_attribs<T>& attribs_){
+            edit(attribs_);}
+
+    void edit(const obstacle_attribs<T>& attribs_){
+        this->attribs = attribs_;
+        this->transformMat = attribs_.transformMat();
         inverse_transpose_transformMat = glm::inverse(glm::transpose(this->transformMat));
     }
+
+
+
 };
+
+
+
 
 template<class T>
 struct obstacle_wrapper{
+
     ZAY_USED_GL_VERSION * _widg;
     Obstacle_Type type;
     shape_data<zaytuna::vertexL1_16> primitives;
@@ -348,6 +417,8 @@ struct obstacle_wrapper{
     GLuint inds_offset;
     GLsizei num_indices;
     std::vector<obstacle_instance<T>> instances;
+
+
     obstacle_wrapper() = default;
     obstacle_wrapper(ZAY_USED_GL_VERSION * const _widg,
                      Obstacle_Type type,
@@ -357,32 +428,49 @@ struct obstacle_wrapper{
             type{type},
             prims_dir{prims_dir},
             tex_dir{tex_dir}{
+
         primitives = obj_parser::extractExternal(prims_dir);
         _load_tex(_widg, _texID, tex_dir, ZAY_TEX_TYPE::TEX_2D_MIPMAP,
                   "JPG", 0,0);
+
     }
 
+
     void clean_up(void){
+
         primitives.cleanUP();
     }
+
+
     GLsizeiptr buffer_size() const{
+
         return primitives.verBufSize()
                + primitives.indBufSize();
+
     }
+
+
     void transmit_data(GLintptr& _offset,const GLuint& theBufferID,
                                   GLuint& off_set)
     {
+
         _widg->glBufferSubData(GL_ARRAY_BUFFER, _offset,
                                primitives.verBufSize(),
                                primitives.verts);
+
+
         _offset += primitives.verBufSize();
         inds_offset = static_cast<GLuint>(_offset);
+
+
         _widg->glBufferSubData(GL_ARRAY_BUFFER, _offset,
                                primitives.indBufSize(),
                                primitives.indices);
+
         _offset += primitives.indBufSize();
 
         num_indices = static_cast<GLsizei>(primitives.indNum);
+
 
         ///////////////////////////////
         _widg->glGenVertexArrays(1, &_VAO_ID);
@@ -390,59 +478,84 @@ struct obstacle_wrapper{
         _widg->glEnableVertexAttribArray(0);
         _widg->glEnableVertexAttribArray(1);
         _widg->glEnableVertexAttribArray(2);
+
         _widg->glBindBuffer(GL_ARRAY_BUFFER, theBufferID);
+
         _widg->glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE,
                                      ZAY_VERTEX_BYTE_SIZE_1,
                                      reinterpret_cast<void*>(off_set));
+
         _widg->glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE,
                                      ZAY_VERTEX_BYTE_SIZE_1,
                                      reinterpret_cast<void*>(off_set + ZAY_TYPE_SIZE * ZAY_NORMALS_STRIDE));
+
         _widg->glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE,
                                      ZAY_VERTEX_BYTE_SIZE_1,
                                      reinterpret_cast<void*>(off_set + ZAY_TYPE_SIZE * ZAY_TEXTURE_STRIDE));
         _widg->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, theBufferID);
+
         off_set += primitives.verBufSize()
                 + primitives.indBufSize();
 
         primitives.cleanUP();
+
     }
+
 
     ~obstacle_wrapper(){
         clean_up();
         _widg->glDeleteVertexArrays(1, &_VAO_ID);
         _widg->glDeleteTextures(1, &_texID);}
+
+
 };
+
+
 
 template<class T>
 struct obstacle_pack : public scene_object {
+
     GLenum PRIMITIVES_TYPE;
     glm::mat4 transformMat{
         glm::translate(glm::dvec3(0.0, 0.0, 0.0))
     };
 
+
     static GLint transformMatLocation;
     static GLint inverse_transpose_transformMatLocation;
     std::map<Obstacle_Type, obstacle_wrapper<T>*> categories;
-    std::map<std::string, Obstacle_Type> category;
+
 
     /* this used only to get a linear iteration, otherwise 'categories' does the same! */
     ptr_vector<obstacle_wrapper<T>*> obstacle_categories;
+    
+    std::map<std::string, Obstacle_Type> category;
+
+    
+    std::map<Obstacle_Type, rect_collistion_object<T>> rect_projections;
 
     class std::vector<obstacle_instance<T>>::iterator
             find(const std::string& _name){
         auto cat{&(categories[category[_name]]->instances)};
         auto begin{cat->begin()}, end{cat->end()};
         for(;begin!=end;++begin){
+
             if(begin->attribs.name == _name)
                 return begin;
+
         }
+
+
+
         ROS_ERROR_STREAM("query was made for a non-existent object: <"<< _name.c_str() <<">, a possible bug! \n");
         ROS_FATAL_STREAM("Please report this with sufficient information on how the situation came about!");
         exit(EXIT_FAILURE);
-        return begin;
+
     }
 
+
     obstacle_attribs<T> get_attribs(const std::string _name){
+
         return find(_name)->attribs;
     }
 
@@ -455,82 +568,126 @@ struct obstacle_pack : public scene_object {
         categories[category[_name]]->instances.erase(find(_name));
 #endif
     }
+
     obstacle_pack(ZAY_USED_GL_VERSION * const _widg,
                   const GLuint programID,
                   Obstacle_Type type,
                   const std::string& prims_dir,
+                  const std::string& proj_prims_dir,
                   const std::string& tex_dir,
                   GLenum PRIMITIVES_TYPE):
             scene_object(_widg, programID),
-            PRIMITIVES_TYPE{PRIMITIVES_TYPE}{
-        add_category(type, prims_dir, tex_dir);
+            PRIMITIVES_TYPE{PRIMITIVES_TYPE}
+    {
+
+        add_category(type, prims_dir, proj_prims_dir, tex_dir);
+
         if(transformMatLocation == -1)
             transformMatLocation =
                     _widg->glGetUniformLocation(_programID, "transformMat");
+
         if(inverse_transpose_transformMatLocation == -1)
             inverse_transpose_transformMatLocation =
-                    _widg->glGetUniformLocation(_programID, "it_transformMat");}
+                    _widg->glGetUniformLocation(_programID, "it_transformMat");
+
+    }
+
+
     virtual ~obstacle_pack() override{}
+
     void add_category(Obstacle_Type type,
                       std::string prims_dir,
+                      std::string proj_prims_dir,
                       std::string tex_dir){
+
         obstacle_categories.push_back
           (new obstacle_wrapper<T>(_widg, type, prims_dir, tex_dir));
+
         categories[type] = obstacle_categories.back();
+
+
+        rect_collistion_object<T> coll_obj;
+        obj_parser::extractProjectionRect(proj_prims_dir, coll_obj.points);
+        rect_projections[type] = coll_obj;
+
     }
+
+
     virtual void transmit_data(GLintptr& _offset,
                        const GLuint& theBufferID,
                        GLuint& off_set) override{
+
         for(uint32_t i{0}; i<obstacle_categories.size(); ++i)
             obstacle_categories[i]->transmit_data(_offset, theBufferID, off_set);
+
     }
 
+
     virtual void render_obj(zaytuna::camera const*const activeCam) override{
-        uint32_t category{0}, instance{0};
+
+        uint32_t category_{0}, instance{0};
         // this->_widg->glUseProgram(_programID);
 
-        for(;category<obstacle_categories.size(); ++category){
-            _widg->glBindTexture(GL_TEXTURE_2D, obstacle_categories[category]->_texID);
-            _widg->glBindVertexArray(obstacle_categories[category]->_VAO_ID);
+        for(;category_<obstacle_categories.size(); ++category_){
+
+            _widg->glBindTexture(GL_TEXTURE_2D, obstacle_categories[category_]->_texID);
+            _widg->glBindVertexArray(obstacle_categories[category_]->_VAO_ID);
             for(instance=0;
-                instance<obstacle_categories[category]->instances.size();
+                instance<obstacle_categories[category_]->instances.size();
                 ++instance){
+
                 transformMat = activeCam->transformationMat *
-                        obstacle_categories[category]->instances[instance].transformMat;
+                        obstacle_categories[category_]->instances[instance].transformMat;
 
                 _widg->glUniformMatrix4fv
                         (transformMatLocation, 1,
                          GL_FALSE, glm::value_ptr(transformMat));
+
                 _widg->glUniformMatrix4fv
                         (inverse_transpose_transformMatLocation,
                          1, GL_FALSE, glm::value_ptr
-                    (obstacle_categories[category]->instances
+                    (obstacle_categories[category_]->instances
                      [instance].inverse_transpose_transformMat));
+
                 _widg->glDrawElements
-                        (PRIMITIVES_TYPE, obstacle_categories[category]->num_indices,
+                        (PRIMITIVES_TYPE, obstacle_categories[category_]->num_indices,
                          GL_UNSIGNED_INT,
                          reinterpret_cast<void*>
-                         (obstacle_categories[category]->inds_offset));
+                         (obstacle_categories[category_]->inds_offset));
+
             }
         }
     }
 
+
     virtual GLsizeiptr buffer_size(void) const override{
+
         GLsizeiptr buff_size{0};
         for(uint32_t i{0}; i<obstacle_categories.size(); ++i)
             buff_size +=obstacle_categories[i]->buffer_size();
+
         return buff_size;
+
     }
+
     virtual void clean_up(void){}
 
 };
 
+
 template<class T>
 GLint obstacle_pack<T>::transformMatLocation{-1};
+
 template<class T>
 GLint obstacle_pack<T>::inverse_transpose_transformMatLocation{-1};
 
+
+
+
+
 } // namespace zaytuna
+
+
 
 
 

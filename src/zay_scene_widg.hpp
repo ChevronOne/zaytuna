@@ -21,7 +21,7 @@
 //  General Public License for more details.
 
 /*
- * Copyright Abbas Mohammed Murrey 2019-20
+ * Copyright Abbas Mohammed Murrey 2019-21
  *
  * Permission to use, copy, modify, distribute and sell this software
  * for any purpose is hereby granted without fee, provided that the
@@ -40,20 +40,6 @@
 
 
 
-
-#include "zay_headers.hpp"
-#include <QtGui/QMouseEvent>
-#include <QtGui/QKeyEvent>
-#include <QtGui/QWheelEvent>
-
-#include <ostream>
-#include <limits>
-
-#include "zay_cam.hpp"
-#include "zay_vertex.hpp"
-#include "zay_shape_maker.hpp"
-#include "zay_shape_data.hpp"
-#include "zay_model_vehicle.hpp"
 #include "zay_item.hpp"
 
 
@@ -64,6 +50,7 @@ namespace zaytuna {
 class primary_win;
 class _scene_widg : public ZAY_QGL_WIDGET_VERSION, protected ZAY_USED_GL_VERSION
 {
+
     Q_OBJECT
 
     GLuint programs[ZAY_PROGRAMS_NUM];
@@ -77,7 +64,11 @@ class _scene_widg : public ZAY_QGL_WIDGET_VERSION, protected ZAY_USED_GL_VERSION
     // zaytuna::ptr_vector<zaytuna::scene_object*> lap_objects;
     zaytuna::ptr_vector<zaytuna::scene_object*> environmental_objects;
     default_settings<GLdouble> default_objects;
+    zaytuna::rect_collistion_pack<GLdouble> coll_pack;
+    ZAY_MSG_LOGGER* message_logger;
 
+
+    inline void set_up(void);
     void update_cam(void);
     void add_default_obj(void);
     void send_data(void);
@@ -93,8 +84,13 @@ class _scene_widg : public ZAY_QGL_WIDGET_VERSION, protected ZAY_USED_GL_VERSION
     void add_obstacle(const obstacle_attribs<GLdouble>&);
     void delete_vehicle(const std::string&);
     void delete_obstacle(const std::string&);
-    void edit_obstacle(const obstacle_attribs<GLdouble>&);
+    // void edit_obstacle(const obstacle_attribs<GLdouble>&);
     void update_current_vehicle(const std::string&);
+
+    void add_static_collition_object(const obstacle_attribs<GLdouble>&);
+    void load_external_collition_object(const std::string&,
+                                        const std::string&);
+
     obstacle_attribs<GLdouble> get_obstacle(const std::string&);
     zaytuna::vehicle_attributes* getOtherVeh(const std::string&);
     double elap_accumulated{0.0}, cam_freq_accumulated{0.0}, elapsed{0.0};  // nanSec
@@ -113,13 +109,18 @@ class _scene_widg : public ZAY_QGL_WIDGET_VERSION, protected ZAY_USED_GL_VERSION
     bool coord_checked{true}, grid_checked{true};
     QTimer main_loop_timer;
     bool key_control{0};
-    bool k_forward, k_backward,
-         k_left, k_right,
-         k_up, k_down,
-         l_forward, l_backward,
-         l_left, l_right;
+    bool k_forward{0}, k_backward{0},
+         k_left{0}, k_right{0},
+         k_up{0}, k_down{0},
+         l_forward{0}, l_backward{0},
+         l_left{0}, l_right{0};
     GLuint theBufferID;
+    double SLIDER_MOVEMENT_SPEED{0.0}, 
+           SLIDER_STEERING_WHEEL{ZAY_STEERING_MARGIN_OF_ERROR};
+    zaytuna::vehicle_state<GLdouble> v_state;
     friend class zaytuna::primary_win;
+
+
 
 protected:
     virtual void initializeGL() override;
@@ -131,17 +132,24 @@ protected:
     virtual void keyReleaseEvent(QKeyEvent*) override;
 //    virtual void mousePressEvent(QMouseEvent*) override;
 
+
+
 public:
-    explicit _scene_widg(QGLFormat, QWidget* parent = nullptr);
-    explicit _scene_widg(QWidget* parent = nullptr);
+    explicit _scene_widg(ZAY_MSG_LOGGER*, QGLFormat, QWidget* parent = nullptr);
+    explicit _scene_widg(ZAY_MSG_LOGGER*, QWidget* parent = nullptr);
+
 
     virtual ~_scene_widg() override;
     static double sX, sY; //, sZ;
     static double delta_sX, delta_sY;//, delta_sZ;
     static double glX, glY; //, glZ;
 
+
+
 public slots:
         void animate();
+
+
 
 
 };
@@ -149,6 +157,7 @@ public slots:
 
 
 } //namespace zaytuna
+
 
 
 #endif // ZAY_SCENE_WIDG_HPP
