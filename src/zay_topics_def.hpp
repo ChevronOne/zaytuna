@@ -50,26 +50,28 @@ inline vehicle_topics<precision_type, _allocator>::vehicle_topics(const std::str
     
     n_handle.reset(new ros::NodeHandle);
 
+    const std::string zay_topics_annex{ZAY_PACKAGE_NAME+"/"+vehicle_id};
+
     zay_publishers[(int)ZAY_PUB_TOPICS::GPS_PUB] = n_handle->advertise<geometry_msgs::Vector3>
-                                                    ("zaytuna/"+vehicle_id+"/gps/localization", 5);
+                                                    (zay_topics_annex+"/gps/localization", 5);
     zay_publishers[(int)ZAY_PUB_TOPICS::GEO_PUB] = n_handle->advertise<geometry_msgs::Pose>
-                                                    ("zaytuna/"+vehicle_id+"/geometry/pose", 5);
+                                                    (zay_topics_annex+"/geometry/pose", 5);
     zay_publishers[(int)ZAY_PUB_TOPICS::TICKS_PUB] = n_handle->advertise<std_msgs::UInt32>
-                                                    ("zaytuna/"+vehicle_id+"/sensors/ticks", 10);
+                                                    (zay_topics_annex+"/sensors/ticks", 10);
     zay_publishers[(int)ZAY_PUB_TOPICS::ORIENTATION_PUB] = n_handle->advertise<geometry_msgs::Vector3>
-                                                        ("zaytuna/"+vehicle_id+"/compass/orientation", 5);
+                                                        (zay_topics_annex+"/compass/orientation", 5);
     zay_publishers[(int)ZAY_PUB_TOPICS::COLLISION_PUB] = n_handle->advertise<std_msgs::Bool>
-                                                        ("zaytuna/"+vehicle_id+"/sensors/is_collided", 0);
+                                                        (zay_topics_annex+"/sensors/is_collided", 0);
     zay_publishers[(int)ZAY_PUB_TOPICS::CAM_PUB] = n_handle->advertise<sensor_msgs::Image>
-                                                   ("zaytuna/"+vehicle_id+"/sensors/front_cam/image_raw", 0);
+                                                   (zay_topics_annex+"/sensors/front_cam/image_raw", 0);
     
 
 
     zay_subscribers[(int)ZAY_SUB_TOPICS::SPEED_SUB] = n_handle->subscribe
-            ("zaytuna/"+vehicle_id+"/controller/speed", 1,
+            (zay_topics_annex+"/controller/speed", 1,
              &vehicle_topics::speed_callback<precision_type>, this);
     zay_subscribers[(int)ZAY_SUB_TOPICS::STEERING_SUB] = n_handle->subscribe
-            ("zaytuna/"+vehicle_id+"/controller/steering", 1,
+            (zay_topics_annex+"/controller/steering", 1,
              &vehicle_topics::steering_callback<precision_type>, this);
 
 

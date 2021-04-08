@@ -584,6 +584,14 @@ void primary_win::on_coord_check_clicked
 }
 
 
+void primary_win::on_fixed_cam_check_clicked
+(bool checked){
+
+    _scene_widget->fixed_cam = checked;
+
+}
+
+
 void primary_win::on_cam_movement_speed_valueChanged
         (double arg){
 

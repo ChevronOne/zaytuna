@@ -97,6 +97,7 @@ private slots:
     void on_max_steering_SpinBox_valueChanged(double);
     void on_max_speed_SpinBox_valueChanged(double);
     void on_limited_frames_spinBox_valueChanged(int);
+    void on_fixed_cam_check_clicked(bool checked);
 
 private:
     void setToolTipLabels(void);

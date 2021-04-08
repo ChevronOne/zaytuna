@@ -55,6 +55,7 @@ double _scene_widg::glX{-1}, _scene_widg::glY{1}; //, _scene_widg::glZ;
 //     imgs_sec{1.0/ZAY_DEFAULT_FRONT_CAM_FREQUENCY}, local_control_speed{ZAY_DEFAULT_LOCAL_CONTROL_SPEED},
 //     local_control_steering{ZAY_DEFAULT_LOCAL_CONTROL_STEERING}, frames_counter{0},
 //     limited_frames{ZAY_DEFAULT_FRAME_RATE}, activeCam{&mainCam},
+//     key_control{0}, fixed_cam{0},
 //     k_forward{0}, k_backward{0}, k_left{0}, k_right{0}, k_up{0}, k_down{0},
 //     l_forward{0}, l_backward{0}, l_left{0}, l_right{0}
 // { 
@@ -74,6 +75,7 @@ _scene_widg::_scene_widg(ZAY_MSG_LOGGER* msg_log, QGLFormat format_, QWidget* pa
     imgs_sec{1.0/ZAY_DEFAULT_FRONT_CAM_FREQUENCY}, local_control_speed{ZAY_DEFAULT_LOCAL_CONTROL_SPEED},
     local_control_steering{ZAY_DEFAULT_LOCAL_CONTROL_STEERING}, frames_counter{0},
     limited_frames{ZAY_DEFAULT_FRAME_RATE}, activeCam{&mainCam},
+    key_control{0}, fixed_cam{0},
     k_forward{0}, k_backward{0}, k_left{0}, k_right{0}, k_up{0}, k_down{0},
     l_forward{0}, l_backward{0}, l_left{0}, l_right{0}
 { set_up();}
@@ -377,15 +379,15 @@ void _scene_widg::mouseMoveEvent(QMouseEvent *ev){
 
 
             if( delta_sX > 0.0)
-                mainCam.strafe_right(delta_sX);
+                mainCam.strafe_right(delta_sX*mainCam.camera_position.y*ZAY_CAM_HORIZONTAL_MOVEMENT_SCALAR);
             else if(delta_sX < 0.0)
-                mainCam.strafe_left(-delta_sX);
+                mainCam.strafe_left(-delta_sX*mainCam.camera_position.y*ZAY_CAM_HORIZONTAL_MOVEMENT_SCALAR);
             
 
             if(delta_sY > 0.0)
-                mainCam.move_horizontal_backward(delta_sY);
+                mainCam.move_horizontal_backward(delta_sY*mainCam.camera_position.y*ZAY_CAM_HORIZONTAL_MOVEMENT_SCALAR);
             else if(delta_sY < 0.0)
-                mainCam.move_horizontal_forward(-delta_sY);
+                mainCam.move_horizontal_forward(-delta_sY*mainCam.camera_position.y*ZAY_CAM_HORIZONTAL_MOVEMENT_SCALAR);
             
             sX = static_cast<double>(ev->x());
             sY = static_cast<double>(ev->y());
@@ -400,11 +402,12 @@ void _scene_widg::mouseMoveEvent(QMouseEvent *ev){
             glY =  -((sY/ (static_cast<double>
                            (this->height())/2.0) ) -1);
             
-            if(ev->buttons()==Qt::LeftButton)
+            if(ev->buttons()==Qt::LeftButton){
                 mainCam.mouse_held_update(glm::vec2(ev->x(),ev->y()), frame_rate);
-            else
+            }
+            else if(!fixed_cam){
                 mainCam.mouse_update(glm::vec2(ev->x(),ev->y()), frame_rate);
-            
+            }
         }
     }
 

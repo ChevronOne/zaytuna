@@ -458,9 +458,9 @@
     <widget class="QGroupBox" name="groupBox_Camera">
      <property name="geometry">
       <rect>
-       <x>130</x>
+       <x>150</x>
        <y>0</y>
-       <width>161</width>
+       <width>141</width>
        <height>91</height>
       </rect>
      </property>
@@ -512,9 +512,9 @@
     <widget class="QCheckBox" name="grid_check">
      <property name="geometry">
       <rect>
-       <x>11</x>
+       <x>10</x>
        <y>30</y>
-       <width>101</width>
+       <width>130</width>
        <height>31</height>
       </rect>
      </property>
@@ -528,9 +528,9 @@
     <widget class="QCheckBox" name="coord_check">
      <property name="geometry">
       <rect>
-       <x>11</x>
+       <x>10</x>
        <y>1</y>
-       <width>101</width>
+       <width>130</width>
        <height>31</height>
       </rect>
      </property>
@@ -584,6 +584,19 @@
      </property>
      <property name="text">
       <string>Hz</string>
+     </property>
+    </widget>
+    <widget class="QCheckBox" name="fixed_cam_check">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>59</y>
+       <width>130</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Fixed Cam</string>
      </property>
     </widget>
    </widget>

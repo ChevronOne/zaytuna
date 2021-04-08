@@ -108,7 +108,7 @@ class _scene_widg : public ZAY_QGL_WIDGET_VERSION, protected ZAY_USED_GL_VERSION
     QGLFramebufferObjectFormat fboFormat;
     bool coord_checked{true}, grid_checked{true};
     QTimer main_loop_timer;
-    bool key_control{0};
+    bool key_control{0}, fixed_cam{0};
     bool k_forward{0}, k_backward{0},
          k_left{0}, k_right{0},
          k_up{0}, k_down{0},

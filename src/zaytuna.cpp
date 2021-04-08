@@ -34,14 +34,18 @@
 
 #include "zay_app.hpp"
 
+
+
 int main(int argc, char *argv[])
 {
+
     zaytuna::ZaytunaApp zayApp(argc, argv);
+
     if(zayApp.ok())
         return zayApp.run();
         
     
-    else return -1;
+    return EXIT_FAILURE;
 
     
     
