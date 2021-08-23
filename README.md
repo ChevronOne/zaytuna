@@ -5,11 +5,21 @@
 <br/><br/>
 
 # 3D Self-Driving Car Simulator with ROS  :deciduous_tree:
-**Zaytuna** is a very simple, lightweight 3D self-driving car simulator that is programmable with [ROS](https://www.ros.org).  
+**Zaytuna** is a very simple, lightweight 3D simulator for a mini autonomous self-driving car that is programmable with [ROS](https://www.ros.org).  
 The simulator is meant to be used for educational purposes only!
 <br/><br/>
 :exclamation: **Note:** Not suitable for virtual machine. You'll not be able to run it in Virtualbox or on a guest operating system. And if you've ever got it to run on a guest OS, the scene won't render properly, and therefore will not be suitable to drive with vision. For a simulator you usually need an actual graphic card, and not emulated one.  
+<br/><br/>
+**Here is a rushed walkthrough video! Alternatively, you can also watch it in slow motion on YouTube [here](https://youtu.be/H7O3mLU8WCk).**
 
+
+
+https://user-images.githubusercontent.com/38502426/130468381-036f6f0a-0891-4986-b3ba-2d751c1ceba9.mp4
+
+
+
+
+<br/><br/>
 For any bug reports or suggestions, please use the above `Issues`/`Discussions` dialogs.  
 
 **Requirements:**   ROS.  "*No support for ROS2 yet!*"  
