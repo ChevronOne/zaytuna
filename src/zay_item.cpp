@@ -475,7 +475,7 @@ zaytuna::skybox_obj::skybox_obj(ZAY_USED_GL_VERSION * const _widg,
 {
 
     primitives = shape_maker<zaytuna::vertexL1_0>::makeCubemap();
-    _load_tex(_widg,_texID, "/tex/skybox", ZAY_TEX_TYPE::TEX_CUBE_MAP,
+    _load_tex(_widg,_texID, "/resources/skybox", ZAY_TEX_TYPE::TEX_CUBE_MAP,
               "JPG", 0,1);
 
 }
@@ -621,7 +621,7 @@ zaytuna::model_vehicle::model_vehicle(ZAY_USED_GL_VERSION * const _widg,
 
 void model_vehicle::add_vehicle
         (QGLFramebufferObject *const FBO_,
-         const transform_attribs<GLdouble> attribs,
+         const veh_transform_attribs<GLdouble> attribs,
          zaytuna::vehicle_state<GLdouble>* v_state,
          ZAY_MSG_LOGGER* message_logger){
     

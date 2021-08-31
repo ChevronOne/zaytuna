@@ -80,7 +80,7 @@ class _scene_widg : public ZAY_QGL_WIDGET_VERSION, protected ZAY_USED_GL_VERSION
     void draw_local(void);
     inline void render_main_scene(zaytuna::camera const*const);
     inline void render_local_scene(zaytuna::camera const*const);
-    void add_vehicle(const transform_attribs<GLdouble>&);
+    void add_vehicle(const veh_transform_attribs<GLdouble>&);
     void add_obstacle(const obstacle_attribs<GLdouble>&);
     void delete_vehicle(const std::string&);
     void delete_obstacle(const std::string&);

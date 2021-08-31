@@ -355,7 +355,7 @@ public:
     virtual GLsizeiptr buffer_size(void) const override;
 
     void add_vehicle(QGLFramebufferObject *const,
-                     const transform_attribs<GLdouble>,
+                     const veh_transform_attribs<GLdouble>,
                      zaytuna::vehicle_state<GLdouble>*,
                      ZAY_MSG_LOGGER*);
 

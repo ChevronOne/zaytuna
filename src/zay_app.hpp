@@ -47,7 +47,7 @@ class ZaytunaApp final: public QApplication{
     static primary_winPtr zay_simu;
     static bool ok_;
     static int fontId_;
-    std::string ZAY_PACKAGE_PATH;
+    std::string ZAY_PACKAGE_PATH{""};
     QIcon zay_icon;
     
 

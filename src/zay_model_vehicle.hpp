@@ -77,7 +77,7 @@ class vehicle_attributes
     nanSec timer_t;
     
     ZAY_USED_GL_VERSION* _widg{nullptr};
-    transform_attribs<GLdouble> attribs;
+    veh_transform_attribs<GLdouble> attribs;
     rect_collistion_object<GLdouble> const *coll_rect_orig;
     rect_collistion_object<GLdouble> coll_rect;
     rect_collistion_pack<GLdouble>* coll_pack;
@@ -131,9 +131,9 @@ protected:
     inline void actuate();
     void update_rotation_att();
     // void update_cent(void);
-    void update_positional_attributes(const transform_attribs<GLdouble>);
+    void update_positional_attributes(const veh_transform_attribs<GLdouble>);
 
-    transform_attribs<GLdouble> current_state(void);
+    veh_transform_attribs<GLdouble> current_state(void);
 
 
     glm::dmat4 transformationMats[5]; // /model vehicle/, /right front tire/, /left front tire/, /back tires/, /lidar/
@@ -150,7 +150,7 @@ protected:
     const glm::dmat4 backT =    glm::translate(glm::dvec3( 0.0,  0.031,    0.0));
     const glm::dmat4 lidar =    glm::translate(glm::dvec3( 0.118, 0.419,   0.0));
     const glm::dvec4 camPos =  glm::dvec4(0.13, 0.466, 0.0, 1.0);
-    const glm::dvec4 frontCamViewDirection = glm::dvec4(0.5 , 0.278 , 0.0, 1.0); // should be adjusted!
+    glm::dvec4 frontCamViewDirection = glm::dvec4(0.5 , 0.278 , 0.0, 1.0); // should be adjusted!
 
 
     // Physical Specifications
@@ -183,7 +183,7 @@ public:
     explicit vehicle_attributes
             (ZAY_USED_GL_VERSION*,
              QGLFramebufferObject *const,
-             const transform_attribs<GLdouble>,
+             const veh_transform_attribs<GLdouble>,
              rect_collistion_object<GLdouble> const*const,
              rect_collistion_pack<GLdouble>*,
              zaytuna::vehicle_state<GLdouble>*,

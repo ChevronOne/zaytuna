@@ -43,14 +43,17 @@ namespace zaytuna {
 
 
 
-primary_win::primary_win(const QString& title_, const QIcon& icon_, QWidget *parent) :
-    QMainWindow(parent),
-    ui{new Ui::primary_win}, zay_icon{icon_}
+primary_win::primary_win(const QString& title_, const QIcon& icon_,
+                         const std::string& p_path, QWidget *parent) :
+    QMainWindow(parent), ui{new Ui::primary_win}, 
+    ZAY_PACKAGE_PATH{p_path}, zay_icon{icon_}
 {
+    
+    ZAY_PACKAGE_PATH = ros::package::getPath(ZAY_PACKAGE_NAME);
 
     ui->setupUi(this);
-    setWindowTitle(title_);
-    setWindowIcon(zay_icon);
+    this->setWindowTitle(title_);
+    this->setWindowIcon(zay_icon);
 
 
     if(std::is_same<ZAY_QGL_WIDGET_VERSION, ZAY_QGL_W>::value){
@@ -129,10 +132,9 @@ primary_win::primary_win(const QString& title_, const QIcon& icon_, QWidget *par
     ui->limited_frames_spinBox->setValue
             (static_cast<int>(_scene_widget->limited_frames));
 
-    const std::string ZAY_PACKAGE_PATH{ros::package::getPath(ZAY_PACKAGE_NAME)};
 
     ui->coord_ref_lab->setPixmap(QPixmap
-        ((ZAY_PACKAGE_PATH+"/tex/coord_ref").c_str()).scaled
+        ((ZAY_PACKAGE_PATH+"/resources/coord_ref").c_str()).scaled
             (ui->coord_ref_lab->width(), 
             ui->coord_ref_lab->height(), 
             Qt::KeepAspectRatio));
@@ -144,7 +146,8 @@ primary_win::primary_win(const QString& title_, const QIcon& icon_, QWidget *par
 
 
     /*********default objects**********/
-    add_vehicle({std::string(),
+    add_vehicle({ZAY_DEFAULT_FRONT_CAM_V_ANGLE_MIN,
+                 std::string(),
                  180.0,
                  {0.0, 1.0, 0.0},
                  {6.0, 0.0, -1.25}},1);
@@ -181,7 +184,7 @@ void primary_win::new_vehicle(void)
 
     if(vehicles.size()<ZAY_LIMITED_VEH_NUM){
 
-        item_inputs_form inputs_d;
+        item_inputs_form inputs_d(ZAY_PACKAGE_PATH);
 
         inputs_d.setWindowTitle("new vehicle");
         inputs_d.setWindowIcon(zay_icon);
@@ -202,7 +205,7 @@ void primary_win::new_vehicle(void)
 
 
 void primary_win::add_vehicle
-    (transform_attribs<GLdouble> attribs,
+    (veh_transform_attribs<GLdouble> attribs,
      bool is_default)
 {
 
@@ -232,7 +235,7 @@ void primary_win::edit_vehicle(const QString& _name){
     auto veh{_scene_widget->model_vehicles->find
                 (_name.toStdString())};
 
-    item_inputs_form inputs_d(veh->current_state());
+    item_inputs_form inputs_d(veh->current_state(), ZAY_PACKAGE_PATH);
     inputs_d.setWindowTitle("edit vehicle");
     inputs_d.setWindowIcon(zay_icon);
     inputs_d.setModal(1);

@@ -139,20 +139,25 @@ struct geo_pose : public geometry_msgs::Pose_<allocator> {
 
 enum class Obstacle_Type { CARTON_BOX, BRICK_WALL, STONE_WALL };
 template<class T>
-struct transform_attribs
+struct obj_transform_attribs
 {
+
     std::string name{"uninitialized_item_name"};
+
     T angle{static_cast<T>(0.0)};
+
     glm::tvec3<T> rotation_vec
         {static_cast<T>(0.0),
          static_cast<T>(1.0),
          static_cast<T>(0.0)};
+
     glm::tvec3<T> translation_vec
         {static_cast<T>(0.0),
          static_cast<T>(0.0),
          static_cast<T>(0.0)};
-    transform_attribs() = default;
-    transform_attribs(const std::string& name,
+
+    obj_transform_attribs() = default;
+    obj_transform_attribs(const std::string& name,
                       T angle,
                       glm::tvec3<T> r_vec,
                       glm::tvec3<T> t_vec):
@@ -173,7 +178,7 @@ struct transform_attribs
 
 
 template<class T>
-struct obstacle_attribs : public transform_attribs<T>
+struct obstacle_attribs : public obj_transform_attribs<T>
 {
     Obstacle_Type type{Obstacle_Type::STONE_WALL};
     obstacle_attribs() = default;
@@ -182,14 +187,29 @@ struct obstacle_attribs : public transform_attribs<T>
                      T angle,
                      glm::tvec3<T> r_vec,
                      glm::tvec3<T> t_vec):
-        transform_attribs<T>(name, angle, r_vec, t_vec),
+        obj_transform_attribs<T>(name, angle, r_vec, t_vec),
         type{type}{}
 };
 
 
 template<class T>
+struct veh_transform_attribs : public obj_transform_attribs<T>
+{
+    T front_cam_v_angle{static_cast<T>(0.0)};
+    veh_transform_attribs() = default;
+    veh_transform_attribs(T cam_v_angle,
+                const std::string& name,
+                T angle,
+                glm::tvec3<T> r_vec,
+                glm::tvec3<T> t_vec):
+        obj_transform_attribs<T>(name, angle, r_vec, t_vec),
+        front_cam_v_angle{cam_v_angle}{}
+};
+
+
+template<class T>
 struct default_settings{
-    std::vector<transform_attribs<T>> vehicles;
+    std::vector<veh_transform_attribs<T>> vehicles;
     std::vector<obstacle_attribs<T>> obstacles;
     void clear(){
         this->vehicles.clear();

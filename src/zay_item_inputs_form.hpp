@@ -55,8 +55,9 @@ class item_inputs_form : public QDialog
 
 public:
 
-    explicit item_inputs_form(QWidget *parent = 0);
-    explicit item_inputs_form(transform_attribs<GLdouble>,
+    explicit item_inputs_form(const std::string&, QWidget *parent = 0);
+    explicit item_inputs_form(veh_transform_attribs<GLdouble>, 
+                              const std::string&,
                               QWidget *parent = 0);
     ~item_inputs_form();
 
@@ -67,8 +68,8 @@ private slots:
 
 private:
 
-    void set_tool_tips(void);
-    transform_attribs<GLdouble> attribs;
+    void set_tool_tips(const std::string&);
+    veh_transform_attribs<GLdouble> attribs;
     Ui::item_inputs_form *ui;
 
 

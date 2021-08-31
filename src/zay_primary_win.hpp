@@ -78,7 +78,7 @@ private slots:
     void on_steeringV_valueChanged(int value);
     void menus(const QPoint&);
     void new_vehicle(void);
-    void add_vehicle(transform_attribs<GLdouble>,bool);
+    void add_vehicle(veh_transform_attribs<GLdouble>,bool);
     void new_obstacle(void);
     void add_obstacle(obstacle_attribs<GLdouble>,bool);
     void front_cam_to_screen(const QString&);
@@ -110,6 +110,7 @@ private:
     std::map<QString, QTreeWidgetItem*> vehicles, obstacles;
     uint32_t vehicle_counter{1};
     std::map<zaytuna::Obstacle_Type, obstacle_tracker> obstacle_counter;
+    std::string ZAY_PACKAGE_PATH{""};
 
     void vehicle_type_menu(const QPoint&);
     void vehicle_menu(const QPoint&);
@@ -123,7 +124,9 @@ private:
 
 public:
 
-    explicit primary_win(const QString&, const QIcon&, QWidget *parent = nullptr);
+    explicit primary_win(const QString&, const QIcon&, 
+                         const std::string&, QWidget *parent = nullptr);
+                         
     virtual ~primary_win() override;
 
 };

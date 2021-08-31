@@ -45,7 +45,7 @@ namespace zaytuna {
 vehicle_attributes::vehicle_attributes
             (ZAY_USED_GL_VERSION* _widg,
              QGLFramebufferObject *const FBO_,
-             const transform_attribs<GLdouble> attribs,
+             const veh_transform_attribs<GLdouble> attribs,
              rect_collistion_object<GLdouble> const*const proj_rect,
              rect_collistion_pack<GLdouble>* coll_objs,
              zaytuna::vehicle_state<GLdouble>* v_state,
@@ -75,7 +75,7 @@ vehicle_attributes::vehicle_attributes
 
 
 void vehicle_attributes::update_positional_attributes
-        (const transform_attribs<GLdouble> attribs_){
+        (const veh_transform_attribs<GLdouble> attribs_){
 
     this->attribs = attribs_;
     transformationMats[0] = attribs_.transformMat();
@@ -97,6 +97,10 @@ void vehicle_attributes::update_positional_attributes
                         * glm::vec4(front_ideal_tire, 1.0);
 
     frontCam.camera_position = transformationMats[0] * camPos;
+    frontCamViewDirection = glm::dvec4(cos(glm::radians(attribs_.front_cam_v_angle-90.0)), 
+                                       cos(glm::radians(180.0-attribs_.front_cam_v_angle)), 
+                                       0.0, 1.0);
+    
     frontCam.view_direction  = attribs_.rotationMat()
                             * (frontCamViewDirection - camPos);
     frontCam.updateWorld_to_viewMat();
@@ -402,7 +406,7 @@ vehicle_attributes::~vehicle_attributes(){
 }
 
 
-transform_attribs<GLdouble>
+veh_transform_attribs<GLdouble>
 vehicle_attributes::current_state(void){
 
     GLdouble angle{glm::degrees

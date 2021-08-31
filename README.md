@@ -1,5 +1,5 @@
 <p align="center">
-    <img width="400" align="center" src="tex/Calligraphy" alt="Calligraphy" />
+    <img width="400" align="center" src="resources/Calligraphy" alt="Calligraphy" />
 </p>
 
 <br/><br/>

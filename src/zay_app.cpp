@@ -143,12 +143,12 @@ int ZaytunaApp::run(){
         return -1;
     }
 
-    zay_icon.addFile((ZAY_PACKAGE_PATH+"/tex/"+ZAY_PACKAGE_NAME).c_str());
+    zay_icon.addFile((ZAY_PACKAGE_PATH+"/resources/"+ZAY_PACKAGE_NAME).c_str());
     if(zay_icon.isNull()){
         ROS_ERROR_STREAM("Failed to load zaytuna icon!");
     }
 
-    zay_simu.reset(new zaytuna::primary_win("Zaytuna", zay_icon));
+    zay_simu.reset(new zaytuna::primary_win("Zaytuna", zay_icon, ZAY_PACKAGE_PATH));
 
     zay_simu->show();
 

@@ -75,7 +75,7 @@ set(zaytuna_ui
 
 set(zaytuna_headers 
     src/zay_cam.hpp
-    src/zay_headers.hpp
+    src/zay_commons.hpp
     src/zay_item.hpp
     src/zay_item_inputs_form.hpp
     src/zay_model_vehicle.hpp
