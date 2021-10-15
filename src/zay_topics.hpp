@@ -61,7 +61,7 @@ class vehicle_topics final
     zaytuna::vec3<_allocator> vehicle_orientation;
     geometry_msgs::Vector3_<_allocator>& orientation_ref{vehicle_orientation};
     zaytuna::geo_pose<_allocator> vehicle_geometry;
-    geometry_msgs::Pose_<_allocator>& vehicle_geometry_ref{vehicle_geometry};
+    zaytuna::Pose_<_allocator>& vehicle_geometry_ref{vehicle_geometry};
     zaytuna::uint32<_allocator> current_ticks;
     std_msgs::UInt32_<_allocator>& current_ticks_ref{current_ticks};
     zaytuna::Bool<_allocator> is_collided;
@@ -93,7 +93,8 @@ class vehicle_topics final
 
     inline void grab_buffer(void);
 
-    inline void advertise_current_state(const zay_vert&, 
+    inline void advertise_current_state(const zay_vert&,
+                                        const zay_vert&, 
                                         const zay_vert&);
     
     inline void shutdown(void);

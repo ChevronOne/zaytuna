@@ -72,8 +72,6 @@ vehicle_attributes::vehicle_attributes
 }
 
 
-
-
 void vehicle_attributes::update_positional_attributes
         (const veh_transform_attribs<GLdouble> attribs_){
 
@@ -111,7 +109,7 @@ void vehicle_attributes::update_positional_attributes
                                         glm::dvec3(0.0, 1.0, 0.0));
     frontCam.updateProjection(ZAY_SCENE_WIDTH, ZAY_SCENE_HEIGHT);
 
-    topics->vehicle_geometry.update(back_ideal_tire, vehic_direction);
+    topics->vehicle_geometry.update(back_ideal_tire, front_ideal_tire, vehic_direction);
 
 
     coll_rect.points = coll_rect_orig->points;
@@ -123,7 +121,9 @@ void vehicle_attributes::update_positional_attributes
 
     is_collided = 0;
     if(collision_tester == nullptr){
-        collision_tester = std::make_unique<std::thread>(&vehicle_attributes::collision_test, this, coll_pack);
+        collision_tester = std::make_unique<coll_tester<GLdouble>>
+            (&attribs.name, &is_collided, &elapsed_t, &collided_object, &coll_rect, coll_pack);
+
         collision_tester->detach();
     }
 
@@ -152,6 +152,7 @@ void vehicle_attributes::update_actuators_commands(const double frame_rate){
 
     if((MOVEMENT_SPEED == 0.0) & collision_msg)
         collision_msg^=1;
+    
     if(is_collided &(MOVEMENT_SPEED != 0.0)){
         MOVEMENT_SPEED = 0.0;
         if(!collision_msg){
@@ -178,13 +179,16 @@ void vehicle_attributes::update_attribs(const double frame_rate)
         topics->current_ticks = ticks_counter = static_cast<uint32_t>(accumulated_dist/meters_per_tick);
         accumulated_dist = fmod(accumulated_dist, meters_per_tick);
         if(collision_tester == nullptr){
-            collision_tester = std::make_unique<std::thread>(&vehicle_attributes::collision_test, this, coll_pack);
+            collision_tester = std::make_unique<coll_tester<GLdouble>>
+                (&attribs.name, &is_collided, &elapsed_t, &collided_object, &coll_rect, coll_pack);
             collision_tester->detach();
         }
 
     }else{
-        if(collision_tester != nullptr)
-            collision_tester = nullptr;
+        if(collision_tester != nullptr){
+            collision_tester->terminate();
+            collision_tester.reset(nullptr);
+        }
         elapsed_t = durSec(std::chrono::high_resolution_clock::now() - timer_t).count();
         timer_t = std::chrono::high_resolution_clock::now();
     }
@@ -255,90 +259,6 @@ void vehicle_attributes::update_projection_rect(void){
 }
 
 
-void vehicle_attributes::collision_test(rect_collistion_pack<GLdouble> const * const _pack){
-
-    nanSec local_timer_t;
-
-    double local_elapsed_t{std::numeric_limits<double>::max()}, glob_elapsed_t{0};
-    do{
-
-        local_timer_t = std::chrono::high_resolution_clock::now();
-
-        for(uint32_t i{0}; i<_pack->static_objs.size(); ++i){
-
-            if(axis_inter(coll_rect.uniqueV[0], _pack->static_objs[i].points) |
-               axis_inter(coll_rect.uniqueV[1], _pack->static_objs[i].points) |
-               axis_inter(_pack->static_objs[i].uniqueV[0], _pack->static_objs[i].points) |
-               axis_inter(_pack->static_objs[i].uniqueV[1], _pack->static_objs[i].points))
-                continue;
-
-            collided_object = _pack->static_objs[i].ID;
-            ROS_WARN_STREAM("Collistion! " << attribs.name << " > " << collided_object);
-            
-            is_collided = 1;
-            break;
-        }
-        if((_pack->dyn_objs.size()>1)& !is_collided ){
-
-            for(uint32_t i{0}; i<_pack->dyn_objs.size(); ++i){
-
-                if((_pack->dyn_objs[i]->ID == attribs.name) |
-                    axis_inter(coll_rect.uniqueV[0], _pack->dyn_objs[i]->points) |
-                    axis_inter(coll_rect.uniqueV[1], _pack->dyn_objs[i]->points) |
-                    axis_inter(_pack->dyn_objs[i]->uniqueV[0], _pack->dyn_objs[i]->points) |
-                    axis_inter(_pack->dyn_objs[i]->uniqueV[1], _pack->dyn_objs[i]->points))
-                    continue;
-
-                collided_object = _pack->dyn_objs[i]->ID;
-                ROS_WARN_STREAM("Collistion! " << attribs.name << " > " << collided_object);
-
-                is_collided = 1;
-                break;
-            }
-        }
-
-        local_elapsed_t = durSec(std::chrono::high_resolution_clock::now() - local_timer_t).count();
-        glob_elapsed_t = elapsed_t;
-
-        if(local_elapsed_t<glob_elapsed_t)
-            std::this_thread::sleep_for(std::chrono::nanoseconds( int((glob_elapsed_t-local_elapsed_t)*1000000000) ));
-        
-    }while((MOVEMENT_SPEED!=0.0) & !is_collided);
-
-}
-
-
-bool vehicle_attributes::axis_inter(const glm::dvec3 axis, 
-                                    const boost::array<coll_vert, ZAY_RECTANGLE_P>& _points) const{
-
-    std::multiset<projection_1d<GLdouble>> order; 
-    
-    coll_vert proj;
-    for(const coll_vert& vec:_points){
-        proj = glm::proj(vec, axis);
-        order.insert(projection_1d<GLdouble>(proj.x+proj.z, zaytuna::Collider_type::COUNTERPART));
-
-    }
-
-    for(const coll_vert& vec:coll_rect.points){
-        proj = glm::proj(vec, axis);
-        order.insert(projection_1d<GLdouble>(proj.x+proj.z));
-
-    }
-
-    auto it{order.begin()};
-    zaytuna::Collider_type _t = it->c_type;
-    for(uint32_t i{1}; i<ZAY_RECTANGLE_P; ++i){
-        ++it;
-
-        if(_t != it->c_type)
-            return 0;
-    }
-
-    return 1;
-}
-
-
 void vehicle_attributes::actuate()
 {
 
@@ -392,7 +312,9 @@ void vehicle_attributes::actuate()
 
     frontCam.updateWorld_to_viewMat();
     topics->is_collided = is_collided;
-    topics->advertise_current_state(back_ideal_tire, vehic_direction);
+    topics->advertise_current_state(back_ideal_tire, 
+                                    front_ideal_tire, 
+                                    vehic_direction);
 
 }
 

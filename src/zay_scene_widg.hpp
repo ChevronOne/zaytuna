@@ -50,23 +50,26 @@ namespace zaytuna {
 class primary_win;
 class _scene_widg : public ZAY_QGL_WIDGET_VERSION, protected ZAY_USED_GL_VERSION
 {
-
     Q_OBJECT
 
-    GLuint programs[ZAY_PROGRAMS_NUM];
-    zaytuna::ptr_vector<basic_program*> programs_;
+    typedef std::unique_ptr<zaytuna::basic_program> progPtr;
+    typedef std::unique_ptr<zaytuna::scene_object> sceneObjPtr;
+    typedef std::unique_ptr<zaytuna::obstacle_pack<GLdouble>> obsPackPtr;
+    typedef std::unique_ptr<zaytuna::model_vehicle> vehPtr;
 
-    zaytuna::ptr_vector<zaytuna::scene_object*> basic_objects;
-    zaytuna::model_vehicle* model_vehicles{nullptr};
+
+
+    std::vector<progPtr> programs_;
+    std::vector<sceneObjPtr> basic_objects;
+    vehPtr model_vehicles{nullptr};
     vehicle_attributes* current_model{nullptr};
-    skybox_obj* skybox{nullptr};
-    zaytuna::obstacle_pack<GLdouble>* obstacle_objects{nullptr};
-    // zaytuna::ptr_vector<zaytuna::scene_object*> lap_objects;
-    zaytuna::ptr_vector<zaytuna::scene_object*> environmental_objects;
+    sceneObjPtr skybox{nullptr};
+    obsPackPtr obstacle_objects{nullptr};
+    std::vector<sceneObjPtr> environmental_objects;
     default_settings<GLdouble> default_objects;
-    zaytuna::rect_collistion_pack<GLdouble> coll_pack;
-    ZAY_MSG_LOGGER* message_logger;
-
+    zaytuna::rect_collistion_pack<GLdouble> collision_pack;
+    ZAY_MSG_LOGGER* message_logger{nullptr};
+    const std::string ZAY_PACKAGE_PATH{ros::package::getPath(ZAY_PACKAGE_NAME)};
 
     inline void set_up(void);
     void update_cam(void);
@@ -76,7 +79,6 @@ class _scene_widg : public ZAY_QGL_WIDGET_VERSION, protected ZAY_USED_GL_VERSION
     void update_time_interval(uint32_t);
     void update_fc_time_interval(double);
     inline void update_contrl_attribs(void);
-    void cleanUp();
     void draw_local(void);
     inline void render_main_scene(zaytuna::camera const*const);
     inline void render_local_scene(zaytuna::camera const*const);
@@ -84,9 +86,8 @@ class _scene_widg : public ZAY_QGL_WIDGET_VERSION, protected ZAY_USED_GL_VERSION
     void add_obstacle(const obstacle_attribs<GLdouble>&);
     void delete_vehicle(const std::string&);
     void delete_obstacle(const std::string&);
-    // void edit_obstacle(const obstacle_attribs<GLdouble>&);
+    // void edit_obstacle(const obstacle_attribs<GLdouble>&); // replaced by remove & add
     void update_current_vehicle(const std::string&);
-
     void add_static_collition_object(const obstacle_attribs<GLdouble>&);
     void load_external_collition_object(const std::string&,
                                         const std::string&);
@@ -118,8 +119,9 @@ class _scene_widg : public ZAY_QGL_WIDGET_VERSION, protected ZAY_USED_GL_VERSION
     double SLIDER_MOVEMENT_SPEED{0.0}, 
            SLIDER_STEERING_WHEEL{ZAY_STEERING_MARGIN_OF_ERROR};
     zaytuna::vehicle_state<GLdouble> v_state;
-    friend class zaytuna::primary_win;
 
+
+    friend class zaytuna::primary_win;
 
 
 protected:
@@ -130,7 +132,6 @@ protected:
     virtual void keyPressEvent(QKeyEvent*) override;
     virtual void wheelEvent(QWheelEvent*) override;
     virtual void keyReleaseEvent(QKeyEvent*) override;
-//    virtual void mousePressEvent(QMouseEvent*) override;
 
 
 

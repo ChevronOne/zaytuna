@@ -126,19 +126,22 @@ shape_data<vertexL1_16> obj_parser::extractExternal
                         << " characters remained unparsed!");
     }
     
-    shape_data<vertexL1_16> _object;
-    _object.verNum = _object.indNum =  primitives.faces.size()/3;
-    _object.verts = new vertexL1_16[_object.verNum];
+    ROS_ERROR_STREAM_COND(primitives.faces.size()%3 != 0, 
+        "Unsupported OBJ file format was parsed, object may not be rendered properly!");
 
-    for(uint32_t i{0}, j{0}; i<_object.verNum; ++i, j+=3 )
-        _object.verts[i] = {primitives.positions[primitives.faces[j]], 
-                            primitives.normals[primitives.faces[j+2]],
-                            primitives.texCoords[primitives.faces[j+1]]};
+    shape_data<vertexL1_16> object_;
+    object_.vertices.resize(primitives.faces.size()/3);
+    object_.indices.resize(primitives.faces.size()/3);
 
-    _object.indices = new unsigned int[_object.indNum];
-    std::iota(_object.indices, _object.indices+_object.indNum, 0);
 
-    return _object;
+    for(uint32_t i{0}, j{0}; i<object_.vertices.size(); ++i, j+=3 )
+        object_.vertices[i] = {primitives.positions[primitives.faces[j]], 
+                               primitives.normals[primitives.faces[j+2]],
+                               primitives.texCoords[primitives.faces[j+1]]};
+
+    std::iota(object_.indices.begin(), object_.indices.end(), 0);
+
+    return object_;
 
 }
 
@@ -195,25 +198,26 @@ shape_data<vertexL1_16> obj_parser::extractExternal
         )];
 
 
-   shape_data<vertexL1_16> _object;
+   shape_data<vertexL1_16> object_;
 
    if (x3::parse(_head, _tail, OBJ)) {
-
-       _object.verNum = _object.indNum = faces.size()/3;
-       _object.verts = new vertexL1_16[_object.verNum];
+       
+       ROS_ERROR_STREAM_COND(faces.size()%3 != 0, 
+            "Unsupported OBJ file format was parsed, object may not be rendered properly!");
+       object_.vertices.resize(faces.size()/3);
 
        glm::vec3 *pos_arr{reinterpret_cast<glm::vec3*>(positions.data())},
                  *norm_arr{reinterpret_cast<glm::vec3*>(normals.data())};
        glm::vec2 *tex_arr{reinterpret_cast<glm::vec2*>(texCoords.data())};
 
-       for(uint32_t i{0}, j{0}; i<_object.verNum; ++i, j+=3 )
-           _object.verts[i] = {pos_arr[faces[j]],
-                               norm_arr[faces[j+2]],
-                               tex_arr[faces[j+1]]
-                              };
+       for(uint32_t i{0}, j{0}; i<object_.vertices.size(); ++i, j+=3 )
+           object_.vertices[i] = {pos_arr[faces[j]],
+                                  norm_arr[faces[j+2]],
+                                  tex_arr[faces[j+1]]
+                                };
 
-       _object.indices = new unsigned int[_object.indNum];
-       std::iota(_object.indices, _object.indices+_object.indNum, 0);
+       object_.indices.resize(object_.vertices.size());
+       std::iota(object_.indices.begin(), object_.indices.end(), 0);
 
    }else{
 
@@ -231,15 +235,11 @@ shape_data<vertexL1_16> obj_parser::extractExternal
     
    }
 
-   return _object;
-
+   return object_;
 
 }
 
-
-
 #endif
-
 
 
 void obj_parser::extractProjectionRect
@@ -310,7 +310,6 @@ void _read_tex(QImage& buff,
     }
 
 }
-
 
 
 void _load_tex(ZAY_USED_GL_VERSION * const _widg,
@@ -462,11 +461,8 @@ void _load_tex(ZAY_USED_GL_VERSION * const _widg,
             _texID=0;
             return;
         }
-
     }
-
 }
-
 
 
 const char *DebugGLerr(unsigned GL_enum){
@@ -486,7 +482,6 @@ const char *DebugGLerr(unsigned GL_enum){
 }
 
 
-
 void basic_program::get_source(const std::string& _source, std::string& _dist){
 
     std::ifstream f_stream(_source.c_str(), std::ios::in);
@@ -501,7 +496,6 @@ void basic_program::get_source(const std::string& _source, std::string& _dist){
     f_stream.close();
 
 }
-
 
 
 void basic_program::checkErrors(GLuint Object,
@@ -576,7 +570,6 @@ GLuint basic_program::compile_shader(const std::string& _source, GLenum _type){
     return _SH;
 
 }
-
 
 
 void basic_program::init(const std::string& _source){

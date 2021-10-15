@@ -84,8 +84,6 @@ primary_win::primary_win(const QString& title_, const QIcon& icon_,
 
     
 
-
-
     obstacle_counter[Obstacle_Type::CARTON_BOX] = {"carton_box_%1",1};
     obstacle_counter[Obstacle_Type::BRICK_WALL] = {"brick_wall_%1",1};
     obstacle_counter[Obstacle_Type::STONE_WALL] = {"stone_wall_%1",1};
@@ -174,6 +172,46 @@ primary_win::primary_win(const QString& title_, const QIcon& icon_,
                      {0.0, 1.0, 0.0},
                      {4.0, 0.0, -3.0}),1);
 
+    // /////////////////////////////////////////
+    // for(int i{-150}; i < 150; ++i){
+    //     add_obstacle(obstacle_attribs<GLdouble>
+    //                 (Obstacle_Type::STONE_WALL,
+    //                  std::string(),
+    //                  15.0,
+    //                  {0.0, 1.0, 0.0},
+    //                  {0.0, 0.0, i}), 1);
+
+    //     // add_obstacle(obstacle_attribs<GLdouble>
+    //     //             (Obstacle_Type::STONE_WALL,
+    //     //              std::string(),
+    //     //              15.0,
+    //     //              {0.0, 1.0, 0.0},
+    //     //              {i, 0.0, 0.0}), 1);
+        
+    //     // add_obstacle(obstacle_attribs<GLdouble>
+    //     //             (Obstacle_Type::STONE_WALL,
+    //     //              std::string(),
+    //     //              15.0,
+    //     //              {0.0, 1.0, 0.0},
+    //     //              {i, 0.0, i}), 1);
+        
+    //     add_obstacle(obstacle_attribs<GLdouble>
+    //                 (Obstacle_Type::STONE_WALL,
+    //                  std::string(),
+    //                  15.0,
+    //                  {0.0, 1.0, 0.0},
+    //                  {i, 0.0, -i}), 1);
+    // }
+
+    // for(int i{2}; i<20; i+=2){
+    //     add_vehicle({ZAY_DEFAULT_FRONT_CAM_V_ANGLE_MIN,
+    //              std::string(),
+    //              180.0,
+    //              {0.0, 1.0, 0.0},
+    //              {25, 0.0, -i}}, 1);
+    // }
+    
+
     setToolTipLabels();
 
 }
@@ -181,27 +219,22 @@ primary_win::primary_win(const QString& title_, const QIcon& icon_,
 
 void primary_win::new_vehicle(void)
 {
-
-    if(vehicles.size()<ZAY_LIMITED_VEH_NUM){
-
-        item_inputs_form inputs_d(ZAY_PACKAGE_PATH);
-
-        inputs_d.setWindowTitle("new vehicle");
-        inputs_d.setWindowIcon(zay_icon);
-        inputs_d.setModal(1);
-        
-        if (inputs_d.exec() == QDialog::Accepted)
-            add_vehicle(inputs_d.attribs,0);
-        
-    }else{
-
+    if(vehicles.size()>=ZAY_LIMITED_VEH_NUM){
         QMessageBox::information(this, "Limited num of vehicles",
                                  "Only up to " + QString::number(ZAY_LIMITED_VEH_NUM) + " model vehicles can be added!");
-    
+        return;
     }
-    
-}
 
+    item_inputs_form inputs_d(ZAY_PACKAGE_PATH);
+
+    inputs_d.setWindowTitle("new vehicle");
+    inputs_d.setWindowIcon(zay_icon);
+    inputs_d.setModal(1);
+        
+    if (inputs_d.exec() == QDialog::Accepted)
+        add_vehicle(inputs_d.attribs,0);
+
+}
 
 
 void primary_win::add_vehicle
@@ -229,7 +262,6 @@ void primary_win::add_vehicle
 }
 
 
-
 void primary_win::edit_vehicle(const QString& _name){
 
     auto veh{_scene_widget->model_vehicles->find
@@ -244,9 +276,7 @@ void primary_win::edit_vehicle(const QString& _name){
         veh->update_positional_attributes(inputs_d.attribs);
         scene_objects->resizeColumnToContents(0);
     }
-
 }
-
 
 
 void primary_win::delete_vehicle(const QString& _name){
@@ -267,9 +297,7 @@ void primary_win::delete_vehicle(const QString& _name){
 
                 ui->radioButton_Global->setChecked(1);
                 this->on_radioButton_Global_clicked(); 
-
             }
-
         }
 
         _scene_widget->delete_vehicle(_name.toStdString());
@@ -280,35 +308,27 @@ void primary_win::delete_vehicle(const QString& _name){
 
         vehicles.erase(_name);
         scene_objects->resizeColumnToContents(0);
-
     }
-
 }
-
 
 
 void primary_win::new_obstacle(void)
 {
-    
-    if(obstacles.size()<ZAY_LIMITED_OBS_NUM){
-
-        obstacle_inputs_form inputs_d;
-    
-        inputs_d.setWindowTitle("new obstacle");
-        inputs_d.setWindowIcon(zay_icon);
-        inputs_d.setModal(1);
-
-        if (inputs_d.exec() == QDialog::Accepted){
-            add_obstacle(inputs_d.attribs,0);
-        }
-
-    }else{
+    if(obstacles.size()>=ZAY_LIMITED_OBS_NUM){
 
         QMessageBox::information(this, "Limited num of obstacles",
                                  "Only up to " + QString::number(ZAY_LIMITED_OBS_NUM) + " obstacles can be added!");
-    
+        return;
     }
 
+    obstacle_inputs_form inputs_d;
+    
+    inputs_d.setWindowTitle("new obstacle");
+    inputs_d.setWindowIcon(zay_icon);
+    inputs_d.setModal(1);
+
+    if (inputs_d.exec() == QDialog::Accepted)
+        add_obstacle(inputs_d.attribs,0);
 
 }
 
@@ -329,7 +349,6 @@ void primary_win::edit_obstacle(const QString& _name){
     }
 
 }
-
 
 
 void primary_win::add_obstacle
@@ -363,9 +382,7 @@ void primary_win::add_obstacle
     }
 
     scene_objects->resizeColumnToContents(0);
-    
 }
-
 
 
 void primary_win::delete_obstacle
@@ -380,10 +397,8 @@ void primary_win::delete_obstacle
 
     obstacles.erase(_name);
     menus_popups.erase(_name);
-    obstacles.erase(_name);
 
     scene_objects->resizeColumnToContents(0);
-
 }
 
 
@@ -396,7 +411,6 @@ void primary_win::delete_obstacle_confirm
             QMessageBox::Ok|QMessageBox::Cancel) == QMessageBox::Ok){
         delete_obstacle(_name);
     }
-
 }
 
 
@@ -440,7 +454,6 @@ void primary_win::vehicle_type_menu(const QPoint& pos){
     QMenu menu(this);
     menu.addAction(addItem_act);
     menu.exec( scene_objects->mapToGlobal(pos) );
-
 }
 
 
@@ -525,8 +538,6 @@ void primary_win::obstacle_menu(const QPoint& pos)
     menu.addAction(editItem_act);
     menu.addAction(delItem_act);
     menu.exec( scene_objects->mapToGlobal(pos) );
-
-
 }
 
 
@@ -575,7 +586,6 @@ void primary_win::on_grid_check_clicked
     _scene_widget->repaint();
 
 }
-
 
 
 void primary_win::on_coord_check_clicked
@@ -823,20 +833,6 @@ void primary_win::setToolTipLabels(void){
 
 
 
-
-
 } // namespace  zaytuna
-
-
-
-
-
-
-
-
-
-
-
-
 
 

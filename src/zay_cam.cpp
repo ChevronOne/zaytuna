@@ -56,19 +56,9 @@ camera::camera() :
                                            FAR_PLANE);
     world_to_viewMat = glm::lookAt(camera_position,
                                  camera_position + view_direction,
-                                 up_direction);
+                                 ZAY_CAM_UP_DIR);
     transformationMat = projectionMat * world_to_viewMat;
     
-}
-
-
-void camera::updateProjection(const double w, const double h)
-{
-    projectionMat = glm::perspective(glm::radians(FIELD_OF_VIEW),
-                                     w / h,
-                                     NEAR_PLANE,
-                                     FAR_PLANE);
-    updateWorld_to_viewMat();
 }
 
 
@@ -92,32 +82,6 @@ double camera::get_movement_scalar(void) const{
 }
 
 
-void camera::updateWorld_to_viewMat()
-{
-    
-   if(camera_position.y < ZAY_CAM_ACCESSIBLE_MIN_Y)
-       camera_position.y = ZAY_CAM_ACCESSIBLE_MIN_Y;
-   else if(camera_position.y > ZAY_CAM_ACCESSIBLE_MAX_Y)
-       camera_position.y = ZAY_CAM_ACCESSIBLE_MAX_Y;
-
-   if(camera_position.x < ZAY_CAM_ACCESSIBLE_MIN_X)
-       camera_position.x = ZAY_CAM_ACCESSIBLE_MIN_X;
-   else if(camera_position.x > ZAY_CAM_ACCESSIBLE_MAX_X)
-       camera_position.x = ZAY_CAM_ACCESSIBLE_MAX_X;
-
-   if(camera_position.z < ZAY_CAM_ACCESSIBLE_MIN_Z)
-       camera_position.z = ZAY_CAM_ACCESSIBLE_MIN_Z;
-   else if(camera_position.z > ZAY_CAM_ACCESSIBLE_MAX_Z)
-       camera_position.z = ZAY_CAM_ACCESSIBLE_MAX_Z;
-
-    world_to_viewMat = glm::lookAt(
-                camera_position,
-                camera_position + view_direction,
-                        up_direction);
-    transformationMat = projectionMat * world_to_viewMat;
-}
-
-
 void camera::mouse_update(const glm::dvec2& new_mouse_position, const double rate_)
 {
 
@@ -135,12 +99,12 @@ void camera::mouse_update(const glm::dvec2& new_mouse_position, const double rat
     //// v rotation
     view_direction =
             glm::dmat3(glm::rotate(glm::radians(-mouse_delta.x*ROTATION_SPEED),
-                                  up_direction))
+                                  ZAY_CAM_UP_DIR))
                                   * view_direction;
     //// h rotation
     view_direction = glm::dmat3(glm::rotate(glm::radians(-mouse_delta.y*ROTATION_SPEED),
                                             glm::cross(view_direction,
-                                                       up_direction)))
+                                                       ZAY_CAM_UP_DIR)))
                      * view_direction;
     mouse_position = new_mouse_position;
 
@@ -169,7 +133,7 @@ void camera::mouse_held_update(const glm::dvec2& new_mouse_position, const doubl
 
     //// v rotation
     glm::dmat4 rotaionMat = glm::rotate(glm::radians(-mouse_delta.x*ROTATION_SPEED),
-                                                     up_direction);
+                                                     ZAY_CAM_UP_DIR);
     glm::dmat4 pos_rotationMat = glm::translate(view_point) * rotaionMat * glm::translate(-view_point);
 
     view_direction = glm::mat3(rotaionMat) * view_direction;
@@ -178,7 +142,7 @@ void camera::mouse_held_update(const glm::dvec2& new_mouse_position, const doubl
     //// h rotation
     rotaionMat = glm::rotate(glm::radians(-mouse_delta.y*ROTATION_SPEED),
                                         glm::cross(view_direction,
-                                                   up_direction));
+                                                   ZAY_CAM_UP_DIR));
     pos_rotationMat = glm::translate(view_point) * rotaionMat * glm::translate(-view_point);
 
     view_direction = glm::mat3(rotaionMat) * view_direction;
@@ -194,7 +158,7 @@ void camera::move_forward(double scalar){
 }
 
 void camera::move_backward(double scalar){
-    camera_position += -MOVEMENT_SPEED * scalar * view_direction;
+    camera_position -= MOVEMENT_SPEED * scalar * view_direction;
 }
 
 void camera::move_horizontal_forward(double scalar){
@@ -203,29 +167,62 @@ void camera::move_horizontal_forward(double scalar){
 }
 
 void camera::move_horizontal_backward(double scalar){
-    camera_position += -MOVEMENT_SPEED * scalar 
+    camera_position -= MOVEMENT_SPEED * scalar 
             * glm::normalize(glm::dvec3(view_direction.x, 0.0, view_direction.z));
 }
 
 void camera::move_up(double scalar){
-    camera_position += MOVEMENT_SPEED * scalar * up_direction;
+    camera_position += MOVEMENT_SPEED * scalar * ZAY_CAM_UP_DIR;
 }
 
 void camera::move_down(double scalar){
-    camera_position += -MOVEMENT_SPEED * scalar * up_direction;
+    camera_position -= MOVEMENT_SPEED * scalar * ZAY_CAM_UP_DIR;
 }
 
-void camera::strafe_right(double scalar){
-    glm::dvec3 strafe_direction = glm::cross(view_direction, up_direction);
+void camera::right_shifting(double scalar){
+    glm::dvec3 strafe_direction = glm::cross(view_direction, ZAY_CAM_UP_DIR);
     camera_position += MOVEMENT_SPEED * scalar * strafe_direction;
 }
 
-void camera::strafe_left(double scalar)
+void camera::left_shifting(double scalar)
 {
-    glm::dvec3 strafe_direction = glm::cross(view_direction, up_direction);
-    camera_position += -MOVEMENT_SPEED * scalar * strafe_direction;
+    glm::dvec3 strafe_direction = glm::cross(view_direction, ZAY_CAM_UP_DIR);
+    camera_position -= MOVEMENT_SPEED * scalar * strafe_direction;
 }
 
+void camera::updateProjection(const double w, const double h)
+{
+    projectionMat = glm::perspective(glm::radians(FIELD_OF_VIEW),
+                                     w / h,
+                                     NEAR_PLANE,
+                                     FAR_PLANE);
+    updateWorld_to_viewMat();
+}
+
+void camera::updateWorld_to_viewMat()
+{
+    
+   if(camera_position.y < ZAY_CAM_ACCESSIBLE_MIN_Y)
+       camera_position.y = ZAY_CAM_ACCESSIBLE_MIN_Y;
+   else if(camera_position.y > ZAY_CAM_ACCESSIBLE_MAX_Y)
+       camera_position.y = ZAY_CAM_ACCESSIBLE_MAX_Y;
+
+   if(camera_position.x < ZAY_CAM_ACCESSIBLE_MIN_X)
+       camera_position.x = ZAY_CAM_ACCESSIBLE_MIN_X;
+   else if(camera_position.x > ZAY_CAM_ACCESSIBLE_MAX_X)
+       camera_position.x = ZAY_CAM_ACCESSIBLE_MAX_X;
+
+   if(camera_position.z < ZAY_CAM_ACCESSIBLE_MIN_Z)
+       camera_position.z = ZAY_CAM_ACCESSIBLE_MIN_Z;
+   else if(camera_position.z > ZAY_CAM_ACCESSIBLE_MAX_Z)
+       camera_position.z = ZAY_CAM_ACCESSIBLE_MAX_Z;
+
+    world_to_viewMat = glm::lookAt(
+                camera_position,
+                camera_position + view_direction,
+                        ZAY_CAM_UP_DIR);
+    transformationMat = projectionMat * world_to_viewMat;
+}
 
 
 } // namespace  zaytuna

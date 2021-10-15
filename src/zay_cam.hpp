@@ -59,14 +59,13 @@ public:
     void move_horizontal_backward(double scalar=1.0);
     void move_up(double scalar=1.0);
     void move_down(double scalar=1.0);
-    void strafe_left(double scalar=1.0);
-    void strafe_right(double scalar=1.0);
+    void left_shifting(double scalar=1.0);
+    void right_shifting(double scalar=1.0);
 
     void set_rotation_scalar(const double);
     void set_movement_scalar(const double);
     double get_rotation_scalar(void) const;
     double get_movement_scalar(void) const;
-
 
     
     double FIELD_OF_VIEW;
@@ -89,7 +88,6 @@ private:
     double ROTATION_SPEED;
     double MOVEMENT_SPEED;
 
-    const glm::dvec3 up_direction{ZAY_CAM_UP_DIR};
     glm::dvec3 view_point;
 
     glm::dvec2 mouse_position;

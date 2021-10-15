@@ -77,7 +77,6 @@ protected:
     virtual void clean_up(void) = 0;
 
 
-
 public:
 
     scene_object() = default;
@@ -101,11 +100,6 @@ public:
 
 
 
-
-
-
-
-//////////////////////////////
 class external_obj : public scene_object
 {
 
@@ -147,11 +141,6 @@ public:
 
 
 
-
-
-
-
-/////////////////////////////////
 class coord_sys : public scene_object
 {
 
@@ -190,10 +179,6 @@ public:
 
 
 
-
-
-
-///////////////////////////////////
 class grid_plane : public scene_object
 {
 
@@ -236,8 +221,6 @@ public:
 
 
 
-
-/////////////////////////////
 class skybox_obj : public scene_object
 {
 
@@ -276,11 +259,6 @@ public:
 
 
 
-
-
-
-
-///////////////////////////
 class model_vehicle : public scene_object
 {
 
@@ -370,10 +348,6 @@ public:
 
 
 
-
-
-
-////////////////////////////////////////
 template<class T>
 struct obstacle_instance{
 
@@ -456,7 +430,7 @@ struct obstacle_wrapper{
 
         _widg->glBufferSubData(GL_ARRAY_BUFFER, _offset,
                                primitives.verBufSize(),
-                               primitives.verts);
+                               primitives.vertices.data());
 
 
         _offset += primitives.verBufSize();
@@ -465,14 +439,12 @@ struct obstacle_wrapper{
 
         _widg->glBufferSubData(GL_ARRAY_BUFFER, _offset,
                                primitives.indBufSize(),
-                               primitives.indices);
+                               primitives.indices.data());
 
         _offset += primitives.indBufSize();
 
-        num_indices = static_cast<GLsizei>(primitives.indNum);
+        num_indices = static_cast<GLsizei>(primitives.indices.size());
 
-
-        ///////////////////////////////
         _widg->glGenVertexArrays(1, &_VAO_ID);
         _widg->glBindVertexArray(_VAO_ID);
         _widg->glEnableVertexAttribArray(0);
@@ -523,11 +495,11 @@ struct obstacle_pack : public scene_object {
 
     static GLint transformMatLocation;
     static GLint inverse_transpose_transformMatLocation;
-    std::map<Obstacle_Type, obstacle_wrapper<T>*> categories;
+    std::map<Obstacle_Type, std::shared_ptr<obstacle_wrapper<T>>> categories;
 
 
     /* this used only to get a linear iteration, otherwise 'categories' does the same! */
-    ptr_vector<obstacle_wrapper<T>*> obstacle_categories;
+    std::vector<std::shared_ptr<obstacle_wrapper<T>>> obstacle_categories;
     
     std::map<std::string, Obstacle_Type> category;
 
@@ -544,8 +516,6 @@ struct obstacle_pack : public scene_object {
                 return begin;
 
         }
-
-
 
         ROS_ERROR_STREAM("query was made for a non-existent object: <"<< _name.c_str() <<">, a possible bug! \n");
         ROS_FATAL_STREAM("Please report this with sufficient information on how the situation came about!");
@@ -601,7 +571,7 @@ struct obstacle_pack : public scene_object {
                       std::string tex_dir){
 
         obstacle_categories.push_back
-          (new obstacle_wrapper<T>(_widg, type, prims_dir, tex_dir));
+          (std::shared_ptr<obstacle_wrapper<T>>(new obstacle_wrapper<T>(_widg, type, prims_dir, tex_dir)));
 
         categories[type] = obstacle_categories.back();
 

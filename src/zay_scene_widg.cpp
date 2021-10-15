@@ -95,7 +95,6 @@ void _scene_widg::set_up(){
 }
 
 
-
 void _scene_widg::update_contrl_attribs(void){
 
     if(key_control){
@@ -113,27 +112,10 @@ void _scene_widg::update_contrl_attribs(void){
 }
 
 
-
 _scene_widg::~_scene_widg(){
 
-    cleanUp();
-    if(model_vehicles != nullptr)
-        delete model_vehicles;
-    
-    if(obstacle_objects != nullptr)
-        delete obstacle_objects;
-    
-    if(skybox != nullptr)
-        delete skybox;
-    
-}
-
-
-
-void _scene_widg::cleanUp(){
     glDeleteBuffers(1, &theBufferID);
 }
-
 
 
 void _scene_widg::initializeGL(){
@@ -150,17 +132,13 @@ void _scene_widg::initializeGL(){
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     glViewport(0, 0, this->width(), this->height());
-    const std::string ZAY_PACKAGE_PATH{ros::package::getPath(ZAY_PACKAGE_NAME)};
-    programs_ = {
-        new static_program(this, 
-                          ZAY_PACKAGE_PATH+"/programs/source0"),
-        new animated_program(this, 
-                          ZAY_PACKAGE_PATH+"/programs/source1"),
-        new basic_program(this, 
-                          ZAY_PACKAGE_PATH+"/programs/source2"),
-        new animated_program(this, 
-                          ZAY_PACKAGE_PATH+"/programs/source3")
-    };
+    
+    programs_.reserve(ZAY_PROGRAMS_NUM);
+    programs_.emplace_back(new static_program(this, ZAY_PACKAGE_PATH+"/programs/source0"));
+    programs_.emplace_back(new animated_program(this, ZAY_PACKAGE_PATH+"/programs/source1"));
+    programs_.emplace_back(new basic_program(this, ZAY_PACKAGE_PATH+"/programs/source2"));
+    programs_.emplace_back(new animated_program(this, ZAY_PACKAGE_PATH+"/programs/source3"));
+
 
     send_data();
     std::cout << "  Zaytuna Simulator " <<ZAYTUNA_VERSION << "." << ZAYTUNA_MINOR_VERSION << ", "
@@ -177,7 +155,6 @@ void _scene_widg::initializeGL(){
 }
 
 
-
 void _scene_widg::update_time_interval(uint32_t val){
 
     limited_frames = val;
@@ -191,7 +168,6 @@ void _scene_widg::update_time_interval(uint32_t val){
 }
 
 
-
 void _scene_widg::update_fc_time_interval(double val){
 
     front_cam_freq = val;
@@ -202,9 +178,7 @@ void _scene_widg::update_fc_time_interval(double val){
         imgs_sec = std::numeric_limits<decltype(imgs_sec)>::max();
         cam_freq_accumulated=0;
     }
-
 }
-
 
 
 void _scene_widg::render_local_scene(camera const*const current_cam){
@@ -232,7 +206,6 @@ void _scene_widg::render_local_scene(camera const*const current_cam){
     obstacle_objects->render_obj(current_cam);
     model_vehicles->render_obj(current_cam);
 }
-
 
 
 void _scene_widg::paintGL(){
@@ -303,11 +276,8 @@ void _scene_widg::paintGL(){
 
         glBindFramebuffer(GL_FRAMEBUFFER,  0);
         cam_freq_accumulated-=imgs_sec;
-
     }
-
 }
-
 
 
 void _scene_widg::render_main_scene(camera const*const current_cam){
@@ -336,8 +306,6 @@ void _scene_widg::render_main_scene(camera const*const current_cam){
 
 }
 
-
-
 void _scene_widg::resizeGL(int W, int H){
 
     glViewport(0, 0, W, H);
@@ -351,8 +319,6 @@ void _scene_widg::resizeGL(int W, int H){
 
 }
 
-
-
 void _scene_widg::updateProjection(){
 
     mainCam.updateProjection(ZAY_SCENE_WIDTH, ZAY_SCENE_HEIGHT);
@@ -363,27 +329,341 @@ void _scene_widg::updateProjection(){
 
 }
 
+void _scene_widg::animate(){
+    repaint();
+}
+
+void _scene_widg::send_data()
+{
+    basic_objects.reserve(ZAY_REMOVABLE_OBJS_NUM);
+    basic_objects.emplace_back(new coord_sys(this,
+                    programs_[0]->program_handler(),
+                    "coord_sys",
+                    ZAY_DEF_AXES_LENGTH,
+                    ZAY_DEF_AXES_THICKNESS
+                    // ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
+                    // glm::translate(glm::dvec3(0.0, 0.0, 0.0))
+                ));
+    basic_objects.emplace_back(new grid_plane(this,
+                    programs_[0]->program_handler(),
+                    "grid_plane",
+                    ZAY_DEF_GRID_LENGTH,
+                    ZAY_DEF_GRID_WIDTH,
+                    ZAY_DEF_GRID_TESSELLATION,
+                    ZAY_DEF_GRID_LINE_THICKNESS
+                    // ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
+                    // glm::translate(glm::dvec3(0.0, 0.0, 0.0))
+                ));
+
+    //---------------------------
+    environmental_objects.reserve(ZAY_ENVIRONMENTAL_OBJS_NUM);
+    environmental_objects.emplace_back(new external_obj(this,
+                    programs_[1]->program_handler(),
+                    "plane",
+                    ZAY_PACKAGE_PATH+"/primitives/zay_plane_300x300_1sub-div",
+                    "/resources/plane_grass_1024x1024",
+                    GL_QUADS
+                    // ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
+                    // glm::translate(glm::dvec3(0.0, 0.0, 0.0))
+                ));
+    environmental_objects.emplace_back(new external_obj(this,
+                    programs_[1]->program_handler(),
+                    "fence",
+                    ZAY_PACKAGE_PATH+"/primitives/zay_fence_300x300_2H_1W",
+                    "/resources/fence_brick_1024x1024",
+                    GL_QUADS
+                    // ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
+                    // glm::translate(glm::dvec3(0.0, 0.0, 0.0))
+                ));
+    environmental_objects.emplace_back(new external_obj(this,
+                    programs_[1]->program_handler(),
+                    "mini_lap",
+                    ZAY_PACKAGE_PATH+"/primitives/zay_mini_lap",
+                    "/resources/mini_lap_exemplar",
+                    GL_QUADS
+                    // ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
+                    // glm::translate(glm::dvec3(0.0, 0.0, 0.0))
+                ));
+    environmental_objects.emplace_back(new external_obj(this,
+                    programs_[1]->program_handler(),
+                    "lap1",
+                    ZAY_PACKAGE_PATH+"/primitives/zay_lap1",
+                    "/resources/lap1_exemplar",
+                    GL_QUADS
+                    // ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
+                    // glm::translate(glm::dvec3(0.0, 0.0, 0.0))
+                ));
+    environmental_objects.emplace_back(new external_obj(this,
+                    programs_[1]->program_handler(),
+                    "lap2",
+                    ZAY_PACKAGE_PATH+"/primitives/zay_lap2",
+                    "/resources/lap2_exemplar",
+                    GL_QUADS
+                    // ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
+                    // glm::translate(glm::dvec3(0.0, 0.0, 0.0))
+                ));
+    environmental_objects.emplace_back(new external_obj(this,
+                    programs_[1]->program_handler(),
+                    "lap3",
+                    ZAY_PACKAGE_PATH+"/primitives/zay_lap3",
+                    "/resources/lap3_exemplar",
+                    GL_QUADS
+                    // ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
+                    // glm::translate(glm::dvec3(0.0, 0.0, 0.0))
+                ));
+    //-------------------------
+    skybox.reset(new skybox_obj(this,
+                    programs_[2]->program_handler(),
+                    "skybox"
+                    // ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
+                    // glm::translate(glm::dvec3(0.0, 0.0, 0.0))
+                ));
+
+    //---------------------------------
+    obstacle_objects.reset(new obstacle_pack<GLdouble>(this,
+                programs_[3]->program_handler(),
+                Obstacle_Type::CARTON_BOX,
+                ZAY_PACKAGE_PATH+"/primitives/zay_carton_box",
+                ZAY_PACKAGE_PATH+"/primitives/zay_carton_box_projection",
+                "/resources/carton_box",
+                GL_QUADS));
+    
+    obstacle_objects->add_category
+            (Obstacle_Type::BRICK_WALL,
+             ZAY_PACKAGE_PATH+"/primitives/zay_brick_wall",
+             ZAY_PACKAGE_PATH+"/primitives/zay_brick_wall_projection",
+             "/resources/brick_wall");
+    
+    obstacle_objects->add_category
+            (Obstacle_Type::STONE_WALL,
+             ZAY_PACKAGE_PATH+"/primitives/zay_stone_wall",
+             ZAY_PACKAGE_PATH+"/primitives/zay_stone_wall_projection",
+             "/resources/stone_wall_1");
+    //------------------------------
+
+    fboFormat.setSamples(ZAY_NUM_SAMPLES_PER_PIXEL);
+    fboFormat.setAttachment
+            (QGLFramebufferObject::CombinedDepthStencil);
+    
+    model_vehicles.reset(new model_vehicle(this,
+           programs_[3]->program_handler(),
+           ZAY_PACKAGE_PATH+"/primitives/zaytuna_model",
+           ZAY_PACKAGE_PATH+"/primitives/zaytuna_model_projection",
+           "/resources/zaytuna-fragments",
+           &collision_pack,
+           GL_TRIANGLES));
+
+    //-------------------------------
+
+    GLsizeiptr BUF_SIZE{0};
+    for(const auto& _obj:basic_objects)
+        BUF_SIZE+=_obj->buffer_size();
+
+    for(const auto& _obj:environmental_objects)
+        BUF_SIZE+=_obj->buffer_size();
+
+    BUF_SIZE+=skybox->buffer_size();
+    BUF_SIZE+=obstacle_objects->buffer_size();
+    BUF_SIZE+=model_vehicles->buffer_size();
+
+    glGenBuffers(1, &theBufferID);
+    glBindBuffer(GL_ARRAY_BUFFER, theBufferID);
+    glBufferData(GL_ARRAY_BUFFER,
+                 BUF_SIZE, nullptr,
+                 GL_STATIC_DRAW);
+
+    GLintptr current_offset{0};
+    GLuint previous_offset{0};
+    for(auto& _obj:basic_objects)
+        _obj->transmit_data(current_offset,
+                            theBufferID,
+                            previous_offset);
+
+    for(auto& _obj:environmental_objects)
+        _obj->transmit_data(current_offset,
+                            theBufferID,
+                            previous_offset);
+
+    skybox->transmit_data(current_offset,
+                          theBufferID,
+                          previous_offset);
+
+    obstacle_objects->transmit_data(current_offset,
+                                    theBufferID,
+                                    previous_offset);
+    
+    model_vehicles->transmit_data(current_offset,
+                                  theBufferID,
+                                  previous_offset);
+
+    add_default_obj();
+}
+
+
+void _scene_widg::add_default_obj(){
+
+    load_external_collition_object(ZAY_PACKAGE_PATH+"/primitives/zay_fence-front_projection", "front_fence");
+    load_external_collition_object(ZAY_PACKAGE_PATH+"/primitives/zay_fence-back_projection", "back_fence");
+    load_external_collition_object(ZAY_PACKAGE_PATH+"/primitives/zay_fence-right_projection", "right_fence");
+    load_external_collition_object(ZAY_PACKAGE_PATH+"/primitives/zay_fence-left_projection", "left_fence");
+
+    for(uint32_t i{0}; i<default_objects.vehicles.size(); ++i){
+        model_vehicles->add_vehicle
+                (new QGLFramebufferObject(ZAY_SCENE_WIDTH,
+                                          ZAY_SCENE_HEIGHT, 
+                                          fboFormat),
+                 default_objects.vehicles[i], &v_state, message_logger);
+
+        collision_pack.dyn_objs.emplace_back(&(model_vehicles->vehicles.back().coll_rect));
+    }
+
+    update_current_vehicle("any_vehicle");
+    for(uint32_t i{0}; i<default_objects.obstacles.size(); ++i)
+        add_obstacle(default_objects.obstacles[i]);
+
+    default_objects.clear();
+
+}
+
+
+void _scene_widg::update_current_vehicle
+    (const std::string& _name){
+
+    auto it = model_vehicles->find(_name);
+    if(it == model_vehicles->vehicles.end())
+        if(model_vehicles->vehicles.size() != 0)
+            current_model = &model_vehicles->vehicles[0];
+        else current_model = nullptr;
+
+
+    else current_model = &(*it);
+}
+
+
+void _scene_widg::add_vehicle
+    (const veh_transform_attribs<GLdouble>& attribs){
+
+    model_vehicles->add_vehicle
+        (new QGLFramebufferObject(ZAY_SCENE_WIDTH,
+         ZAY_SCENE_HEIGHT, fboFormat), attribs, &v_state, message_logger);
+
+    if(model_vehicles->vehicles.size()==1)
+        current_model = &model_vehicles->vehicles[0];
+
+    collision_pack.dyn_objs.emplace_back(&(model_vehicles->vehicles.back().coll_rect));
+
+}
+
+
+void _scene_widg::delete_vehicle
+    (const std::string& _name){
+
+    collision_pack.erase_veh(_name);
+
+    auto it = model_vehicles->find(_name);
+    model_vehicles->vehicles.erase(it);
+}
+
+
+zaytuna::vehicle_attributes*
+_scene_widg::getOtherVeh(const std::string& _name){
+
+    zaytuna::vehicle_attributes* other{nullptr};
+
+    for(uint32_t i{0}; i<model_vehicles->vehicles.size(); ++i)
+        if(model_vehicles->vehicles[i].attribs.name != _name)
+            return &model_vehicles->vehicles[i];
+
+    return other;
+}
+
+
+void _scene_widg::add_obstacle
+    (const obstacle_attribs<GLdouble>& attribs){
+
+    obstacle_objects->categories
+            [attribs.type]->instances.push_back(attribs);
+    obstacle_objects->category[attribs.name] = attribs.type;
+
+    add_static_collition_object(attribs);
+}
+
+
+void _scene_widg::delete_obstacle
+    (const std::string& _name){
+
+    obstacle_objects->delete_obstacle(_name);
+    obstacle_objects->category.erase(_name);
+
+    collision_pack.erase_obs(_name);
+}
+
+
+obstacle_attribs<GLdouble>
+_scene_widg::get_obstacle(const std::string& _name){
+    return obstacle_objects->get_attribs(_name);
+}
+
+
+void _scene_widg::load_external_collition_object
+            (const std::string& _dir, const std::string& _name){
+
+    rect_collistion_object<GLdouble> coll_obj;
+    obj_parser::extractProjectionRect(_dir, coll_obj.points);
+
+    coll_obj.ID = _name;
+    coll_obj.uniqueV[0]=coll_obj.points[1]-coll_obj.points[0];
+    coll_obj.uniqueV[1]=coll_obj.points[2]-coll_obj.points[1];
+
+    collision_pack.static_objs.emplace_back(coll_obj);
+}
+
+
+void _scene_widg::add_static_collition_object
+        (const obstacle_attribs<GLdouble>& attribs){
+
+    rect_collistion_object<GLdouble> coll_obj;
+
+    coll_obj.ID = attribs.name;
+    coll_obj.points = obstacle_objects->rect_projections[attribs.type].points;
+
+    glm::dmat4 M{attribs.transformMat()};
+    for(glm::dvec3& vec:coll_obj.points)
+        vec = M*glm::dvec4(vec, 1.0);
+
+    coll_obj.uniqueV[0]=coll_obj.points[1]-coll_obj.points[0];
+    coll_obj.uniqueV[1]=coll_obj.points[2]-coll_obj.points[1];
+
+    collision_pack.static_objs.emplace_back(coll_obj);
+
+}
+
+/*****simply just delete the obstacle and add new one*****/
+// void _scene_widg::edit_obstacle
+//     (const obstacle_attribs<GLdouble>& attribs){
+//     auto it = obstacle_objects->find(attribs.name);
+//     it->edit(attribs);
+
+//     ////==================================
+//     collision_pack.edit_obs(attribs);
+// }
 
 
 void _scene_widg::mouseMoveEvent(QMouseEvent *ev){
-
     if(limited_frames==0)
         return;
 
     if(activeCam == &mainCam){
-
         if(ev->buttons()==Qt::RightButton){
 
             delta_sX = sX - ev->pos().x();
             delta_sY = sY - ev->pos().y();
 
-
             if( delta_sX > 0.0)
-                mainCam.strafe_right(delta_sX*mainCam.camera_position.y*ZAY_CAM_HORIZONTAL_MOVEMENT_SCALAR);
+                mainCam.right_shifting(delta_sX*mainCam.camera_position.y*ZAY_CAM_HORIZONTAL_MOVEMENT_SCALAR);
             else if(delta_sX < 0.0)
-                mainCam.strafe_left(-delta_sX*mainCam.camera_position.y*ZAY_CAM_HORIZONTAL_MOVEMENT_SCALAR);
+                mainCam.left_shifting(-delta_sX*mainCam.camera_position.y*ZAY_CAM_HORIZONTAL_MOVEMENT_SCALAR);
             
-
             if(delta_sY > 0.0)
                 mainCam.move_horizontal_backward(delta_sY*mainCam.camera_position.y*ZAY_CAM_HORIZONTAL_MOVEMENT_SCALAR);
             else if(delta_sY < 0.0)
@@ -410,10 +690,7 @@ void _scene_widg::mouseMoveEvent(QMouseEvent *ev){
             }
         }
     }
-
 }
-
-
 
 void _scene_widg::update_cam(){
 
@@ -422,17 +699,14 @@ void _scene_widg::update_cam(){
     else if(k_backward)
         mainCam.move_backward();
     else if(k_left)
-        mainCam.strafe_left();
+        mainCam.left_shifting();
     else if(k_right)
-        mainCam.strafe_right();
+        mainCam.right_shifting();
     else if(k_up)
         mainCam.move_up();
     else if(k_down)
         mainCam.move_down();
-
 }
-
-
 
 void _scene_widg::keyPressEvent(QKeyEvent* ev){
 
@@ -475,10 +749,7 @@ void _scene_widg::keyPressEvent(QKeyEvent* ev){
         case Qt::Key::Key_H:
             l_right=1;
     }
-
 }
-
-
 
 void _scene_widg::wheelEvent(QWheelEvent *ev){
 
@@ -491,8 +762,6 @@ void _scene_widg::wheelEvent(QWheelEvent *ev){
     else mainCam.move_backward(ZAY_MOUSE_WHEEL_SCALAR);
 
 }
-
-
 
 void _scene_widg::keyReleaseEvent(QKeyEvent *ev)
 {
@@ -527,384 +796,8 @@ void _scene_widg::keyReleaseEvent(QKeyEvent *ev)
         case Qt::Key::Key_H:
             l_right=0;
     }
-
 }
 
-
-
-//void _scene_widg::mousePressEvent(QMouseEvent *ev)
-//{
-////    if(activeCam != &mainCam)
-////        return;
-////    if(ev->buttons()==Qt::LeftButton){
-////        mainCam.update_view_point();
-////    }
-//}
-
-
-
-//void _scene_widg::mouseReleaseEvent(QMouseEvent *ev)
-//{
-//    clicked = false;
-//}
-
-
-
-void _scene_widg::animate(){
-    repaint();
-}
-
-
-
-void _scene_widg::send_data()
-{
-
-    const std::string ZAY_PACKAGE_PATH{ros::package::getPath(ZAY_PACKAGE_NAME)};
-    basic_objects = {
-        new coord_sys(this,
-                      programs_[0]->program_handler(),
-                      "coord_sys",
-                      20.f,
-                      1.5f
-//                      ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
-//                      glm::translate(glm::dvec3(0.0, 0.0, 0.0))
-        ),
-        new grid_plane(this,
-                      programs_[0]->program_handler(),
-                      "grid_plane",
-                      150.f,
-                      150.f,
-                      1.0f,
-                      1.0f
-//                      ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
-//                      glm::translate(glm::dvec3(0.0, 0.0, 0.0))
-        )
-    };
-
-
-    //---------------------------
-    environmental_objects = {
-        new external_obj(this,
-                         programs_[1]->program_handler(),
-                         "plane",
-                         ZAY_PACKAGE_PATH+"/primitives/zay_plane_300x300_1sub-div",
-                         "/resources/plane_grass_1024x1024",
-                         GL_QUADS
-//                         ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
-//                         glm::translate(glm::dvec3(0.0, 0.0, 0.0))
-        )
-        ,new external_obj(this,
-                         programs_[1]->program_handler(),
-                         "fence",
-                         ZAY_PACKAGE_PATH+"/primitives/zay_fence_300x300_2H_1W",
-                         "/resources/fence_brick_1024x1024",
-                         GL_QUADS
-//                         ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
-//                         glm::translate(glm::dvec3(0.0, 0.0, 0.0))
-        )
-        ,new external_obj(this,
-                         programs_[1]->program_handler(),
-                         "mini_lap",
-                         ZAY_PACKAGE_PATH+"/primitives/zay_mini_lap",
-                         "/resources/mini_lap_exemplar",
-                         GL_QUADS
-//                         ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
-//                         glm::translate(glm::dvec3(0.0, 0.0, 0.0))
-        )
-        ,new external_obj(this,
-                         programs_[1]->program_handler(),
-                         "lap1",
-                         ZAY_PACKAGE_PATH+"/primitives/zay_lap1",
-                         "/resources/lap1_exemplar",
-                         GL_QUADS
-//                         ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
-//                         glm::translate(glm::dvec3(0.0, 0.0, 0.0))
-        )
-        ,new external_obj(this,
-                         programs_[1]->program_handler(),
-                         "lap2",
-                         ZAY_PACKAGE_PATH+"/primitives/zay_lap2",
-                         "/resources/lap2_exemplar",
-                         GL_QUADS
-//                         ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
-//                         glm::translate(glm::dvec3(0.0, 0.0, 0.0))
-        )
-        ,new external_obj(this,
-                         programs_[1]->program_handler(),
-                         "lap3",
-                         ZAY_PACKAGE_PATH+"/primitives/zay_lap3",
-                         "/resources/lap3_exemplar",
-                         GL_QUADS
-//                        ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
-//                        glm::translate(glm::dvec3(0.0, 0.0, 0.0))
-        )
-
-    };
-
-
-    //-------------------------
-    skybox = new skybox_obj(this,
-                            programs_[2]->program_handler(),
-                            "skybox"
-//                             ,glm::rotate(glm::radians(0.0), glm::dvec3(0.0, 1.0, 0.0)),
-//                             glm::translate(glm::dvec3(0.0, 0.0, 0.0))
-                        );
-    
-
-
-    //---------------------------------
-    obstacle_objects =
-            new obstacle_pack<GLdouble>(this,
-                programs_[3]->program_handler(),
-                Obstacle_Type::CARTON_BOX,
-                ZAY_PACKAGE_PATH+"/primitives/zay_carton_box",
-                ZAY_PACKAGE_PATH+"/primitives/zay_carton_box_projection",
-                "/resources/carton_box",
-                GL_QUADS);
-    
-    obstacle_objects->add_category
-            (Obstacle_Type::BRICK_WALL,
-             ZAY_PACKAGE_PATH+"/primitives/zay_brick_wall",
-             ZAY_PACKAGE_PATH+"/primitives/zay_brick_wall_projection",
-             "/resources/brick_wall");
-    
-    obstacle_objects->add_category
-            (Obstacle_Type::STONE_WALL,
-             ZAY_PACKAGE_PATH+"/primitives/zay_stone_wall",
-             ZAY_PACKAGE_PATH+"/primitives/zay_stone_wall_projection",
-             "/resources/stone_wall_1");
-    //------------------------------
-
-    fboFormat.setSamples(ZAY_NUM_SAMPLES_PER_PIXEL);
-    fboFormat.setAttachment
-            (QGLFramebufferObject::CombinedDepthStencil);
-    
-    model_vehicles = new model_vehicle(this,
-           programs_[3]->program_handler(),
-           ZAY_PACKAGE_PATH+"/primitives/zaytuna_model",
-           ZAY_PACKAGE_PATH+"/primitives/zaytuna_model_projection",
-           "/resources/zaytuna-fragments",
-           &coll_pack,
-           GL_TRIANGLES );
-
-    //-------------------------------
-
-    GLsizeiptr BUF_SIZE{0};
-    for(const auto& _obj:basic_objects)
-        BUF_SIZE+=_obj->buffer_size();
-
-    for(const auto& _obj:environmental_objects)
-        BUF_SIZE+=_obj->buffer_size();
-
-
-
-    BUF_SIZE+=skybox->buffer_size();
-    BUF_SIZE+=obstacle_objects->buffer_size();
-    BUF_SIZE+=model_vehicles->buffer_size();
-
-    glGenBuffers(1, &theBufferID);
-    glBindBuffer(GL_ARRAY_BUFFER, theBufferID);
-    glBufferData(GL_ARRAY_BUFFER,
-                 BUF_SIZE, nullptr,
-                 GL_STATIC_DRAW);
-
-
-
-    GLintptr current_offset{0};
-    GLuint previous_offset{0};
-    for(auto& _obj:basic_objects)
-        _obj->transmit_data(current_offset,
-                            theBufferID,
-                            previous_offset);
-
-    for(auto& _obj:environmental_objects)
-        _obj->transmit_data(current_offset,
-                            theBufferID,
-                            previous_offset);
-
-    skybox->transmit_data(current_offset,
-                          theBufferID,
-                          previous_offset);
-
-    obstacle_objects->transmit_data(current_offset,
-                                    theBufferID,
-                                    previous_offset);
-    
-    model_vehicles->transmit_data(current_offset,
-                                  theBufferID,
-                                  previous_offset);
-
-    add_default_obj();
-
-}
-
-
-
-void _scene_widg::add_default_obj(){
-
-    const std::string ZAY_PACKAGE_PATH{ros::package::getPath(ZAY_PACKAGE_NAME)};
-    load_external_collition_object(ZAY_PACKAGE_PATH+"/primitives/zay_fence-front_projection", "front_fence");
-    load_external_collition_object(ZAY_PACKAGE_PATH+"/primitives/zay_fence-back_projection", "back_fence");
-    load_external_collition_object(ZAY_PACKAGE_PATH+"/primitives/zay_fence-right_projection", "right_fence");
-    load_external_collition_object(ZAY_PACKAGE_PATH+"/primitives/zay_fence-left_projection", "left_fence");
-
-    for(uint32_t i{0}; i<default_objects.vehicles.size(); ++i){
-        model_vehicles->add_vehicle
-                (new QGLFramebufferObject(ZAY_SCENE_WIDTH,
-                                          ZAY_SCENE_HEIGHT, 
-                                          fboFormat),
-                 default_objects.vehicles[i], &v_state, message_logger);
-
-        coll_pack.dyn_objs.emplace_back(&(model_vehicles->vehicles.back().coll_rect));
-    }
-
-    update_current_vehicle("any_vehicle");
-    for(uint32_t i{0}; i<default_objects.obstacles.size(); ++i)
-        add_obstacle(default_objects.obstacles[i]);
-
-    default_objects.clear();
-
-}
-
-
-
-void _scene_widg::update_current_vehicle
-    (const std::string& _name){
-
-    auto it = model_vehicles->find(_name);
-    if(it == model_vehicles->vehicles.end())
-        if(model_vehicles->vehicles.size() != 0)
-            current_model = &model_vehicles->vehicles[0];
-        else current_model = nullptr;
-
-
-    else current_model = &(*it);
-
-}
-
-
-
-void _scene_widg::add_vehicle
-    (const veh_transform_attribs<GLdouble>& attribs){
-
-    model_vehicles->add_vehicle
-        (new QGLFramebufferObject(ZAY_SCENE_WIDTH,
-         ZAY_SCENE_HEIGHT, fboFormat), attribs, &v_state, message_logger);
-
-    if(model_vehicles->vehicles.size()==1)
-        current_model = &model_vehicles->vehicles[0];
-
-    coll_pack.dyn_objs.emplace_back(&(model_vehicles->vehicles.back().coll_rect));
-
-}
-
-
-
-void _scene_widg::delete_vehicle
-    (const std::string& _name){
-
-    coll_pack.erase_veh(_name);
-
-    auto it = model_vehicles->find(_name);
-    model_vehicles->vehicles.erase(it);
-
-}
-
-
-
-zaytuna::vehicle_attributes*
-_scene_widg::getOtherVeh(const std::string& _name){
-
-    zaytuna::vehicle_attributes* other{nullptr};
-
-    for(uint32_t i{0}; i<model_vehicles->vehicles.size(); ++i)
-        if(model_vehicles->vehicles[i].attribs.name != _name)
-            return &model_vehicles->vehicles[i];
-
-    return other;
-
-}
-
-
-
-void _scene_widg::add_obstacle
-    (const obstacle_attribs<GLdouble>& attribs){
-
-    obstacle_objects->categories
-            [attribs.type]->instances.push_back(attribs);
-    obstacle_objects->category[attribs.name] = attribs.type;
-
-    add_static_collition_object(attribs);
-
-}
-
-
-
-void _scene_widg::delete_obstacle
-    (const std::string& _name){
-
-    obstacle_objects->delete_obstacle(_name);
-    obstacle_objects->category.erase(_name);
-
-    coll_pack.erase_obs(_name);
-
-}
-
-
-
-obstacle_attribs<GLdouble>
-_scene_widg::get_obstacle(const std::string& _name){
-    return obstacle_objects->get_attribs(_name);
-}
-
-
-
-void _scene_widg::load_external_collition_object
-            (const std::string& _dir, const std::string& _name){
-
-    rect_collistion_object<GLdouble> coll_obj;
-    obj_parser::extractProjectionRect(_dir, coll_obj.points);
-
-    coll_obj.ID = _name;
-    coll_obj.uniqueV[0]=coll_obj.points[1]-coll_obj.points[0];
-    coll_obj.uniqueV[1]=coll_obj.points[2]-coll_obj.points[1];
-
-    coll_pack.static_objs.emplace_back(coll_obj);
-
-}
-
-
-
-void _scene_widg::add_static_collition_object
-        (const obstacle_attribs<GLdouble>& attribs){
-
-    rect_collistion_object<GLdouble> coll_obj;
-
-    coll_obj.ID = attribs.name;
-    coll_obj.points = obstacle_objects->rect_projections[attribs.type].points;
-
-    glm::dmat4 M{attribs.transformMat()};
-    for(glm::dvec3& vec:coll_obj.points)
-        vec = M*glm::dvec4(vec, 1.0);
-
-    coll_obj.uniqueV[0]=coll_obj.points[1]-coll_obj.points[0];
-    coll_obj.uniqueV[1]=coll_obj.points[2]-coll_obj.points[1];
-
-    coll_pack.static_objs.emplace_back(coll_obj);
-
-}
-
-
-
-/*****simply just delete the obstacle and add new one*****/
-// void _scene_widg::edit_obstacle
-//     (const obstacle_attribs<GLdouble>& attribs){
-//     auto it = obstacle_objects->find(attribs.name);
-//     it->edit(attribs);
-
-//     ////==================================
-//     coll_pack.edit_obs(attribs);
-// }
 
 
 

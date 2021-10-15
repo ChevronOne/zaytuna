@@ -54,7 +54,7 @@ inline vehicle_topics<precision_type, _allocator>::vehicle_topics(const std::str
 
     zay_publishers[(int)ZAY_PUB_TOPICS::GPS_PUB] = n_handle->advertise<geometry_msgs::Vector3>
                                                     (zay_topics_annex+"/gps/localization", 5);
-    zay_publishers[(int)ZAY_PUB_TOPICS::GEO_PUB] = n_handle->advertise<geometry_msgs::Pose>
+    zay_publishers[(int)ZAY_PUB_TOPICS::GEO_PUB] = n_handle->advertise<zaytuna::Pose>
                                                     (zay_topics_annex+"/geometry/pose", 5);
     zay_publishers[(int)ZAY_PUB_TOPICS::TICKS_PUB] = n_handle->advertise<std_msgs::UInt32>
                                                     (zay_topics_annex+"/sensors/ticks", 10);
@@ -65,7 +65,6 @@ inline vehicle_topics<precision_type, _allocator>::vehicle_topics(const std::str
     zay_publishers[(int)ZAY_PUB_TOPICS::CAM_PUB] = n_handle->advertise<sensor_msgs::Image>
                                                    (zay_topics_annex+"/sensors/front_cam/image_raw", 0);
     
-
 
     zay_subscribers[(int)ZAY_SUB_TOPICS::SPEED_SUB] = n_handle->subscribe
             (zay_topics_annex+"/controller/speed", 1,
@@ -100,22 +99,19 @@ inline void vehicle_topics<precision_type, _allocator>::grab_buffer(void){
     // local_cam_img.save((attribs.name+".jpg").c_str());
 
 }
-    
 
 
 template<class precision_type, class _allocator>
-inline void vehicle_topics<precision_type, _allocator>::advertise_current_state(const zay_vert& veh_position, 
+inline void vehicle_topics<precision_type, _allocator>::advertise_current_state(const zay_vert& veh_bIdealT,
+                                                                                const zay_vert& veh_fIdealT,
                                                                                 const zay_vert& veh_direction){
-
-                                
-    vehicle_geometry.update(veh_position, veh_direction);
+                         
+    vehicle_geometry.update(veh_bIdealT, veh_fIdealT, veh_direction);
 
     for(uint32_t i{0}; i<ZAY_PUBLISHERS-1; ++i)
         advertisers[i]();
 
-
 }
-
 
 
 template<class precision_type, class _allocator>
@@ -153,12 +149,9 @@ inline void vehicle_topics<precision_type, _allocator>::set_remoteSpeed(const ty
     }else{
 
         REMOTE_SPEED = -(ZAY_SPEED_SCALAR*val);
-
     }
 
 }
-
-
 
 
 template<class precision_type, class _allocator> 
@@ -171,7 +164,6 @@ inline void vehicle_topics<precision_type, _allocator>::set_remoteSteering(const
     if(val==0.0){
 
         REMOTE_STEERING = ZAY_STEERING_MARGIN_OF_ERROR;
-
     }else if(val>1.0){
 
         REMOTE_STEERING = ZAY_MAX_TURN_ANGLE_RAD;
@@ -181,11 +173,9 @@ inline void vehicle_topics<precision_type, _allocator>::set_remoteSteering(const
 
         REMOTE_STEERING = -ZAY_MAX_TURN_ANGLE_RAD;
         ROS_WARN_STREAM(vehicle_id << ": invalid value for steering received <"<<val<<">");
-
     }else{
 
         REMOTE_STEERING = ZAY_MAX_TURN_ANGLE_RAD*val;
-
     }
 
 }
@@ -238,7 +228,6 @@ inline vehicle_topics<precision_type, _allocator>::steering_callback(const std_m
     set_remoteSteering<std_msgs::Float32>(_val);
     
 }
-
 
 
 

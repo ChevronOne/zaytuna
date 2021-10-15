@@ -55,23 +55,17 @@ public:
     makeSphere(GLfloat PERS = 0.1f,
                GLfloat RAD = 1,
                glm::vec3 CENT = glm::vec3(0.0f, 0.0f, 0.0f));
-    static shape_data<VERT> makePyramid();
 
-    static shape_data<VERT> makeCube(void);
-    static shape_data<VERT> makeCubemap(void);
-    static shape_data<VERT>
-    makeGrid(GLfloat length = 10.0f,
-             GLfloat width = 10.0f,
-             GLfloat tessellation = 1.0f);
-    static shape_data<VERT>
-    makeCoord(GLfloat axes_length = 10.0f);
+    static shape_data<VERT> makeCubeMap(void);
+    static shape_data<VERT> makeGrid(GLfloat length = 10.0f,
+                                     GLfloat width = 10.0f,
+                                     GLfloat tessellation = 1.0f);
+
+    static shape_data<VERT> makeCoord(GLfloat axes_length = 10.0f);
     static shape_data<VERT> makeLap();
 
 
 };
-
-
-
 
 
 #include "zay_shape_maker.inl"

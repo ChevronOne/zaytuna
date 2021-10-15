@@ -124,9 +124,7 @@ private:
 
 public:
 
-    explicit primary_win(const QString&, const QIcon&, 
-                         const std::string&, QWidget *parent = nullptr);
-                         
+    explicit primary_win(const QString&, const QIcon&, const std::string&, QWidget *parent = nullptr);
     virtual ~primary_win() override;
 
 };

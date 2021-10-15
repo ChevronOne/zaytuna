@@ -54,6 +54,7 @@ namespace x3 = boost::spirit::x3;
 #include <boost/fusion/include/as_vector.hpp>
 #endif
 
+
 namespace zaytuna {
 enum class ZAY_TEX_TYPE { TEX_CUBE_MAP, TEX_2D, TEX_2D_MIPMAP};
 enum class ZAY_GL_OBJECT_TYPE { PROGRAM, SHADER };
@@ -65,33 +66,6 @@ struct obj_parser{
     static void extractProjectionRect(const std::string&, 
                                       boost::array<vert, ZAY_RECTANGLE_P>&);
 };
-
-
-template<class T>
-class ptr_vector : public std::vector<T>
-{
-public:
-    virtual ~ptr_vector() {}
-};
-
-
-template<class T>
-class ptr_vector<T*> : public std::vector<T*>
-{
-public:
-    ptr_vector&
-    operator=(std::initializer_list<T*> _list){
-        this->assign(_list.begin(), _list.end());
-        return *this;
-    }
-
-    virtual ~ptr_vector(){
-        class std::vector< T *>::reverse_iterator it;
-        for (it = this->rbegin(); it != this->rend(); ++it)
-            delete *it;
-    }
-};
-
 
 
 template <class allocator>
@@ -121,15 +95,27 @@ struct Bool : public std_msgs::Bool_<allocator>{
         return *this; }
 };
 
+template<class v_type, class allocator>
+geometry_msgs::Point_<allocator> glm2gPoint(const glm::vec<ZAY_POINT_D, v_type, glm::qualifier::packed_highp>& vec)
+{
+    geometry_msgs::Point_<allocator> gPoint;
+    gPoint.x = vec.x;
+    gPoint.y = vec.y;
+    gPoint.z = vec.z;
+
+    return gPoint;
+}
 
 template<class allocator>
-struct geo_pose : public geometry_msgs::Pose_<allocator> {
+struct geo_pose : public zaytuna::Pose_<allocator>{
     template<class v_type>
-    void update(const glm::vec<ZAY_POINT_D, v_type, glm::qualifier::packed_highp>& pos_,
+    void update(const glm::vec<ZAY_POINT_D, v_type, glm::qualifier::packed_highp>& bIdealT,
+                const glm::vec<ZAY_POINT_D, v_type, glm::qualifier::packed_highp>& fIdealT,
                 const glm::vec<ZAY_POINT_D, v_type, glm::qualifier::packed_highp>& dir_){
-        this->position.x = pos_.x;
-        this->position.y = pos_.y;
-        this->position.z = pos_.z;
+
+        this->position.back_ideal_tire = glm2gPoint<v_type, allocator>(bIdealT);
+        this->position.front_ideal_tire = glm2gPoint<v_type, allocator>(fIdealT);
+
         double h_angle{atan2(dir_.x, dir_.z)/2.0};
         this->orientation.y = sin(h_angle);
         this->orientation.w = cos(h_angle);

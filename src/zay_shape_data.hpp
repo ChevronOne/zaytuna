@@ -48,38 +48,35 @@ namespace zaytuna {
 
 template <typename VERT>
 struct shape_data
-{
+{   
 
-    shape_data() : verts(nullptr), verNum(0),
-        indices(nullptr), indNum(0) {}
+    shape_data(shape_data<VERT>&) = delete;
+    shape_data<VERT>& operator=(shape_data<VERT>&) = delete;
+    shape_data(shape_data<VERT>&&) = default;
+    shape_data<VERT>& operator=(shape_data<VERT>&&) = default;
+    shape_data() = default;
     
-    VERT* verts;
-    GLuint verNum;
-    GLuint* indices;
-    GLuint indNum;
 
     GLsizeiptr verBufSize() const
     {
-        return verNum * sizeof(VERT);
+        return vertices.size() * sizeof(VERT);
     }
 
     GLsizeiptr indBufSize() const
     {
-        return indNum * sizeof(unsigned int);
+        return indices.size() * sizeof(GLuint);
     }
 
     void cleanUP()
     {
-        if(verts != nullptr){
-            delete[] verts;
-            verts = nullptr;
-        }
-        if(indices != nullptr){
-            delete[] indices;
-            indices = nullptr;
-        }
-        verNum = indNum = 0;
+        vertices.clear();
+        indices.clear();
     }
+
+    
+    std::vector<VERT> vertices;
+    std::vector<GLuint> indices;
+
 };
 
 

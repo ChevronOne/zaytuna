@@ -34,8 +34,8 @@
 
 
 
-#ifndef ZAY_COMMONS_HPP
-#define ZAY_COMMONS_HPP
+#ifndef ZAY_HEADERS_HPP
+#define ZAY_HEADERS_HPP
 
 
 
@@ -61,6 +61,8 @@
 #include <utility>
 #include <memory>
 #include <set>
+#include <mutex>
+#include <condition_variable>
 
 #include <QMainWindow>
 #include <QWidget>
@@ -99,6 +101,7 @@
 #include "sensor_msgs/Image.h"
 #include "ros/package.h"
 #include "ros/console.h"
+#include "zaytuna/Pose.h"
 
 #define BOOST_PYTHON_STATIC_LIB
 #define ZAY_BOOST_MAJOR_VERSION BOOST_VERSION / 0x186A0 
@@ -160,6 +163,14 @@ typedef ZAY_QGL_W ZAY_QGL_WIDGET_VERSION;
 #define ZAY_NUM_SEC_FRAME_RATE 1.0
 #define ZAY_SCENE_WIDTH 800
 #define ZAY_SCENE_HEIGHT 500
+#define ZAY_REMOVABLE_OBJS_NUM 2
+#define ZAY_ENVIRONMENTAL_OBJS_NUM 6
+#define ZAY_DEF_AXES_LENGTH 20.0
+#define ZAY_DEF_AXES_THICKNESS 1.5
+#define ZAY_DEF_GRID_WIDTH 150.0
+#define ZAY_DEF_GRID_LENGTH 150.0
+#define ZAY_DEF_GRID_TESSELLATION 1.0
+#define ZAY_DEF_GRID_LINE_THICKNESS 1.0
 #define ZAY_ACCESSIBLE_MIN_X -149.0
 #define ZAY_ACCESSIBLE_MAX_X 149.0
 #define ZAY_ACCESSIBLE_MIN_Z -149.0
@@ -229,9 +240,35 @@ typedef ZAY_QGL_W ZAY_QGL_WIDGET_VERSION;
 #include "glm/gtx/projection.hpp"
 #include "glm/gtc/quaternion.hpp"
 
+
+// Default Positional Parameters
+const glm::dvec3 up_direction{0.0, 1.0, 0.0};
+const glm::dvec3 camHeight = glm::dvec3(0.0, 0.466, 0.0);
+const glm::dmat4 f_rightT = glm::translate(glm::dvec3( 0.286, 0.031,  0.159));
+const glm::dmat4 f_leftT =  glm::translate(glm::dvec3( 0.286, 0.031, -0.159));
+const glm::dmat4 backT =    glm::translate(glm::dvec3( 0.0,  0.031,    0.0));
+const glm::dmat4 lidar =    glm::translate(glm::dvec3( 0.118, 0.419,   0.0));
+const glm::dvec4 camPos =  glm::dvec4(0.13, 0.466, 0.0, 1.0);
+
+
+
+// Physical Specifications
+const double front_back_distance{0.2862}; // distance between back and front ideal tires
+const double ticks_per_meter{173.0}; // 173 ticks per meter 'can be adjusted'
+const double meters_per_tick{1.0/ticks_per_meter}; // meters per tick
+const double tires_radius{0.0311};
+const double PI2{2.0*M_PI};
+const double tires_circumference{PI2*tires_radius};
+
+const double steering_delay{0.2}; // sec
+const double speed_delay{0.3}; // sec
+const double lidar_spin_speed{750.0}; // constant scalar 'affects only rendering'
+
+
+
 const glm::dvec3 ZAY_GLOB_CAM_DEFAULT_VIEW_DIR{glm::dvec3(-0.41, -0.6, -0.68)};
-const glm::dvec3 ZAY_CAM_UP_DIR{glm::dvec3(0.0, 1.0, 0.0)};
 const glm::dvec3 ZAY_GLOB_CAM_DEFAULT_POS{glm::dvec3(8.55, 3.26, 3.5)};
+#define ZAY_CAM_UP_DIR up_direction
 const glm::dvec2 ZAY_ORIG_2{glm::dvec2(0.0, 0.0)};
 const glm::dvec3 ZAY_ORIG_3{glm::dvec3(0.0, 0.0, 0.0)};
 const glm::dvec4 ZAY_ORIG_4{glm::dvec4(0.0, 0.0, 0.0, 1.0)};
@@ -244,7 +281,7 @@ const std::string ZAY_PACKAGE_NAME{"zaytuna"};
 
 
 
-#endif // ZAY_COMMONS_HPP
+#endif // ZAY_HEADERS_HPP
 
 
 

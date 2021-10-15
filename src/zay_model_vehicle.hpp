@@ -39,10 +39,7 @@
 #define ZAY_MODEL_VEHICLE_HPP
 
 
-#include "zay_topics.hpp"
-
-
-
+#include "zay_coll_tester.hpp"
 
 
 namespace zaytuna {
@@ -53,6 +50,7 @@ namespace zaytuna {
 class model_vehicle;
 class _scene_widg;
 class primary_win;
+
 
 typedef std::allocator<void> void_alloc;
 
@@ -78,29 +76,29 @@ class vehicle_attributes
     
     ZAY_USED_GL_VERSION* _widg{nullptr};
     veh_transform_attribs<GLdouble> attribs;
-    rect_collistion_object<GLdouble> const *coll_rect_orig;
+    rect_collistion_object<GLdouble> const * coll_rect_orig{nullptr};
     rect_collistion_object<GLdouble> coll_rect;
-    rect_collistion_pack<GLdouble>* coll_pack;
+    rect_collistion_pack<GLdouble> const * coll_pack{nullptr};
     zaytuna::vehicle_state<GLdouble> *v_state{nullptr};
-    ZAY_MSG_LOGGER* zay_msg_logger;
+    ZAY_MSG_LOGGER* zay_msg_logger{nullptr};
 
 
     double elapsed_t;
     bool is_collided{0}, collision_msg{0};
     std::string collided_object{"unkown_collision_object_name"};
-    std::unique_ptr<std::thread> collision_tester{nullptr};
+    std::unique_ptr<coll_tester<GLdouble>> collision_tester{nullptr};
     
 
     friend class model_vehicle;
     friend class _scene_widg;
     friend class primary_win;
+    friend class coll_tester<GLdouble>;
 
 
 
 protected:
 
     glm::dvec3 vehic_direction;
-    const glm::dvec3 up_direction{0.0, 1.0, 0.0};
     glm::dvec3 front_ideal_tire; // position of front ideal tire
     glm::dvec3 back_ideal_tire;  //  position of back ideal tire
     glm::dvec3 old_back_ideal_tire; // position of back ideal tire in the previous frame
@@ -113,7 +111,6 @@ protected:
     double STEERING_WHEEL, DESIRED_STEERING; 
     double amount_of_hRotation{0.0}; // amount of horizontal rotation of the wheels
     double amount_of_rotation_Lidar{0.0}; // amount of rotation of lidar
-    const double lidar_spin_speed{750.0}; // constant scalar 'affects only rendering'
     bool is_detached{1};
 
 
@@ -130,8 +127,8 @@ protected:
     inline void update_actuators_commands(const double);
     inline void actuate();
     void update_rotation_att();
-    // void update_cent(void);
     void update_positional_attributes(const veh_transform_attribs<GLdouble>);
+    inline void update_projection_rect(void);
 
     veh_transform_attribs<GLdouble> current_state(void);
 
@@ -141,40 +138,7 @@ protected:
             front_tires_vRotation; // rotation matrix of vertical rotation of the front tires
 
     zaytuna::camera frontCam; // front camera
-
-
-    // Default Positional Parameters
-    const glm::dvec3 camHeight = glm::dvec3(0.0, 0.466, 0.0);
-    const glm::dmat4 f_rightT = glm::translate(glm::dvec3( 0.286, 0.031,  0.159));
-    const glm::dmat4 f_leftT =  glm::translate(glm::dvec3( 0.286, 0.031, -0.159));
-    const glm::dmat4 backT =    glm::translate(glm::dvec3( 0.0,  0.031,    0.0));
-    const glm::dmat4 lidar =    glm::translate(glm::dvec3( 0.118, 0.419,   0.0));
-    const glm::dvec4 camPos =  glm::dvec4(0.13, 0.466, 0.0, 1.0);
     glm::dvec4 frontCamViewDirection = glm::dvec4(0.5 , 0.278 , 0.0, 1.0); // should be adjusted!
-
-
-    // Physical Specifications
-    const double front_back_distance{0.2862}; // distance between back and front ideal tires
-    const double ticks_per_meter{173.0}; // 173 ticks per meter 'can be adjusted'
-    const double meters_per_tick{1.0/ticks_per_meter}; // meters per tick
-    const double tires_radius{0.0311};
-    const double PI2{2.0*M_PI};
-    const double tires_circumference{PI2*tires_radius};
-
-    const double steering_delay{0.2}; // sec
-    const double speed_delay{0.3}; // sec
-
-
-    
-    inline void update_projection_rect(void);
-
-    // for debugging purposes
-    typedef glm::vec<ZAY_POINT_D, GLdouble, glm::qualifier::packed_highp> coll_vert;
-    inline void collision_test(rect_collistion_pack<GLdouble> const * const);
-    inline bool axis_inter(const coll_vert, 
-                           const boost::array<coll_vert, ZAY_RECTANGLE_P>&) const;
-
-
 
 
 public:
@@ -188,7 +152,6 @@ public:
              rect_collistion_pack<GLdouble>*,
              zaytuna::vehicle_state<GLdouble>*,
              ZAY_MSG_LOGGER*);
-    // ~vehicle_attributes() = default;
     ~vehicle_attributes();
 
 

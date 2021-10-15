@@ -34,29 +34,42 @@ find_package(Qt5 REQUIRED COMPONENTS Core Widgets Gui OpenGL
 
 
 find_package(catkin REQUIRED COMPONENTS
-  roscpp
-  rospy
-  roslib
-  std_msgs
-  message_generation
-
-  # image_transport
-  # cv_bridge
+    roscpp
+    rospy
+    roslib
+    std_msgs
+    message_generation
+    geometry_msgs
+    
+    # image_transport
+    # cv_bridge
 )
 
 # set(CMAKE_CXX_FLAGS "-pthread")
 # set(CMAKE_EXE_LINKER_FLAGS "-pthread")
 
-catkin_package(
-  CATKIN_DEPENDS 
-  message_runtime 
-  roscpp 
-  rospy 
-  roslib 
-  std_msgs
+add_message_files(
+    FILES
+    Localization.msg
+    Pose.msg
+)
 
-  # image_transport 
-  # cv_bridge
+generate_messages(
+    DEPENDENCIES
+    std_msgs
+    geometry_msgs
+)
+
+catkin_package(
+    CATKIN_DEPENDS 
+    message_runtime 
+    roscpp 
+    rospy 
+    roslib 
+    std_msgs
+
+    # image_transport 
+    # cv_bridge
 )
 
 
@@ -88,6 +101,7 @@ set(zaytuna_headers
     src/zay_vertex.hpp
     src/zay_topics.hpp
     src/zay_topics_def.hpp
+    src/zay_coll_tester.hpp
     src/zay_app.hpp
   )
 
@@ -120,7 +134,7 @@ target_link_libraries(zay_simu
     # ${Boost_LIBRARIES}
     )
 
-
+add_dependencies(zay_simu zaytuna_generate_messages_cpp)
 
     
 
